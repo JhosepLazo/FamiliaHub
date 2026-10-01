@@ -53,12 +53,11 @@ export default function AppShell() {
 				<main className="mx-auto max-w-6xl px-5 py-7 pb-28 sm:px-7 lg:px-8 lg:pb-10"><Outlet /></main>
 			</div>
 
-			<nav className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-4 border-t border-slate-200 bg-white/95 px-2 pb-[max(8px,env(safe-area-inset-bottom))] pt-2 backdrop-blur lg:hidden">
+			<nav className={`fixed inset-x-0 bottom-0 z-30 grid ${membresia?.rol === 'ADMINISTRADOR' ? 'grid-cols-5' : 'grid-cols-4'} border-t border-slate-200 bg-white/95 px-2 pb-[max(8px,env(safe-area-inset-bottom))] pt-2 backdrop-blur lg:hidden`}>
 				<MobileLink to="/inicio" label="Inicio" icon={<Home size={19} />} />
 				<MobileLink to="/familia" label="Familia" icon={<Users size={19} />} />
-				{membresia?.rol === 'ADMINISTRADOR'
-					? <MobileLink to="/configuracion" label="Config." icon={<Settings2 size={19} />} />
-					: <MobileLink to="/perfil" label="Perfil" icon={<UserRound size={19} />} />}
+				{membresia?.rol === 'ADMINISTRADOR' && <MobileLink to="/configuracion" label="Config." icon={<Settings2 size={19} />} />}
+				<MobileLink to="/perfil" label="Perfil" icon={<UserRound size={19} />} />
 				<button onClick={logout} className="flex flex-col items-center gap-1 rounded-xl py-2 text-[11px] font-medium text-slate-400"><LogOut size={19} />Salir</button>
 			</nav>
 		</div>
