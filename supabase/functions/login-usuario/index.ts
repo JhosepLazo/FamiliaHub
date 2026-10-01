@@ -20,7 +20,8 @@ Deno.serve(async (req) => {
 
 	try {
 		const { usuario, password } = await req.json()
-		const normalizedUser = String(usuario ?? "").trim()\n\t\tconst normalizedLookup = normalizedUser.toLowerCase()
+		const normalizedUser = String(usuario ?? "").trim()
+		const normalizedLookup = normalizedUser.toLowerCase()
 		const rawPassword = String(password ?? "")
 
 		if (!/^[A-Za-z][A-Za-z0-9._-]{2,29}$/.test(normalizedUser) || rawPassword.length < 8) {
