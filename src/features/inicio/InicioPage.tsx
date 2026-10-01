@@ -98,12 +98,12 @@ export default function InicioPage() {
 
 function PriorityQuota({ row }: { row: CuotaConRecibo }) {
 	const { cuota, recibo, fechaObjetivo, diasRestantes, vencida } = row
-	const label = cuota.estado === 'POR_VALIDAR' ? 'Pago enviado' : vencida ? 'Vencida' : relativeDue(daysRestantes)
+	const label = cuota.estado === 'POR_VALIDAR' ? 'Pago enviado' : vencida ? 'Vencida' : relativeDue(diasRestantes)
 	return (
 		<Link to={`/recibos/${recibo.id}`} className="group flex items-center gap-4 rounded-2xl border border-slate-100 p-4 transition hover:border-slate-200 hover:bg-slate-50/60">
 			<div className={`grid size-10 shrink-0 place-items-center rounded-xl ${vencida ? 'bg-rose-50 text-rose-600' : 'bg-emerald-50 text-[#0f766e]'}`}><ReceiptText size={17} /></div>
 			<div className="min-w-0 flex-1">
-				<div className="flex flex-wrap items-center gap-2"><p className="truncate text-sm font-semibold">{recibo.nombre_concepto}</p><span className={`rounded-full px-2 py-1 text-[10px] font-semibold ${vencida ? 'bg-rose-50 text-rose-600' : quota.estado === 'POR_VALIDAR' ? 'bg-amber-50 text-amber-700' : 'bg-slate-100 text-slate-500'}`}>{label}</span></div>
+				<div className="flex flex-wrap items-center gap-2"><p className="truncate text-sm font-semibold">{recibo.nombre_concepto}</p><span className={`rounded-full px-2 py-1 text-[10px] font-semibold ${vencida ? 'bg-rose-50 text-rose-600' : cuota.estado === 'POR_VALIDAR' ? 'bg-amber-50 text-amber-700' : 'bg-slate-100 text-slate-500'}`}>{label}</span></div>
 				<p className="mt-1 text-xs text-slate-400">{dateLabel(fechaObjetivo)} · Falta {money(cuota.saldo_pendiente)}</p>
 			</div>
 			<ArrowRight size={15} className="shrink-0 text-slate-300 transition group-hover:translate-x-1" />
