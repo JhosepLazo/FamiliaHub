@@ -11,6 +11,8 @@ import FamiliaSettingsPage from '../features/familia/FamiliaSettingsPage'
 import OnboardingPage from '../features/familia/OnboardingPage'
 import InicioPage from '../features/inicio/InicioPage'
 import ProfilePage from '../features/perfil/ProfilePage'
+import ServicioFormPage from '../features/servicios/ServicioFormPage'
+import ServiciosPage from '../features/servicios/ServiciosPage'
 import RequireAdmin from './RequireAdmin'
 import RequireAuth from './RequireAuth'
 import RequireFamilia from './RequireFamilia'
@@ -38,6 +40,9 @@ export default function AppRouter() {
 							<Route path="/perfil" element={<ProfilePage />} />
 							<Route element={<RequireAdmin />}>
 								<Route path="/configuracion" element={<FamiliaSettingsPage />} />
+								<Route path="/servicios" element={<ServiciosPage />} />
+								<Route path="/servicios/nuevo" element={<ServicioFormPage />} />
+								<Route path="/servicios/:id/editar" element={<ServicioFormPage />} />
 							</Route>
 						</Route>
 					</Route>
