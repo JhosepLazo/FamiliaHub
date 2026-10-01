@@ -54,6 +54,8 @@ type FormState = {
 	categoriaId: string
 	proveedorId: string
 	frecuencia: Frecuencia
+	fechaInicioGeneracion: string
+	diasAnticipacion: string
 	metodo: MetodoObtencion
 	montoFijo: string
 	tipoVencimiento: TipoVencimiento
@@ -74,6 +76,8 @@ const initialState: FormState = {
 	categoriaId: '',
 	proveedorId: '',
 	frecuencia: 'MENSUAL',
+	fechaInicioGeneracion: todayLima(),
+	diasAnticipacion: '2',
 	metodo: 'MANUAL',
 	montoFijo: '',
 	tipoVencimiento: 'VARIABLE',
@@ -185,6 +189,8 @@ export default function ServicioFormPage() {
 			categoriaId: concept.categoria_id,
 			proveedorId: concept.proveedor_id,
 			frecuencia: concept.frecuencia,
+			fechaInicioGeneracion: concept.fecha_inicio_generacion,
+			diasAnticipacion: String(concept.dias_anticipacion_aporte),
 			metodo: concept.metodo_obtencion,
 			montoFijo: concept.monto_fijo == null ? '' : String(concept.monto_fijo),
 			tipoVencimiento: concept.tipo_vencimiento,
@@ -456,9 +462,11 @@ export default function ServicioFormPage() {
 			p_fallback_manual: true,
 			p_cuenta: account as Json,
 			p_participantes: participants as Json,
-		} as unknown as Database['public']['Functions']['guardar_concepto_servicio']['Args']
+			p_fecha_inicio_generacion: state.fechaInicioGeneracion,
+			p_dias_anticipacion_aporte: Number(state.diasAnticipacion),
+		} as unknown as Database['public']['Functions']['guardar_concepto_servicio_fase6']['Args']
 
-		const { error: saveError } = await supabase.rpc('guardar_concepto_servicio', args)
+		const { error: saveError } = await supabase.rpc('guardar_concepto_servicio_fase6', args)
 
 		if (saveError) {
 			setMessage(saveError.message)
@@ -549,6 +557,8 @@ export default function ServicioFormPage() {
 
 						<div className="mt-7 grid gap-5 md:grid-cols-3">
 							<label className="block"><span className="fh-label">Frecuencia</span><select className="fh-input" value={state.frecuencia} onChange={(e) => setState({ ...state, frecuencia: e.target.value as Frecuencia })}><option value="MENSUAL">Mensual</option><option value="ANUAL">Anual</option><option value="UNICA">Única</option></select></label>
+							<label className="block"><span className="fh-label">{state.frecuencia === 'ANUAL' ? 'Primera generación anual' : state.frecuencia === 'UNICA' ? 'Fecha del periodo único' : 'Generar desde'}</span><input className="fh-input" type="date" value={state.fechaInicioGeneracion} onChange={(e) => setState({ ...state, fechaInicioGeneracion: e.target.value })} /></label>
+							<label className="block"><span className="fh-label">Pedir aporte antes del vencimiento</span><div className="relative"><input className="fh-input pr-14" type="number" min="0" max="31" step="1" value={state.diasAnticipacion} onChange={(e) => setState({ ...state, diasAnticipacion: e.target.value })} /><span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-slate-400">días</span></div></label>
 							<label className="block"><span className="fh-label">Cómo obtener el monto</span><select className="fh-input" value={state.metodo} onChange={(e) => changeMethod(e.target.value as MetodoObtencion)}><option value="AUTOMATICO">Automático</option><option value="FIJO">Fijo</option><option value="MANUAL">Manual</option></select></label>
 							{state.metodo === 'FIJO' && <label className="block"><span className="fh-label">Monto fijo (S/)</span><input className="fh-input" type="number" min="0.01" step="0.01" value={state.montoFijo} onChange={(e) => setState({ ...state, montoFijo: e.target.value, participantes: normalizeParticipantValues(state.participantes, state.tipoDistribucion, state.repartoResto, e.target.value) })} placeholder="0.00" /></label>}
 						</div>
@@ -641,6 +651,8 @@ export default function ServicioFormPage() {
 							<Review label="Servicio" value={state.nombre} />
 							<Review label="Proveedor" value={provider?.nombre ?? 'Sin proveedor'} />
 							<Review label="Frecuencia" value={frecuenciaLabel[state.frecuencia]} />
+							<Review label="Generación" value={formatDate(state.fechaInicioGeneracion)} />
+							<Review label="Fecha límite familiar" value={`${state.diasAnticipacion} día${Number(state.diasAnticipacion) === 1 ? '' : 's'} antes del proveedor`} />
 							<Review label="Monto" value={state.metodo === 'FIJO' ? `S/ ${Number(state.montoFijo || 0).toFixed(2)}` : metodoLabel[state.metodo]} />
 							<Review label="Vencimiento" value={state.tipoVencimiento === 'DIA_FIJO' ? `Día ${state.diaVencimiento}` : vencimientoLabel[state.tipoVencimiento]} />
 							<Review label="División" value={distribucionLabel[state.tipoDistribucion]} />
@@ -719,6 +731,10 @@ function validateStep(step: number, state: FormState, identifiers: Identificador
 
 	if (step === 2) {
 		if (!state.proveedorId) return 'Selecciona o crea un proveedor.'
+		if (!state.fechaInicioGeneracion) return 'Indica desde cuándo debe generar recibos este servicio.'
+		const anticipation = Number(state.diasAnticipacion)
+		if (!Number.isInteger(anticipation) || anticipation < 0 || anticipation > 31) return 'Los días de anticipación deben estar entre 0 y 31.'
+
 		if (state.metodo === 'FIJO') {
 			const amount = Number(state.montoFijo)
 			if (!Number.isFinite(amount) || amount <= 0 || !twoDecimals(amount)) return 'El monto fijo debe ser mayor a cero y tener máximo dos decimales.'
@@ -869,4 +885,18 @@ function distributionDescription(value: TipoDistribucion) {
 	if (value === 'PORCENTAJE') return 'Cada integrante tiene un porcentaje.'
 	if (value === 'MONTO_FIJO') return 'Cada integrante tiene un monto exacto.'
 	return 'Montos fijos y reparto del saldo restante.'
+}
+
+function todayLima() {
+	return new Intl.DateTimeFormat('en-CA', {
+		timeZone: 'America/Lima',
+		year: 'numeric',
+		month: '2-digit',
+		day: '2-digit',
+	}).format(new Date())
+}
+
+function formatDate(value: string) {
+	if (!value) return '—'
+	return new Intl.DateTimeFormat('es-PE', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'UTC' }).format(new Date(`${value}T00:00:00Z`))
 }
