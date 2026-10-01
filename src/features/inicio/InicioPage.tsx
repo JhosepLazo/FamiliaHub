@@ -115,7 +115,7 @@ function AdminAttentionPanel({ attention }: { attention: AdminAttention }) {
 	const items = [
 		{ label: 'Recibos esperando monto', count: attention.recibosEsperandoMonto },
 		{ label: 'Vencimientos por completar', count: attention.vencimientosFaltantes },
-		{ label: 'Aportes por validar', count: attention.aportesPorValidar },
+		{ label: 'Pagos por validar', count: attention.pagosPorValidar },
 		{ label: 'Recibos vencidos', count: attention.recibosVencidos },
 		{ label: 'Recaudaciones fuera de fecha', count: attention.recaudacionesAtrasadas },
 	].filter((item) => item.count > 0)
@@ -130,7 +130,10 @@ function AdminAttentionPanel({ attention }: { attention: AdminAttention }) {
 			{items.length ? (
 				<div className="mt-5 space-y-2">
 					{items.map((item) => <div key={item.label} className="flex items-center justify-between rounded-xl bg-slate-50 px-4 py-3"><span className="text-xs font-medium text-slate-600">{item.label}</span><span className="grid min-w-6 place-items-center rounded-full bg-white px-2 py-1 text-[10px] font-bold text-slate-600">{item.count}</span></div>)}
-					<Link to="/recibos" className="mt-4 inline-flex items-center gap-1 text-xs font-semibold text-[#0f766e]">Resolver en Recibos<ArrowRight size={14} /></Link>
+					<div className="mt-4 flex flex-wrap gap-3">
+						<Link to="/pagos" className="inline-flex items-center gap-1 text-xs font-semibold text-[#0f766e]">Validar pagos<ArrowRight size={14} /></Link>
+						<Link to="/recibos" className="inline-flex items-center gap-1 text-xs font-semibold text-slate-500">Resolver recibos<ArrowRight size={14} /></Link>
+					</div>
 				</div>
 			) : (
 				<div className="mt-5 rounded-2xl bg-emerald-50 p-4"><p className="text-sm font-semibold text-emerald-800">Todo está al día ✓</p><p className="mt-1 text-xs text-emerald-700/70">FamiliaHub no necesita que hagas nada ahora.</p></div>
