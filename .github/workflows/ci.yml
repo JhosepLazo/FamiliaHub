@@ -33,4 +33,58 @@ jobs:
         run: npm run typecheck
 
       - name: Build
+        env:
+          VITE_SUPABASE_URL: https://dqddeokbxzbmlbsltige.supabase.co
+          VITE_SUPABASE_PUBLISHABLE_KEY: sb_publishable_bv2ksC-5obhzAuXYppAuaw_2IhsdHjY
         run: npm run build
+
+  publish-static:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Build production
+        env:
+          VITE_SUPABASE_URL: https://dqddeokbxzbmlbsltige.supabase.co
+          VITE_SUPABASE_PUBLISHABLE_KEY: sb_publishable_bv2ksC-5obhzAuXYppAuaw_2IhsdHjY
+        run: npm run build
+
+      - name: Publish vercel-static branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp -R dist /tmp/familiahub-dist
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout --orphan vercel-static
+          git rm -rf .
+          cp -R /tmp/familiahub-dist/. .
+          cat > vercel.json <<'EOF'
+          {
+            "rewrites": [
+              {
+                "source": "/(.*)",
+                "destination": "/index.html"
+              }
+            ]
+          }
+          EOF
+          touch .nojekyll
+          git add -A
+          git commit -m "chore: publicar build estático"
+          git push origin vercel-static --force
