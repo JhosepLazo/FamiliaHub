@@ -796,6 +796,7 @@ export type Database = {
           pagador_miembro_id: string
           pagador_nombre_snapshot: string
           pagador_usuario_id: string
+          receptor_instrucciones_snapshot: string | null
           receptor_miembro_id: string | null
           receptor_nombre_snapshot: string
           receptor_qr_bucket: string | null
@@ -828,6 +829,7 @@ export type Database = {
           pagador_miembro_id: string
           pagador_nombre_snapshot: string
           pagador_usuario_id: string
+          receptor_instrucciones_snapshot?: string | null
           receptor_miembro_id?: string | null
           receptor_nombre_snapshot: string
           receptor_qr_bucket?: string | null
@@ -860,6 +862,7 @@ export type Database = {
           pagador_miembro_id?: string
           pagador_nombre_snapshot?: string
           pagador_usuario_id?: string
+          receptor_instrucciones_snapshot?: string | null
           receptor_miembro_id?: string | null
           receptor_nombre_snapshot?: string
           receptor_qr_bucket?: string | null
