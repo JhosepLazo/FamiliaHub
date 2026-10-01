@@ -873,31 +873,66 @@ Detalles de comprobantes individuales pueden restringirse al dueño y administra
 
 ## 24. Fase funcional O — Pago de cuota
 
-### V1
+Fase 8 implementa el pago manual asistido sin almacenar PIN, contraseña ni credenciales de Yape.
 
-Al pulsar Pagar:
+### Métodos habilitados
 
-1. mostrar importe exacto pendiente;
-2. mostrar cuenta receptora;
-3. mostrar QR;
-4. permitir copiar referencia/número;
-5. explicar que el usuario debe volver a FamiliaHub;
-6. botón Ya pagué.
+- Yape;
+- Transferencia;
+- Efectivo;
+- Otro.
 
-### Confirmación manual asistida
+El fondo familiar puede configurar un destino distinto por método. Cada integrante también puede configurar sus propios datos para recibir reembolsos.
 
-Formulario:
+### Pago individual
 
-- importe;
-- operación/referencia;
-- comprobante;
-- fecha.
+Al pulsar **Pagar saldo**:
 
-El importe se precarga y no debe obligar al usuario a calcular.
+1. FamiliaHub precarga el saldo pendiente;
+2. identifica si el destino es Fondo familiar o un integrante;
+3. muestra únicamente los métodos activos de ese receptor;
+4. crea un borrador de pago;
+5. congela titular, referencia y QR del receptor en el pago;
+6. muestra el importe exacto;
+7. el usuario paga externamente;
+8. vuelve a FamiliaHub y pulsa **Ya pagué**;
+9. registra fecha y referencia y/o comprobante;
+10. el pago queda **Pago enviado**.
 
-### Resultado
+Para Yape y Transferencia se exige al menos una de estas evidencias:
 
-Aporte queda PAGO_ENVIADO.
+- referencia/operación;
+- comprobante.
+
+Efectivo no exige archivo, pero siempre exige validación del receptor.
+
+### Pagar todo
+
+FamiliaHub utiliza:
+
+```text
+pago_familiar
+    ↓
+pago_asignaciones
+    ├── cuota A
+    ├── cuota B
+    └── cuota N
+```
+
+Un pago puede cubrir varias cuotas en una sola operación externa solo cuando comparten exactamente el mismo receptor.
+
+Si las cuotas tienen receptores diferentes:
+
+```text
+Fondo familiar → Pago 1
+Jhosep          → Pago 2
+```
+
+FamiliaHub separa automáticamente los grupos. Nunca representa dos destinatarios como un único pago.
+
+### Pagos parciales
+
+El usuario puede reducir el importe de una cuota, pero nunca superar el saldo disponible. Un pago en validación también reserva ese importe para evitar sobrepago concurrente.
 
 ---
 
@@ -926,56 +961,75 @@ Nunca confiar en parámetros enviados solamente desde el frontend.
 
 ## 26. Fase funcional Q — Validación manual
 
-Mientras el medio de pago no tenga webhook:
+Mientras el medio de pago no tenga webhook, el pago permanece separado del libro financiero hasta su validación.
 
-Administrador/receptor ve:
+Puede validar:
 
-- usuario;
-- concepto;
-- cuota;
-- importe;
+- administrador;
+- integrante configurado como receptor responsable del fondo familiar;
+- integrante que realmente recibe un reembolso.
+
+La bandeja **Pagos y validaciones** muestra:
+
+- pagador;
+- receptor;
+- método;
+- cuotas incluidas;
+- importe total;
 - fecha;
 - referencia;
-- comprobante.
-
-Acciones:
-
-- Confirmar.
-- Rechazar.
+- comprobante privado.
 
 ### Confirmar
 
-- aporte confirmado;
-- saldo de cuota actualizado;
-- cuota PAGADA si saldo = 0;
-- recaudación recalculada;
-- notificación al integrante.
+La aprobación es una única transacción:
+
+1. volver a bloquear todas las cuotas;
+2. comprobar nuevamente saldos;
+3. crear un aporte confirmado por cada asignación;
+4. aumentar el monto pagado de cada cuota;
+5. recalcular estados de cuota;
+6. recalcular recaudación de cada recibo;
+7. marcar la cabecera de pago CONFIRMADA.
+
+Si una sola asignación ya no es válida, no se aplica ninguna.
 
 ### Rechazar
 
 - motivo obligatorio;
-- estado RECHAZADA;
-- saldo no cambia;
-- integrante recibe notificación.
+- pago RECHAZADO;
+- ninguna cuota cambia;
+- el importe deja de estar reservado.
+
+### Anular
+
+Los pagos no confirmados pueden anularse por el pagador, administrador o receptor autorizado.
+
+Un pago confirmado solo puede revertirse por administrador o receptor responsable. La reversión anula sus aportes vinculados y resta los importes de las cuotas dentro de la misma transacción.
 
 ---
 
 ## 27. Fase funcional R — Pago parcial
 
-Si un usuario paga menos:
+Si una cuota es S/100 y el usuario prepara S/60:
 
-- registrar aporte;
-- reducir saldo;
-- cuota PARCIAL;
-- mantener botón Pagar saldo.
+```text
+Cuota asignada  S/100
+Pago enviado     S/60
+Disponible       S/40
+```
 
-Ejemplo:
+Mientras S/60 espera validación, FamiliaHub no permite preparar otros pagos que excedan los S/40 disponibles.
 
-Cuota S/100.
+Cuando el receptor confirma:
 
-Aporte S/60.
+```text
+Pagado           S/60
+Saldo             S/40
+Estado          PARCIAL
+```
 
-Saldo S/40.
+El botón **Pagar saldo** continúa disponible por S/40.
 
 ---
 
@@ -1014,6 +1068,26 @@ Cuando sea completa:
 
 ---
 
+### Privacidad de comprobantes
+
+Los archivos se almacenan en buckets privados.
+
+Comprobante de aporte/reembolso:
+
+- pagador;
+- receptor responsable;
+- administrador.
+
+QR personal:
+
+- propietario;
+- administrador;
+- únicamente integrantes que realmente deban reembolsarle.
+
+No se generan URLs públicas permanentes. La interfaz usa URLs firmadas de corta duración.
+
+---
+
 ## 30. Fase funcional U — Pago del recibo al proveedor
 
 Proceso independiente de la recaudación.
@@ -1044,6 +1118,8 @@ Ambos deben ser válidos.
 Estado del recibo = PAGADO.
 
 No marcar cuotas personales como pagadas por este hecho.
+
+El comprobante del pago al proveedor se almacena de forma independiente del comprobante del aporte familiar. Todos los integrantes pueden consultar la evidencia del proveedor dentro del recibo; solo el administrador puede adjuntarla o reemplazarla.
 
 ---
 
