@@ -213,13 +213,34 @@ FamiliaHub será una aplicación privada.
 - La sesión se mantendrá de forma segura y podrá cerrarse desde cualquier dispositivo.
 - Recuperación de contraseña disponible mediante el proveedor de autenticación.
 
-### Inicio de sesión V1
+### Creación y acceso de cuenta
 
-- correo electrónico;
+La identidad real continúa protegida por Supabase Auth.
+
+Al crear una cuenta se solicita:
+
+- nombre;
+- correo electrónico real;
+- usuario único;
 - contraseña;
-- recuperación de contraseña.
+- confirmación del correo.
 
-En versiones posteriores podrá agregarse autenticación por OTP, passkeys o biometría en móvil sin cambiar el modelo de usuario.
+El correo se utiliza para:
+
+- validar la creación de la cuenta;
+- recuperar acceso;
+- comunicaciones de seguridad.
+
+El ingreso diario utiliza:
+
+- usuario;
+- contraseña.
+
+El frontend nunca resuelve ni expone el correo asociado a un username. La resolución `usuario → identidad Auth` ocurre exclusivamente en una Edge Function del servidor y cualquier error de usuario inexistente o contraseña incorrecta devuelve el mismo mensaje genérico.
+
+Los usernames son únicos sin distinguir mayúsculas/minúsculas. Se permiten entre 3 y 30 caracteres usando letras, números, punto, guion y guion bajo.
+
+En versiones posteriores podrá agregarse OTP, passkeys o biometría en móvil sin cambiar el modelo de usuario.
 
 ---
 
