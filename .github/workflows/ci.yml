@@ -10,7 +10,7 @@ on:
       - main
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build:
@@ -27,6 +27,18 @@ jobs:
 
       - name: Install
         run: npm install
+
+      - name: Lock dependencies
+        if: github.event_name == 'push' && github.ref_name == 'fase-3-4'
+        run: |
+          git add package-lock.json
+          if git diff --cached --quiet; then
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "chore: lock dependencies"
+          git push origin HEAD:fase-3-4
 
       - name: Typecheck
         run: npm run typecheck
