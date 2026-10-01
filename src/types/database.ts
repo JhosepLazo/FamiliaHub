@@ -1041,6 +1041,8 @@ export type Database = {
           concepto_id: string
           created_at: string
           dias_anticipacion_aporte: number
+          distribucion_ajustada: boolean
+          distribucion_ajuste_motivo: string | null
           estado: Database["public"]["Enums"]["estado_recibo"]
           estado_recaudacion: Database["public"]["Enums"]["estado_recaudacion"]
           familia_id: string
@@ -1069,6 +1071,8 @@ export type Database = {
           concepto_id: string
           created_at?: string
           dias_anticipacion_aporte: number
+          distribucion_ajustada?: boolean
+          distribucion_ajuste_motivo?: string | null
           estado?: Database["public"]["Enums"]["estado_recibo"]
           estado_recaudacion?: Database["public"]["Enums"]["estado_recaudacion"]
           familia_id: string
@@ -1097,6 +1101,8 @@ export type Database = {
           concepto_id?: string
           created_at?: string
           dias_anticipacion_aporte?: number
+          distribucion_ajustada?: boolean
+          distribucion_ajuste_motivo?: string | null
           estado?: Database["public"]["Enums"]["estado_recibo"]
           estado_recaudacion?: Database["public"]["Enums"]["estado_recaudacion"]
           familia_id?: string
@@ -1192,6 +1198,10 @@ export type Database = {
     Functions: {
       actualizar_vencimiento_recibo: {
         Args: { p_fecha_vencimiento: string; p_recibo_id: string }
+        Returns: undefined
+      }
+      ajustar_cuotas_recibo: {
+        Args: { p_cuotas: Json; p_motivo: string; p_recibo_id: string }
         Returns: undefined
       }
       anular_aporte: {
