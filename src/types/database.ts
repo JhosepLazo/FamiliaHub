@@ -1000,6 +1000,7 @@ export type Database = {
           nombre: string | null
           updated_at: string
           usuario: string | null
+          usuario_normalizado: string | null
         }
         Insert: {
           avatar_url?: string | null
@@ -1008,6 +1009,7 @@ export type Database = {
           nombre?: string | null
           updated_at?: string
           usuario?: string | null
+          usuario_normalizado?: string | null
         }
         Update: {
           avatar_url?: string | null
@@ -1016,6 +1018,7 @@ export type Database = {
           nombre?: string | null
           updated_at?: string
           usuario?: string | null
+          usuario_normalizado?: string | null
         }
         Relationships: []
       }
