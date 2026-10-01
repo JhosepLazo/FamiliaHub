@@ -183,6 +183,25 @@ export default function PagarPage() {
 		setWorking(false)
 	}
 
+	const cancelDraft = async () => {
+		if (!draft) return
+		setWorking(true)
+		const { error } = await supabase.rpc('anular_pago_familiar', {
+			p_pago_id: draft.id,
+			p_motivo: 'Preparación cancelada por el pagador.',
+		})
+		if (error) {
+			setMessage(error.message)
+		} else {
+			setDraft(null)
+			setActiveGroup(null)
+			setQrUrl(null)
+			setProof(null)
+			setReference('')
+		}
+		setWorking(false)
+	}
+
 	const finalize = async (event: FormEvent) => {
 		event.preventDefault()
 		if (!draft || !familia || !activeGroup) return
@@ -276,7 +295,7 @@ export default function PagarPage() {
 										<label><span className="fh-label">Fecha del pago</span><input className="fh-input" type="date" max={todayLima()} required value={paymentDate} onChange={(e) => setPaymentDate(e.target.value)} /></label>
 										<label><span className="fh-label">Referencia / operación</span><input className="fh-input" value={reference} onChange={(e) => setReference(e.target.value)} placeholder="Código de Yape, operación, etc." /></label>
 										<label className="sm:col-span-2 flex cursor-pointer items-center gap-4 rounded-2xl border border-dashed border-slate-300 bg-white p-4"><div className="grid size-14 place-items-center rounded-xl bg-slate-50 text-slate-400"><ImageUp /></div><div><p className="text-sm font-semibold">{proof ? proof.name : 'Adjuntar comprobante'}</p><p className="mt-1 text-xs text-slate-400">Imagen o PDF · máximo 8 MB. Para Yape/transferencia se exige referencia o comprobante.</p></div><input className="hidden" type="file" accept="image/png,image/jpeg,image/webp,application/pdf" onChange={(e) => setProof(e.target.files?.[0] ?? null)} /></label>
-										<div className="sm:col-span-2 flex flex-wrap gap-3"><button className="fh-button-primary" disabled={working}>Ya pagué · Enviar a validar</button><button type="button" className="fh-button-secondary" onClick={() => { setDraft(null); setActiveGroup(null); setQrUrl(null); }}>Cancelar preparación</button></div>
+										<div className="sm:col-span-2 flex flex-wrap gap-3"><button className="fh-button-primary" disabled={working}>Ya pagué · Enviar a validar</button><button type="button" disabled={working} className="fh-button-secondary" onClick={() => void cancelDraft()}>Cancelar preparación</button></div>
 									</form>
 								</div>
 							)}
