@@ -49,6 +49,146 @@ export type Database = {
           },
         ]
       }
+      concepto_participantes: {
+        Row: {
+          concepto_id: string
+          created_at: string
+          id: string
+          miembro_id: string
+          modalidad: Database["public"]["Enums"]["modalidad_participante_concepto"]
+          orden: number
+          valor: number | null
+        }
+        Insert: {
+          concepto_id: string
+          created_at?: string
+          id?: string
+          miembro_id: string
+          modalidad: Database["public"]["Enums"]["modalidad_participante_concepto"]
+          orden?: number
+          valor?: number | null
+        }
+        Update: {
+          concepto_id?: string
+          created_at?: string
+          id?: string
+          miembro_id?: string
+          modalidad?: Database["public"]["Enums"]["modalidad_participante_concepto"]
+          orden?: number
+          valor?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "concepto_participantes_concepto_id_fkey"
+            columns: ["concepto_id"]
+            isOneToOne: false
+            referencedRelation: "conceptos_pago"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "concepto_participantes_miembro_id_fkey"
+            columns: ["miembro_id"]
+            isOneToOne: false
+            referencedRelation: "miembros_familia"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      conceptos_pago: {
+        Row: {
+          activo: boolean
+          categoria_id: string
+          created_at: string
+          dia_vencimiento: number | null
+          fallback_manual: boolean
+          familia_id: string
+          frecuencia: Database["public"]["Enums"]["frecuencia_concepto"]
+          id: string
+          metodo_obtencion: Database["public"]["Enums"]["metodo_obtencion_monto"]
+          monto_fijo: number | null
+          nombre: string
+          plantilla_id: string | null
+          proveedor_id: string
+          reparto_resto:
+            | Database["public"]["Enums"]["tipo_reparto_resto"]
+            | null
+          tipo_distribucion: Database["public"]["Enums"]["tipo_distribucion_concepto"]
+          tipo_vencimiento: Database["public"]["Enums"]["tipo_vencimiento_concepto"]
+          updated_at: string
+        }
+        Insert: {
+          activo?: boolean
+          categoria_id: string
+          created_at?: string
+          dia_vencimiento?: number | null
+          fallback_manual?: boolean
+          familia_id: string
+          frecuencia?: Database["public"]["Enums"]["frecuencia_concepto"]
+          id?: string
+          metodo_obtencion: Database["public"]["Enums"]["metodo_obtencion_monto"]
+          monto_fijo?: number | null
+          nombre: string
+          plantilla_id?: string | null
+          proveedor_id: string
+          reparto_resto?:
+            | Database["public"]["Enums"]["tipo_reparto_resto"]
+            | null
+          tipo_distribucion?: Database["public"]["Enums"]["tipo_distribucion_concepto"]
+          tipo_vencimiento: Database["public"]["Enums"]["tipo_vencimiento_concepto"]
+          updated_at?: string
+        }
+        Update: {
+          activo?: boolean
+          categoria_id?: string
+          created_at?: string
+          dia_vencimiento?: number | null
+          fallback_manual?: boolean
+          familia_id?: string
+          frecuencia?: Database["public"]["Enums"]["frecuencia_concepto"]
+          id?: string
+          metodo_obtencion?: Database["public"]["Enums"]["metodo_obtencion_monto"]
+          monto_fijo?: number | null
+          nombre?: string
+          plantilla_id?: string | null
+          proveedor_id?: string
+          reparto_resto?:
+            | Database["public"]["Enums"]["tipo_reparto_resto"]
+            | null
+          tipo_distribucion?: Database["public"]["Enums"]["tipo_distribucion_concepto"]
+          tipo_vencimiento?: Database["public"]["Enums"]["tipo_vencimiento_concepto"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conceptos_pago_categoria_id_fkey"
+            columns: ["categoria_id"]
+            isOneToOne: false
+            referencedRelation: "categorias"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conceptos_pago_familia_id_fkey"
+            columns: ["familia_id"]
+            isOneToOne: false
+            referencedRelation: "familias"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conceptos_pago_plantilla_id_fkey"
+            columns: ["plantilla_id"]
+            isOneToOne: false
+            referencedRelation: "plantillas_servicio"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conceptos_pago_proveedor_id_fkey"
+            columns: ["proveedor_id"]
+            isOneToOne: false
+            referencedRelation: "proveedores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       configuracion_pago_familiar: {
         Row: {
           activo: boolean
@@ -92,6 +232,57 @@ export type Database = {
             columns: ["familia_id"]
             isOneToOne: true
             referencedRelation: "familias"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cuentas_servicio: {
+        Row: {
+          activo: boolean
+          alias: string | null
+          concepto_id: string
+          created_at: string
+          id: string
+          identificador_nombre: string | null
+          identificador_valor: string
+          tipo_identificador_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          activo?: boolean
+          alias?: string | null
+          concepto_id: string
+          created_at?: string
+          id?: string
+          identificador_nombre?: string | null
+          identificador_valor: string
+          tipo_identificador_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          activo?: boolean
+          alias?: string | null
+          concepto_id?: string
+          created_at?: string
+          id?: string
+          identificador_nombre?: string | null
+          identificador_valor?: string
+          tipo_identificador_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cuentas_servicio_concepto_id_fkey"
+            columns: ["concepto_id"]
+            isOneToOne: true
+            referencedRelation: "conceptos_pago"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cuentas_servicio_tipo_identificador_id_fkey"
+            columns: ["tipo_identificador_id"]
+            isOneToOne: false
+            referencedRelation: "tipos_identificador_proveedor"
             referencedColumns: ["id"]
           },
         ]
@@ -276,19 +467,206 @@ export type Database = {
           },
         ]
       }
+      plantillas_servicio: {
+        Row: {
+          activo: boolean
+          codigo: string
+          created_at: string
+          descripcion: string | null
+          frecuencia_recomendada: Database["public"]["Enums"]["frecuencia_concepto"]
+          icono: string
+          id: string
+          metodo_obtencion_recomendado: Database["public"]["Enums"]["metodo_obtencion_monto"]
+          nombre: string
+          orden: number
+          tipo_servicio: Database["public"]["Enums"]["tipo_servicio"]
+          tipo_vencimiento_recomendado: Database["public"]["Enums"]["tipo_vencimiento_concepto"]
+        }
+        Insert: {
+          activo?: boolean
+          codigo: string
+          created_at?: string
+          descripcion?: string | null
+          frecuencia_recomendada?: Database["public"]["Enums"]["frecuencia_concepto"]
+          icono: string
+          id?: string
+          metodo_obtencion_recomendado?: Database["public"]["Enums"]["metodo_obtencion_monto"]
+          nombre: string
+          orden?: number
+          tipo_servicio: Database["public"]["Enums"]["tipo_servicio"]
+          tipo_vencimiento_recomendado?: Database["public"]["Enums"]["tipo_vencimiento_concepto"]
+        }
+        Update: {
+          activo?: boolean
+          codigo?: string
+          created_at?: string
+          descripcion?: string | null
+          frecuencia_recomendada?: Database["public"]["Enums"]["frecuencia_concepto"]
+          icono?: string
+          id?: string
+          metodo_obtencion_recomendado?: Database["public"]["Enums"]["metodo_obtencion_monto"]
+          nombre?: string
+          orden?: number
+          tipo_servicio?: Database["public"]["Enums"]["tipo_servicio"]
+          tipo_vencimiento_recomendado?: Database["public"]["Enums"]["tipo_vencimiento_concepto"]
+        }
+        Relationships: []
+      }
+      proveedores: {
+        Row: {
+          activo: boolean
+          codigo: string | null
+          created_at: string
+          es_sistema: boolean
+          estado_integracion: Database["public"]["Enums"]["estado_integracion_proveedor"]
+          familia_id: string | null
+          id: string
+          nombre: string
+          tipo_servicio: Database["public"]["Enums"]["tipo_servicio"]
+          updated_at: string
+        }
+        Insert: {
+          activo?: boolean
+          codigo?: string | null
+          created_at?: string
+          es_sistema?: boolean
+          estado_integracion?: Database["public"]["Enums"]["estado_integracion_proveedor"]
+          familia_id?: string | null
+          id?: string
+          nombre: string
+          tipo_servicio: Database["public"]["Enums"]["tipo_servicio"]
+          updated_at?: string
+        }
+        Update: {
+          activo?: boolean
+          codigo?: string | null
+          created_at?: string
+          es_sistema?: boolean
+          estado_integracion?: Database["public"]["Enums"]["estado_integracion_proveedor"]
+          familia_id?: string | null
+          id?: string
+          nombre?: string
+          tipo_servicio?: Database["public"]["Enums"]["tipo_servicio"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "proveedores_familia_id_fkey"
+            columns: ["familia_id"]
+            isOneToOne: false
+            referencedRelation: "familias"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tipos_identificador_proveedor: {
+        Row: {
+          activo: boolean
+          ayuda: string | null
+          codigo: string
+          created_at: string
+          id: string
+          nombre: string
+          orden: number
+          proveedor_id: string
+        }
+        Insert: {
+          activo?: boolean
+          ayuda?: string | null
+          codigo: string
+          created_at?: string
+          id?: string
+          nombre: string
+          orden?: number
+          proveedor_id: string
+        }
+        Update: {
+          activo?: boolean
+          ayuda?: string | null
+          codigo?: string
+          created_at?: string
+          id?: string
+          nombre?: string
+          orden?: number
+          proveedor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tipos_identificador_proveedor_proveedor_id_fkey"
+            columns: ["proveedor_id"]
+            isOneToOne: false
+            referencedRelation: "proveedores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      cambiar_estado_concepto: {
+        Args: { p_activo: boolean; p_concepto_id: string }
+        Returns: undefined
+      }
+      cambiar_estado_proveedor_personalizado: {
+        Args: { p_activo: boolean; p_proveedor_id: string }
+        Returns: undefined
+      }
       crear_familia_inicial: { Args: { p_nombre: string }; Returns: string }
+      crear_proveedor_personalizado: {
+        Args: {
+          p_familia_id: string
+          p_nombre: string
+          p_tipo_servicio: Database["public"]["Enums"]["tipo_servicio"]
+        }
+        Returns: string
+      }
+      guardar_concepto_servicio: {
+        Args: {
+          p_categoria_id: string
+          p_concepto_id: string
+          p_cuenta: Json
+          p_dia_vencimiento: number
+          p_fallback_manual: boolean
+          p_familia_id: string
+          p_frecuencia: Database["public"]["Enums"]["frecuencia_concepto"]
+          p_metodo_obtencion: Database["public"]["Enums"]["metodo_obtencion_monto"]
+          p_monto_fijo: number
+          p_nombre: string
+          p_participantes: Json
+          p_plantilla_id: string
+          p_proveedor_id: string
+          p_reparto_resto: Database["public"]["Enums"]["tipo_reparto_resto"]
+          p_tipo_distribucion: Database["public"]["Enums"]["tipo_distribucion_concepto"]
+          p_tipo_vencimiento: Database["public"]["Enums"]["tipo_vencimiento_concepto"]
+        }
+        Returns: string
+      }
     }
     Enums: {
+      estado_integracion_proveedor: "NO_DISPONIBLE" | "PREPARADO" | "DISPONIBLE"
       estado_invitacion: "PENDIENTE" | "ACEPTADA" | "EXPIRADA" | "REVOCADA"
       estado_miembro: "ACTIVO" | "INACTIVO"
       estado_periodo: "ABIERTO" | "COMPLETADO"
+      frecuencia_concepto: "MENSUAL" | "ANUAL" | "UNICA"
+      metodo_obtencion_monto: "MANUAL" | "FIJO" | "AUTOMATICO"
       metodo_pago_familiar: "YAPE" | "TRANSFERENCIA" | "EFECTIVO" | "OTRO"
+      modalidad_participante_concepto:
+        | "IGUAL"
+        | "PORCENTAJE"
+        | "MONTO_FIJO"
+        | "RESTO_IGUAL"
+        | "RESTO_PORCENTAJE"
       rol_familia: "ADMINISTRADOR" | "INTEGRANTE"
+      tipo_distribucion_concepto:
+        | "IGUAL"
+        | "PORCENTAJE"
+        | "MONTO_FIJO"
+        | "MIXTA"
+      tipo_reparto_resto: "IGUAL" | "PORCENTAJE"
+      tipo_servicio: "AGUA" | "LUZ" | "INTERNET" | "GAS" | "OTRO"
+      tipo_vencimiento_concepto: "DIA_FIJO" | "VARIABLE" | "PROVEEDOR"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -416,11 +794,34 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      estado_integracion_proveedor: [
+        "NO_DISPONIBLE",
+        "PREPARADO",
+        "DISPONIBLE",
+      ],
       estado_invitacion: ["PENDIENTE", "ACEPTADA", "EXPIRADA", "REVOCADA"],
       estado_miembro: ["ACTIVO", "INACTIVO"],
       estado_periodo: ["ABIERTO", "COMPLETADO"],
+      frecuencia_concepto: ["MENSUAL", "ANUAL", "UNICA"],
+      metodo_obtencion_monto: ["MANUAL", "FIJO", "AUTOMATICO"],
       metodo_pago_familiar: ["YAPE", "TRANSFERENCIA", "EFECTIVO", "OTRO"],
+      modalidad_participante_concepto: [
+        "IGUAL",
+        "PORCENTAJE",
+        "MONTO_FIJO",
+        "RESTO_IGUAL",
+        "RESTO_PORCENTAJE",
+      ],
       rol_familia: ["ADMINISTRADOR", "INTEGRANTE"],
+      tipo_distribucion_concepto: [
+        "IGUAL",
+        "PORCENTAJE",
+        "MONTO_FIJO",
+        "MIXTA",
+      ],
+      tipo_reparto_resto: ["IGUAL", "PORCENTAJE"],
+      tipo_servicio: ["AGUA", "LUZ", "INTERNET", "GAS", "OTRO"],
+      tipo_vencimiento_concepto: ["DIA_FIJO", "VARIABLE", "PROVEEDOR"],
     },
   },
 } as const

@@ -1,3 +1,4 @@
+import { LogOut } from 'lucide-react'
 import { FormEvent, useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../auth/AuthContext'
@@ -35,6 +36,10 @@ export default function ProfilePage() {
 				<button className="fh-button-primary mt-6" disabled={loading}>{loading ? 'Guardando...' : 'Guardar cambios'}</button>
 				{message && <p className="fh-alert mt-4">{message}</p>}
 			</form>
+
+			<button type="button" onClick={() => void supabase.auth.signOut()} className="fh-button-secondary mt-4 flex items-center gap-2 lg:hidden">
+				<LogOut size={16} />Cerrar sesión
+			</button>
 		</div>
 	)
 }

@@ -1,5 +1,6 @@
-import { CalendarDays, ShieldCheck, Users, WalletCards } from 'lucide-react'
+import { CalendarDays, HousePlug, ShieldCheck, Users, WalletCards } from 'lucide-react'
 import type { ReactNode } from 'react'
+import { Link } from 'react-router-dom'
 import { useFamilia } from '../familia/FamiliaContext'
 
 export default function InicioPage() {
