@@ -9,6 +9,7 @@ export type Periodo = Tables<'periodos'>
 export type Recibo = Tables<'recibos'>
 export type Cuota = Tables<'cuotas'>
 export type Aporte = Tables<'aportes'>
+export type PagoFamiliar = Tables<'pagos_familiares'>
 
 export type CuotaConRecibo = {
 	cuota: Cuota
@@ -21,7 +22,7 @@ export type CuotaConRecibo = {
 export type AdminAttention = {
 	recibosEsperandoMonto: number
 	vencimientosFaltantes: number
-	aportesPorValidar: number
+	pagosPorValidar: number
 	recibosVencidos: number
 	recaudacionesAtrasadas: number
 	total: number
@@ -36,6 +37,7 @@ export function useCurrentFinance() {
 	const [recibos, setRecibos] = useState<Recibo[]>([])
 	const [cuotas, setCuotas] = useState<Cuota[]>([])
 	const [aportesPorValidar, setAportesPorValidar] = useState<Aporte[]>([])
+	const [pagosPorValidar, setPagosPorValidar] = useState<PagoFamiliar[]>([])
 	const [loading, setLoading] = useState(true)
 	const [error, setError] = useState<string | null>(null)
 
@@ -67,6 +69,7 @@ export function useCurrentFinance() {
 			setRecibos([])
 			setCuotas([])
 			setAportesPorValidar([])
+			setPagosPorValidar([])
 			setLoading(false)
 			return
 		}
@@ -105,16 +108,24 @@ export function useCurrentFinance() {
 			setCuotas([])
 		}
 
+		const { data: paymentRows, error: paymentError } = await supabase
+			.from('pagos_familiares')
+			.select('*')
+			.eq('familia_id', familia.id)
+			.eq('estado', 'POR_VALIDAR')
+			.order('created_at')
+		if (paymentError) setError(paymentError.message)
+		setPagosPorValidar(paymentRows ?? [])
+
 		if (isAdmin) {
-			const { data: pendingRows, error: pendingError } = await supabase
+			const { data: legacyRows, error: legacyError } = await supabase
 				.from('aportes')
 				.select('*')
 				.eq('familia_id', familia.id)
 				.eq('estado', 'POR_VALIDAR')
 				.order('created_at')
-
-			if (pendingError) setError(pendingError.message)
-			setAportesPorValidar(pendingRows ?? [])
+			if (legacyError) setError(legacyError.message)
+			setAportesPorValidar(legacyRows ?? [])
 		} else {
 			setAportesPorValidar([])
 		}
@@ -161,6 +172,11 @@ export function useCurrentFinance() {
 		}
 	}, [cuotasConRecibo])
 
+	const pagosParaValidar = useMemo(
+		() => pagosPorValidar.filter((payment) => payment.responsable_receptor_miembro_id === membresia?.id).length,
+		[pagosPorValidar, membresia],
+	)
+
 	const adminAttention = useMemo<AdminAttention>(() => {
 		if (!isAdmin) return emptyAttention()
 
@@ -179,17 +195,17 @@ export function useCurrentFinance() {
 			&& receipt.fecha_limite_aporte != null
 			&& receipt.fecha_limite_aporte < today,
 		).length
-		const pendingContributions = aportesPorValidar.length
+		const pendingPayments = aportesPorValidar.length + pagosPorValidar.length
 
 		return {
 			recibosEsperandoMonto: receiptsWaitingAmount,
 			vencimientosFaltantes: missingDueDates,
-			aportesPorValidar: pendingContributions,
+			pagosPorValidar: pendingPayments,
 			recibosVencidos: overdueReceipts,
 			recaudacionesAtrasadas: lateCollections,
-			total: receiptsWaitingAmount + missingDueDates + pendingContributions + overdueReceipts + lateCollections,
+			total: receiptsWaitingAmount + missingDueDates + pendingPayments + overdueReceipts + lateCollections,
 		}
-	}, [isAdmin, recibos, aportesPorValidar])
+	}, [isAdmin, recibos, aportesPorValidar, pagosPorValidar])
 
 	return {
 		periodo,
@@ -198,6 +214,7 @@ export function useCurrentFinance() {
 		cuotasConRecibo,
 		resumen,
 		adminAttention,
+		pagosParaValidar,
 		loading,
 		error,
 		reload: load,
@@ -229,7 +246,7 @@ function emptyAttention(): AdminAttention {
 	return {
 		recibosEsperandoMonto: 0,
 		vencimientosFaltantes: 0,
-		aportesPorValidar: 0,
+		pagosPorValidar: 0,
 		recibosVencidos: 0,
 		recaudacionesAtrasadas: 0,
 		total: 0,

@@ -30,6 +30,8 @@ export type Database = {
           monto: number
           nota: string | null
           pagador_miembro_id: string
+          pago_asignacion_id: string | null
+          pago_familiar_id: string | null
           receptor_miembro_id: string | null
           rechazo_motivo: string | null
           recibo_id: string
@@ -53,6 +55,8 @@ export type Database = {
           monto: number
           nota?: string | null
           pagador_miembro_id: string
+          pago_asignacion_id?: string | null
+          pago_familiar_id?: string | null
           receptor_miembro_id?: string | null
           rechazo_motivo?: string | null
           recibo_id: string
@@ -76,6 +80,8 @@ export type Database = {
           monto?: number
           nota?: string | null
           pagador_miembro_id?: string
+          pago_asignacion_id?: string | null
+          pago_familiar_id?: string | null
           receptor_miembro_id?: string | null
           rechazo_motivo?: string | null
           recibo_id?: string
@@ -104,6 +110,20 @@ export type Database = {
             columns: ["pagador_miembro_id"]
             isOneToOne: false
             referencedRelation: "miembros_familia"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "aportes_pago_asignacion_id_fkey"
+            columns: ["pago_asignacion_id"]
+            isOneToOne: false
+            referencedRelation: "pago_asignaciones"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "aportes_pago_familiar_id_fkey"
+            columns: ["pago_familiar_id"]
+            isOneToOne: false
+            referencedRelation: "pagos_familiares"
             referencedColumns: ["id"]
           },
           {
@@ -303,6 +323,63 @@ export type Database = {
           },
         ]
       }
+      configuracion_cobro_miembro: {
+        Row: {
+          activo: boolean
+          created_at: string
+          familia_id: string
+          id: string
+          instrucciones: string | null
+          metodo: Database["public"]["Enums"]["metodo_pago_familiar"]
+          miembro_id: string
+          qr_storage_path: string | null
+          referencia: string | null
+          titular: string
+          updated_at: string
+        }
+        Insert: {
+          activo?: boolean
+          created_at?: string
+          familia_id: string
+          id?: string
+          instrucciones?: string | null
+          metodo: Database["public"]["Enums"]["metodo_pago_familiar"]
+          miembro_id: string
+          qr_storage_path?: string | null
+          referencia?: string | null
+          titular: string
+          updated_at?: string
+        }
+        Update: {
+          activo?: boolean
+          created_at?: string
+          familia_id?: string
+          id?: string
+          instrucciones?: string | null
+          metodo?: Database["public"]["Enums"]["metodo_pago_familiar"]
+          miembro_id?: string
+          qr_storage_path?: string | null
+          referencia?: string | null
+          titular?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "configuracion_cobro_miembro_familia_id_fkey"
+            columns: ["familia_id"]
+            isOneToOne: false
+            referencedRelation: "familias"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "configuracion_cobro_miembro_miembro_id_fkey"
+            columns: ["miembro_id"]
+            isOneToOne: false
+            referencedRelation: "miembros_familia"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       configuracion_pago_familiar: {
         Row: {
           activo: boolean
@@ -312,7 +389,8 @@ export type Database = {
           instrucciones: string | null
           metodo: Database["public"]["Enums"]["metodo_pago_familiar"]
           qr_storage_path: string | null
-          referencia: string
+          referencia: string | null
+          responsable_miembro_id: string | null
           titular: string
           updated_at: string
         }
@@ -324,7 +402,8 @@ export type Database = {
           instrucciones?: string | null
           metodo?: Database["public"]["Enums"]["metodo_pago_familiar"]
           qr_storage_path?: string | null
-          referencia: string
+          referencia?: string | null
+          responsable_miembro_id?: string | null
           titular: string
           updated_at?: string
         }
@@ -336,7 +415,8 @@ export type Database = {
           instrucciones?: string | null
           metodo?: Database["public"]["Enums"]["metodo_pago_familiar"]
           qr_storage_path?: string | null
-          referencia?: string
+          referencia?: string | null
+          responsable_miembro_id?: string | null
           titular?: string
           updated_at?: string
         }
@@ -344,8 +424,15 @@ export type Database = {
           {
             foreignKeyName: "configuracion_pago_familiar_familia_id_fkey"
             columns: ["familia_id"]
-            isOneToOne: true
+            isOneToOne: false
             referencedRelation: "familias"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "configuracion_pago_familiar_responsable_miembro_id_fkey"
+            columns: ["responsable_miembro_id"]
+            isOneToOne: false
+            referencedRelation: "miembros_familia"
             referencedColumns: ["id"]
           },
         ]
@@ -640,11 +727,193 @@ export type Database = {
           },
         ]
       }
+      pago_asignaciones: {
+        Row: {
+          created_at: string
+          cuota_id: string
+          id: string
+          monto: number
+          pago_id: string
+          recibo_id: string
+        }
+        Insert: {
+          created_at?: string
+          cuota_id: string
+          id?: string
+          monto: number
+          pago_id: string
+          recibo_id: string
+        }
+        Update: {
+          created_at?: string
+          cuota_id?: string
+          id?: string
+          monto?: number
+          pago_id?: string
+          recibo_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pago_asignaciones_cuota_id_fkey"
+            columns: ["cuota_id"]
+            isOneToOne: false
+            referencedRelation: "cuotas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pago_asignaciones_pago_id_fkey"
+            columns: ["pago_id"]
+            isOneToOne: false
+            referencedRelation: "pagos_familiares"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pago_asignaciones_recibo_id_fkey"
+            columns: ["recibo_id"]
+            isOneToOne: false
+            referencedRelation: "recibos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pagos_familiares: {
+        Row: {
+          anulacion_motivo: string | null
+          anulado_at: string | null
+          anulado_por: string | null
+          comprobante_bucket: string | null
+          comprobante_storage_path: string | null
+          creado_por: string
+          created_at: string
+          destino: Database["public"]["Enums"]["destino_aporte"]
+          enviado_at: string | null
+          estado: Database["public"]["Enums"]["estado_pago_familiar"]
+          familia_id: string
+          fecha_pago: string | null
+          id: string
+          metodo: Database["public"]["Enums"]["metodo_pago_familiar"]
+          monto_total: number
+          pagador_miembro_id: string
+          pagador_nombre_snapshot: string
+          pagador_usuario_id: string
+          receptor_instrucciones_snapshot: string | null
+          receptor_miembro_id: string | null
+          receptor_nombre_snapshot: string
+          receptor_qr_bucket: string | null
+          receptor_qr_storage_path: string | null
+          receptor_referencia_snapshot: string | null
+          receptor_titular_snapshot: string
+          rechazo_motivo: string | null
+          referencia_operacion: string | null
+          responsable_receptor_miembro_id: string | null
+          updated_at: string
+          validado_at: string | null
+          validado_por: string | null
+        }
+        Insert: {
+          anulacion_motivo?: string | null
+          anulado_at?: string | null
+          anulado_por?: string | null
+          comprobante_bucket?: string | null
+          comprobante_storage_path?: string | null
+          creado_por: string
+          created_at?: string
+          destino: Database["public"]["Enums"]["destino_aporte"]
+          enviado_at?: string | null
+          estado?: Database["public"]["Enums"]["estado_pago_familiar"]
+          familia_id: string
+          fecha_pago?: string | null
+          id?: string
+          metodo: Database["public"]["Enums"]["metodo_pago_familiar"]
+          monto_total: number
+          pagador_miembro_id: string
+          pagador_nombre_snapshot: string
+          pagador_usuario_id: string
+          receptor_instrucciones_snapshot?: string | null
+          receptor_miembro_id?: string | null
+          receptor_nombre_snapshot: string
+          receptor_qr_bucket?: string | null
+          receptor_qr_storage_path?: string | null
+          receptor_referencia_snapshot?: string | null
+          receptor_titular_snapshot: string
+          rechazo_motivo?: string | null
+          referencia_operacion?: string | null
+          responsable_receptor_miembro_id?: string | null
+          updated_at?: string
+          validado_at?: string | null
+          validado_por?: string | null
+        }
+        Update: {
+          anulacion_motivo?: string | null
+          anulado_at?: string | null
+          anulado_por?: string | null
+          comprobante_bucket?: string | null
+          comprobante_storage_path?: string | null
+          creado_por?: string
+          created_at?: string
+          destino?: Database["public"]["Enums"]["destino_aporte"]
+          enviado_at?: string | null
+          estado?: Database["public"]["Enums"]["estado_pago_familiar"]
+          familia_id?: string
+          fecha_pago?: string | null
+          id?: string
+          metodo?: Database["public"]["Enums"]["metodo_pago_familiar"]
+          monto_total?: number
+          pagador_miembro_id?: string
+          pagador_nombre_snapshot?: string
+          pagador_usuario_id?: string
+          receptor_instrucciones_snapshot?: string | null
+          receptor_miembro_id?: string | null
+          receptor_nombre_snapshot?: string
+          receptor_qr_bucket?: string | null
+          receptor_qr_storage_path?: string | null
+          receptor_referencia_snapshot?: string | null
+          receptor_titular_snapshot?: string
+          rechazo_motivo?: string | null
+          referencia_operacion?: string | null
+          responsable_receptor_miembro_id?: string | null
+          updated_at?: string
+          validado_at?: string | null
+          validado_por?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pagos_familiares_familia_id_fkey"
+            columns: ["familia_id"]
+            isOneToOne: false
+            referencedRelation: "familias"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pagos_familiares_pagador_miembro_id_fkey"
+            columns: ["pagador_miembro_id"]
+            isOneToOne: false
+            referencedRelation: "miembros_familia"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pagos_familiares_receptor_miembro_id_fkey"
+            columns: ["receptor_miembro_id"]
+            isOneToOne: false
+            referencedRelation: "miembros_familia"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pagos_familiares_responsable_receptor_miembro_id_fkey"
+            columns: ["responsable_receptor_miembro_id"]
+            isOneToOne: false
+            referencedRelation: "miembros_familia"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pagos_proveedor: {
         Row: {
           anulacion_motivo: string | null
           anulado_at: string | null
           anulado_por: string | null
+          comprobante_bucket: string | null
+          comprobante_storage_path: string | null
           creado_por: string | null
           created_at: string
           estado: Database["public"]["Enums"]["estado_pago_proveedor"]
@@ -663,6 +932,8 @@ export type Database = {
           anulacion_motivo?: string | null
           anulado_at?: string | null
           anulado_por?: string | null
+          comprobante_bucket?: string | null
+          comprobante_storage_path?: string | null
           creado_por?: string | null
           created_at?: string
           estado?: Database["public"]["Enums"]["estado_pago_proveedor"]
@@ -681,6 +952,8 @@ export type Database = {
           anulacion_motivo?: string | null
           anulado_at?: string | null
           anulado_por?: string | null
+          comprobante_bucket?: string | null
+          comprobante_storage_path?: string | null
           creado_por?: string | null
           created_at?: string
           estado?: Database["public"]["Enums"]["estado_pago_proveedor"]
@@ -1200,12 +1473,20 @@ export type Database = {
         Args: { p_fecha_vencimiento: string; p_recibo_id: string }
         Returns: undefined
       }
+      adjuntar_comprobante_pago_proveedor: {
+        Args: { p_comprobante_storage_path: string; p_pago_id: string }
+        Returns: undefined
+      }
       ajustar_cuotas_recibo: {
         Args: { p_cuotas: Json; p_motivo: string; p_recibo_id: string }
         Returns: undefined
       }
       anular_aporte: {
         Args: { p_aporte_id: string; p_motivo: string }
+        Returns: undefined
+      }
+      anular_pago_familiar: {
+        Args: { p_motivo: string; p_pago_id: string }
         Returns: undefined
       }
       anular_pago_proveedor: {
@@ -1218,6 +1499,14 @@ export type Database = {
       }
       cambiar_estado_concepto: {
         Args: { p_activo: boolean; p_concepto_id: string }
+        Returns: undefined
+      }
+      cambiar_estado_metodo_cobro_familiar: {
+        Args: { p_activo: boolean; p_configuracion_id: string }
+        Returns: undefined
+      }
+      cambiar_estado_metodo_cobro_personal: {
+        Args: { p_activo: boolean; p_configuracion_id: string }
         Returns: undefined
       }
       cambiar_estado_proveedor_personalizado: {
@@ -1246,6 +1535,13 @@ export type Database = {
         Returns: undefined
       }
       crear_familia_inicial: { Args: { p_nombre: string }; Returns: string }
+      crear_pago_familiar: {
+        Args: {
+          p_asignaciones: Json
+          p_metodo: Database["public"]["Enums"]["metodo_pago_familiar"]
+        }
+        Returns: string
+      }
       crear_proveedor_personalizado: {
         Args: {
           p_familia_id: string
@@ -1253,6 +1549,15 @@ export type Database = {
           p_tipo_servicio: Database["public"]["Enums"]["tipo_servicio"]
         }
         Returns: string
+      }
+      finalizar_pago_familiar: {
+        Args: {
+          p_comprobante_storage_path?: string
+          p_fecha_pago: string
+          p_pago_id: string
+          p_referencia_operacion?: string
+        }
+        Returns: undefined
       }
       guardar_concepto_servicio: {
         Args: {
@@ -1298,6 +1603,29 @@ export type Database = {
         }
         Returns: string
       }
+      guardar_metodo_cobro_familiar: {
+        Args: {
+          p_familia_id: string
+          p_instrucciones?: string
+          p_metodo: Database["public"]["Enums"]["metodo_pago_familiar"]
+          p_qr_storage_path?: string
+          p_referencia?: string
+          p_responsable_miembro_id?: string
+          p_titular: string
+        }
+        Returns: string
+      }
+      guardar_metodo_cobro_personal: {
+        Args: {
+          p_familia_id: string
+          p_instrucciones?: string
+          p_metodo: Database["public"]["Enums"]["metodo_pago_familiar"]
+          p_qr_storage_path?: string
+          p_referencia?: string
+          p_titular: string
+        }
+        Returns: string
+      }
       registrar_aporte: {
         Args: {
           p_cuota_id: string
@@ -1328,6 +1656,10 @@ export type Database = {
         Args: { p_aporte_id: string; p_aprobar: boolean; p_motivo?: string }
         Returns: undefined
       }
+      validar_pago_familiar: {
+        Args: { p_aprobar: boolean; p_motivo?: string; p_pago_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       destino_aporte: "FONDO_FAMILIAR" | "INTEGRANTE"
@@ -1343,6 +1675,12 @@ export type Database = {
       estado_integracion_proveedor: "NO_DISPONIBLE" | "PREPARADO" | "DISPONIBLE"
       estado_invitacion: "PENDIENTE" | "ACEPTADA" | "EXPIRADA" | "REVOCADA"
       estado_miembro: "ACTIVO" | "INACTIVO"
+      estado_pago_familiar:
+        | "BORRADOR"
+        | "POR_VALIDAR"
+        | "CONFIRMADO"
+        | "RECHAZADO"
+        | "ANULADO"
       estado_pago_proveedor: "CONFIRMADO" | "ANULADO"
       estado_periodo: "ABIERTO" | "COMPLETADO"
       estado_recaudacion: "PENDIENTE" | "PARCIAL" | "COMPLETA"
@@ -1519,6 +1857,13 @@ export const Constants = {
       ],
       estado_invitacion: ["PENDIENTE", "ACEPTADA", "EXPIRADA", "REVOCADA"],
       estado_miembro: ["ACTIVO", "INACTIVO"],
+      estado_pago_familiar: [
+        "BORRADOR",
+        "POR_VALIDAR",
+        "CONFIRMADO",
+        "RECHAZADO",
+        "ANULADO",
+      ],
       estado_pago_proveedor: ["CONFIRMADO", "ANULADO"],
       estado_periodo: ["ABIERTO", "COMPLETADO"],
       estado_recaudacion: ["PENDIENTE", "PARCIAL", "COMPLETA"],

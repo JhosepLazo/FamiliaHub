@@ -17,7 +17,7 @@ import { dateLabel, money, periodLabel } from '../recibos/reciboUi'
 
 export default function InicioPage() {
 	const { familia, membresia } = useFamilia()
-	const { periodo, cuotasConRecibo, resumen, adminAttention, loading, error } = useCurrentFinance()
+	const { periodo, cuotasConRecibo, resumen, adminAttention, pagosParaValidar, loading, error } = useCurrentFinance()
 	const isAdmin = membresia?.rol === 'ADMINISTRADOR'
 	const pending = cuotasConRecibo.filter(({ cuota }) => cuota.estado !== 'PAGADA' && cuota.estado !== 'ANULADA').slice(0, 3)
 
@@ -75,7 +75,7 @@ export default function InicioPage() {
 							<Link to="/mis-cuotas" className="fh-button-primary mt-5 inline-flex w-full justify-center sm:hidden">Ver mis cuotas</Link>
 						</section>
 
-						{isAdmin ? <AdminAttentionPanel attention={adminAttention} /> : <HomeStatusPanel />}
+						{isAdmin ? <AdminAttentionPanel attention={adminAttention} /> : <HomeStatusPanel pagosParaValidar={pagosParaValidar} />}
 					</div>
 
 					<section className="mt-6 rounded-3xl border border-slate-200 bg-white p-5 sm:p-6">
@@ -115,7 +115,7 @@ function AdminAttentionPanel({ attention }: { attention: AdminAttention }) {
 	const items = [
 		{ label: 'Recibos esperando monto', count: attention.recibosEsperandoMonto },
 		{ label: 'Vencimientos por completar', count: attention.vencimientosFaltantes },
-		{ label: 'Aportes por validar', count: attention.aportesPorValidar },
+		{ label: 'Pagos por validar', count: attention.pagosPorValidar },
 		{ label: 'Recibos vencidos', count: attention.recibosVencidos },
 		{ label: 'Recaudaciones fuera de fecha', count: attention.recaudacionesAtrasadas },
 	].filter((item) => item.count > 0)
@@ -130,7 +130,10 @@ function AdminAttentionPanel({ attention }: { attention: AdminAttention }) {
 			{items.length ? (
 				<div className="mt-5 space-y-2">
 					{items.map((item) => <div key={item.label} className="flex items-center justify-between rounded-xl bg-slate-50 px-4 py-3"><span className="text-xs font-medium text-slate-600">{item.label}</span><span className="grid min-w-6 place-items-center rounded-full bg-white px-2 py-1 text-[10px] font-bold text-slate-600">{item.count}</span></div>)}
-					<Link to="/recibos" className="mt-4 inline-flex items-center gap-1 text-xs font-semibold text-[#0f766e]">Resolver en Recibos<ArrowRight size={14} /></Link>
+					<div className="mt-4 flex flex-wrap gap-3">
+						<Link to="/pagos" className="inline-flex items-center gap-1 text-xs font-semibold text-[#0f766e]">Validar pagos<ArrowRight size={14} /></Link>
+						<Link to="/recibos" className="inline-flex items-center gap-1 text-xs font-semibold text-slate-500">Resolver recibos<ArrowRight size={14} /></Link>
+					</div>
 				</div>
 			) : (
 				<div className="mt-5 rounded-2xl bg-emerald-50 p-4"><p className="text-sm font-semibold text-emerald-800">Todo está al día ✓</p><p className="mt-1 text-xs text-emerald-700/70">FamiliaHub no necesita que hagas nada ahora.</p></div>
@@ -139,11 +142,15 @@ function AdminAttentionPanel({ attention }: { attention: AdminAttention }) {
 	)
 }
 
-function HomeStatusPanel() {
+function HomeStatusPanel({ pagosParaValidar }: { pagosParaValidar: number }) {
 	return (
 		<section className="rounded-3xl border border-slate-200 bg-white p-5 sm:p-6">
-			<div className="flex items-center gap-3"><div className="grid size-10 place-items-center rounded-xl bg-emerald-50 text-emerald-700"><ShieldCheck size={18} /></div><div><p className="text-sm font-semibold">Estado del hogar</p><p className="text-xs text-slate-400">FamiliaHub mantiene tus cuotas y recibos sincronizados.</p></div></div>
-			<div className="mt-5 rounded-2xl bg-slate-50 p-4"><p className="text-xs leading-5 text-slate-500">Tú solo necesitas revisar tus cuotas y registrar un aporte cuando corresponda. La administración del recibo permanece separada.</p></div>
+			<div className="flex items-center gap-3"><div className={`grid size-10 place-items-center rounded-xl ${pagosParaValidar ? 'bg-amber-50 text-amber-700' : 'bg-emerald-50 text-emerald-700'}`}><ShieldCheck size={18} /></div><div><p className="text-sm font-semibold">{pagosParaValidar ? 'Necesita tu atención' : 'Estado del hogar'}</p><p className="text-xs text-slate-400">{pagosParaValidar ? 'Eres el receptor responsable de confirmar pagos.' : 'FamiliaHub mantiene tus cuotas y recibos sincronizados.'}</p></div></div>
+			{pagosParaValidar ? (
+				<div className="mt-5 rounded-2xl bg-amber-50 p-4"><p className="text-sm font-semibold text-amber-800">{pagosParaValidar} pago{pagosParaValidar === 1 ? '' : 's'} por validar</p><Link to="/pagos" className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-amber-800">Revisar pagos<ArrowRight size={14} /></Link></div>
+			) : (
+				<div className="mt-5 rounded-2xl bg-slate-50 p-4"><p className="text-xs leading-5 text-slate-500">Tú solo necesitas revisar tus cuotas y registrar un pago cuando corresponda. La administración del recibo permanece separada.</p></div>
+			)}
 		</section>
 	)
 }

@@ -1,4 +1,4 @@
-import { CheckCircle2, ChevronRight, CircleDollarSign, Clock3, ReceiptText, WalletCards } from 'lucide-react'
+import { CheckCircle2, ChevronRight, CircleDollarSign, Clock3, CreditCard, ReceiptText, WalletCards } from 'lucide-react'
 import { useMemo, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { cuotaEstadoLabel, dateLabel, money, quotaBadgeClass } from '../recibos/reciboUi'
@@ -16,12 +16,29 @@ export default function MisCuotasPage() {
 		return cuotasConRecibo.filter(({ cuota }) => cuota.estado !== 'ANULADA')
 	}, [filter, cuotasConRecibo])
 
+	const payable = useMemo(
+		() => cuotasConRecibo.filter(({ cuota }) =>
+			cuota.estado !== 'PAGADA'
+			&& cuota.estado !== 'ANULADA'
+			&& cuota.estado !== 'POR_VALIDAR'
+			&& (cuota.saldo_pendiente ?? 0) > 0,
+		),
+		[cuotasConRecibo],
+	)
+	const payAllUrl = payable.length ? `/pagar?cuotas=${payable.map(({ cuota }) => cuota.id).join(',')}` : null
+
 	return (
 		<div>
-			<div>
-				<p className="text-sm font-semibold text-[#0f766e]">Personal</p>
-				<h1 className="mt-1 text-3xl font-semibold tracking-tight">Mis cuotas</h1>
-				<p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">Aquí solo aparece lo que te corresponde. El total del recibo sigue visible para que siempre tengas contexto.</p>
+			<div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+				<div>
+					<p className="text-sm font-semibold text-[#0f766e]">Personal</p>
+					<h1 className="mt-1 text-3xl font-semibold tracking-tight">Mis cuotas</h1>
+					<p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">Aquí solo aparece lo que te corresponde. El total del recibo sigue visible para que siempre tengas contexto.</p>
+				</div>
+				<div className="flex flex-wrap gap-2">
+					<Link to="/pagos" className="fh-button-secondary flex items-center gap-2"><CreditCard size={16} />Mis pagos</Link>
+					{payAllUrl && payable.length >= 2 && <Link to={payAllUrl} className="fh-button-primary">Pagar todo · {money(payable.reduce((sum, { cuota }) => sum + (cuota.saldo_pendiente ?? 0), 0))}</Link>}
+				</div>
 			</div>
 
 			<div className="mt-7 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -61,26 +78,22 @@ export default function MisCuotasPage() {
 
 function QuotaCard({ row }: { row: CuotaConRecibo }) {
 	const { cuota, recibo, fechaObjetivo, diasRestantes, vencida } = row
-	const action = cuota.estado === 'POR_VALIDAR'
-		? 'Ver pago enviado'
-		: cuota.estado === 'PAGADA'
-			? 'Ver detalle'
-			: (cuota.saldo_pendiente ?? 0) > 0
-				? 'Pagar saldo'
-				: 'Ver detalle'
+	const canPay = cuota.estado !== 'POR_VALIDAR' && cuota.estado !== 'PAGADA' && cuota.estado !== 'ANULADA' && (cuota.saldo_pendiente ?? 0) > 0
+	const actionUrl = cuota.estado === 'POR_VALIDAR' ? '/pagos' : canPay ? `/pagar?cuotas=${cuota.id}` : `/recibos/${recibo.id}`
+	const action = cuota.estado === 'POR_VALIDAR' ? 'Ver pago enviado' : canPay ? 'Pagar saldo' : 'Ver detalle'
 
 	return (
-		<Link to={`/recibos/${recibo.id}`} className="group rounded-3xl border border-slate-200 bg-white p-5 transition hover:border-slate-300 sm:p-6">
+		<article className="rounded-3xl border border-slate-200 bg-white p-5 sm:p-6">
 			<div className="flex items-start justify-between gap-4">
 				<div className="min-w-0">
 					<div className="flex flex-wrap items-center gap-2">
-						<h2 className="truncate text-lg font-semibold">{recibo.nombre_concepto}</h2>
+						<Link to={`/recibos/${recibo.id}`} className="truncate text-lg font-semibold hover:text-[#0f766e]">{recibo.nombre_concepto}</Link>
 						<span className={`rounded-full px-2.5 py-1 text-[10px] font-semibold ${quotaBadgeClass(cuota.estado)}`}>{cuotaEstadoLabel[cuota.estado]}</span>
 						{vencida && <span className="rounded-full bg-rose-50 px-2.5 py-1 text-[10px] font-semibold text-rose-600">Vencida</span>}
 					</div>
 					<p className="mt-1 text-xs text-slate-400">{recibo.proveedor_nombre}</p>
 				</div>
-				<ChevronRight size={18} className="shrink-0 text-slate-300 transition group-hover:translate-x-1 group-hover:text-slate-500" />
+				<Link to={`/recibos/${recibo.id}`} className="text-slate-300 hover:text-slate-500"><ChevronRight size={18} /></Link>
 			</div>
 
 			<div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
@@ -94,20 +107,14 @@ function QuotaCard({ row }: { row: CuotaConRecibo }) {
 					<p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Tu fecha límite</p>
 					<p className={`mt-1 text-xs font-semibold ${vencida ? 'text-rose-600' : 'text-slate-600'}`}>{dateLabel(fechaObjetivo)}{relativeDate(diasRestantes)}</p>
 				</div>
-				<span className="text-xs font-semibold text-[#0f766e]">{action}</span>
+				<Link to={actionUrl} className={canPay ? 'fh-button-primary text-center' : 'text-xs font-semibold text-[#0f766e]'}>{action}</Link>
 			</div>
-		</Link>
+		</article>
 	)
 }
 
 function SummaryCard({ icon, label, value, accent = false }: { icon: ReactNode; label: string; value: string; accent?: boolean }) {
-	return (
-		<div className={`rounded-2xl border p-5 ${accent ? 'border-emerald-100 bg-emerald-50/60' : 'border-slate-200 bg-white'}`}>
-			<div className={accent ? 'text-[#0f766e]' : 'text-slate-400'}>{icon}</div>
-			<p className="mt-5 text-xs font-medium text-slate-400">{label}</p>
-			<p className={`mt-1 text-xl font-semibold ${accent ? 'text-[#0f766e]' : 'text-slate-800'}`}>{value}</p>
-		</div>
-	)
+	return <div className={`rounded-2xl border p-5 ${accent ? 'border-emerald-100 bg-emerald-50/60' : 'border-slate-200 bg-white'}`}><div className={accent ? 'text-[#0f766e]' : 'text-slate-400'}>{icon}</div><p className="mt-5 text-xs font-medium text-slate-400">{label}</p><p className={`mt-1 text-xl font-semibold ${accent ? 'text-[#0f766e]' : 'text-slate-800'}`}>{value}</p></div>
 }
 
 function Data({ label, value, accent = false, wideMobile = false }: { label: string; value: string; accent?: boolean; wideMobile?: boolean }) {
