@@ -1,10 +1,13 @@
-import { LogOut } from 'lucide-react'
+import { LogOut, Settings2 } from 'lucide-react'
 import { FormEvent, useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../auth/AuthContext'
+import { useFamilia } from '../familia/FamiliaContext'
 
 export default function ProfilePage() {
 	const { user } = useAuth()
+	const { membresia } = useFamilia()
 	const [nombre, setNombre] = useState('')
 	const [loading, setLoading] = useState(false)
 	const [message, setMessage] = useState<string | null>(null)
@@ -17,7 +20,6 @@ export default function ProfilePage() {
 	const save = async (event: FormEvent) => {
 		event.preventDefault()
 		if (!user) return
-
 		setLoading(true)
 		const { error } = await supabase.from('perfiles').update({ nombre: nombre.trim(), updated_at: new Date().toISOString() }).eq('id', user.id)
 		setMessage(error ? 'No pudimos guardar tu perfil.' : 'Perfil actualizado.')
@@ -37,9 +39,10 @@ export default function ProfilePage() {
 				{message && <p className="fh-alert mt-4">{message}</p>}
 			</form>
 
-			<button type="button" onClick={() => void supabase.auth.signOut()} className="fh-button-secondary mt-4 flex items-center gap-2 lg:hidden">
-				<LogOut size={16} />Cerrar sesión
-			</button>
+			{membresia?.rol === 'ADMINISTRADOR' && (
+				<Link to="/configuracion" className="fh-button-secondary mt-4 flex items-center gap-2 lg:hidden"><Settings2 size={16} />Configuración familiar</Link>
+			)}
+			<button type="button" onClick={() => void supabase.auth.signOut()} className="fh-button-secondary mt-3 flex items-center gap-2 lg:hidden"><LogOut size={16} />Cerrar sesión</button>
 		</div>
 	)
 }
