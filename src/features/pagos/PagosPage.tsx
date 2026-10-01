@@ -87,7 +87,7 @@ export default function PagosPage() {
 		const { error } = await supabase.rpc('validar_pago_familiar', {
 			p_pago_id: payment.id,
 			p_aprobar: approved,
-			p_motivo: reason,
+			...(reason ? { p_motivo: reason } : {}),
 		})
 		setMessage(error ? error.message : approved ? 'Pago confirmado.' : 'Pago rechazado.')
 		if (!error) await load()
