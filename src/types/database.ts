@@ -14,6 +14,114 @@ export type Database = {
   }
   public: {
     Tables: {
+      aportes: {
+        Row: {
+          anulacion_motivo: string | null
+          anulado_at: string | null
+          anulado_por: string | null
+          creado_por: string | null
+          created_at: string
+          cuota_id: string
+          destino: Database["public"]["Enums"]["destino_aporte"]
+          estado: Database["public"]["Enums"]["estado_aporte"]
+          familia_id: string
+          id: string
+          metodo: Database["public"]["Enums"]["metodo_pago_familiar"] | null
+          monto: number
+          nota: string | null
+          pagador_miembro_id: string
+          receptor_miembro_id: string | null
+          rechazo_motivo: string | null
+          recibo_id: string
+          referencia: string | null
+          tipo: Database["public"]["Enums"]["tipo_aporte"]
+          validado_at: string | null
+          validado_por: string | null
+        }
+        Insert: {
+          anulacion_motivo?: string | null
+          anulado_at?: string | null
+          anulado_por?: string | null
+          creado_por?: string | null
+          created_at?: string
+          cuota_id: string
+          destino: Database["public"]["Enums"]["destino_aporte"]
+          estado?: Database["public"]["Enums"]["estado_aporte"]
+          familia_id: string
+          id?: string
+          metodo?: Database["public"]["Enums"]["metodo_pago_familiar"] | null
+          monto: number
+          nota?: string | null
+          pagador_miembro_id: string
+          receptor_miembro_id?: string | null
+          rechazo_motivo?: string | null
+          recibo_id: string
+          referencia?: string | null
+          tipo: Database["public"]["Enums"]["tipo_aporte"]
+          validado_at?: string | null
+          validado_por?: string | null
+        }
+        Update: {
+          anulacion_motivo?: string | null
+          anulado_at?: string | null
+          anulado_por?: string | null
+          creado_por?: string | null
+          created_at?: string
+          cuota_id?: string
+          destino?: Database["public"]["Enums"]["destino_aporte"]
+          estado?: Database["public"]["Enums"]["estado_aporte"]
+          familia_id?: string
+          id?: string
+          metodo?: Database["public"]["Enums"]["metodo_pago_familiar"] | null
+          monto?: number
+          nota?: string | null
+          pagador_miembro_id?: string
+          receptor_miembro_id?: string | null
+          rechazo_motivo?: string | null
+          recibo_id?: string
+          referencia?: string | null
+          tipo?: Database["public"]["Enums"]["tipo_aporte"]
+          validado_at?: string | null
+          validado_por?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "aportes_cuota_id_fkey"
+            columns: ["cuota_id"]
+            isOneToOne: false
+            referencedRelation: "cuotas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "aportes_familia_id_fkey"
+            columns: ["familia_id"]
+            isOneToOne: false
+            referencedRelation: "familias"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "aportes_pagador_miembro_id_fkey"
+            columns: ["pagador_miembro_id"]
+            isOneToOne: false
+            referencedRelation: "miembros_familia"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "aportes_receptor_miembro_id_fkey"
+            columns: ["receptor_miembro_id"]
+            isOneToOne: false
+            referencedRelation: "miembros_familia"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "aportes_recibo_id_fkey"
+            columns: ["recibo_id"]
+            isOneToOne: false
+            referencedRelation: "recibos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       categorias: {
         Row: {
           activo: boolean
@@ -100,8 +208,10 @@ export type Database = {
           categoria_id: string
           created_at: string
           dia_vencimiento: number | null
+          dias_anticipacion_aporte: number
           fallback_manual: boolean
           familia_id: string
+          fecha_inicio_generacion: string
           frecuencia: Database["public"]["Enums"]["frecuencia_concepto"]
           id: string
           metodo_obtencion: Database["public"]["Enums"]["metodo_obtencion_monto"]
@@ -121,8 +231,10 @@ export type Database = {
           categoria_id: string
           created_at?: string
           dia_vencimiento?: number | null
+          dias_anticipacion_aporte?: number
           fallback_manual?: boolean
           familia_id: string
+          fecha_inicio_generacion?: string
           frecuencia?: Database["public"]["Enums"]["frecuencia_concepto"]
           id?: string
           metodo_obtencion: Database["public"]["Enums"]["metodo_obtencion_monto"]
@@ -142,8 +254,10 @@ export type Database = {
           categoria_id?: string
           created_at?: string
           dia_vencimiento?: number | null
+          dias_anticipacion_aporte?: number
           fallback_manual?: boolean
           familia_id?: string
+          fecha_inicio_generacion?: string
           frecuencia?: Database["public"]["Enums"]["frecuencia_concepto"]
           id?: string
           metodo_obtencion?: Database["public"]["Enums"]["metodo_obtencion_monto"]
@@ -287,6 +401,127 @@ export type Database = {
           },
         ]
       }
+      cuotas: {
+        Row: {
+          created_at: string
+          destino: Database["public"]["Enums"]["destino_aporte"]
+          estado: Database["public"]["Enums"]["estado_cuota"]
+          familia_id: string
+          id: string
+          miembro_id: string
+          monto_asignado: number
+          monto_pagado: number
+          nombre_miembro: string
+          receptor_miembro_id: string | null
+          recibo_id: string
+          saldo_pendiente: number | null
+          updated_at: string
+          usuario_id: string
+        }
+        Insert: {
+          created_at?: string
+          destino?: Database["public"]["Enums"]["destino_aporte"]
+          estado?: Database["public"]["Enums"]["estado_cuota"]
+          familia_id: string
+          id?: string
+          miembro_id: string
+          monto_asignado: number
+          monto_pagado?: number
+          nombre_miembro: string
+          receptor_miembro_id?: string | null
+          recibo_id: string
+          saldo_pendiente?: number | null
+          updated_at?: string
+          usuario_id: string
+        }
+        Update: {
+          created_at?: string
+          destino?: Database["public"]["Enums"]["destino_aporte"]
+          estado?: Database["public"]["Enums"]["estado_cuota"]
+          familia_id?: string
+          id?: string
+          miembro_id?: string
+          monto_asignado?: number
+          monto_pagado?: number
+          nombre_miembro?: string
+          receptor_miembro_id?: string | null
+          recibo_id?: string
+          saldo_pendiente?: number | null
+          updated_at?: string
+          usuario_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cuotas_familia_id_fkey"
+            columns: ["familia_id"]
+            isOneToOne: false
+            referencedRelation: "familias"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cuotas_miembro_id_fkey"
+            columns: ["miembro_id"]
+            isOneToOne: false
+            referencedRelation: "miembros_familia"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cuotas_receptor_miembro_id_fkey"
+            columns: ["receptor_miembro_id"]
+            isOneToOne: false
+            referencedRelation: "miembros_familia"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cuotas_recibo_id_fkey"
+            columns: ["recibo_id"]
+            isOneToOne: false
+            referencedRelation: "recibos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      eventos_financieros: {
+        Row: {
+          created_at: string
+          detalle: Json
+          entidad: string
+          entidad_id: string | null
+          evento: string
+          familia_id: string
+          id: number
+          usuario_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          detalle?: Json
+          entidad: string
+          entidad_id?: string | null
+          evento: string
+          familia_id: string
+          id?: never
+          usuario_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          detalle?: Json
+          entidad?: string
+          entidad_id?: string | null
+          evento?: string
+          familia_id?: string
+          id?: never
+          usuario_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "eventos_financieros_familia_id_fkey"
+            columns: ["familia_id"]
+            isOneToOne: false
+            referencedRelation: "familias"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       familias: {
         Row: {
           activo: boolean
@@ -405,6 +640,85 @@ export type Database = {
           },
         ]
       }
+      pagos_proveedor: {
+        Row: {
+          anulacion_motivo: string | null
+          anulado_at: string | null
+          anulado_por: string | null
+          creado_por: string | null
+          created_at: string
+          estado: Database["public"]["Enums"]["estado_pago_proveedor"]
+          familia_id: string
+          fecha_pago: string
+          id: string
+          monto: number
+          nota: string | null
+          origen: Database["public"]["Enums"]["origen_pago_proveedor"]
+          pagador_miembro_id: string | null
+          pagador_nombre_snapshot: string | null
+          recibo_id: string
+          referencia: string | null
+        }
+        Insert: {
+          anulacion_motivo?: string | null
+          anulado_at?: string | null
+          anulado_por?: string | null
+          creado_por?: string | null
+          created_at?: string
+          estado?: Database["public"]["Enums"]["estado_pago_proveedor"]
+          familia_id: string
+          fecha_pago: string
+          id?: string
+          monto: number
+          nota?: string | null
+          origen: Database["public"]["Enums"]["origen_pago_proveedor"]
+          pagador_miembro_id?: string | null
+          pagador_nombre_snapshot?: string | null
+          recibo_id: string
+          referencia?: string | null
+        }
+        Update: {
+          anulacion_motivo?: string | null
+          anulado_at?: string | null
+          anulado_por?: string | null
+          creado_por?: string | null
+          created_at?: string
+          estado?: Database["public"]["Enums"]["estado_pago_proveedor"]
+          familia_id?: string
+          fecha_pago?: string
+          id?: string
+          monto?: number
+          nota?: string | null
+          origen?: Database["public"]["Enums"]["origen_pago_proveedor"]
+          pagador_miembro_id?: string | null
+          pagador_nombre_snapshot?: string | null
+          recibo_id?: string
+          referencia?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pagos_proveedor_familia_id_fkey"
+            columns: ["familia_id"]
+            isOneToOne: false
+            referencedRelation: "familias"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pagos_proveedor_pagador_miembro_id_fkey"
+            columns: ["pagador_miembro_id"]
+            isOneToOne: false
+            referencedRelation: "miembros_familia"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pagos_proveedor_recibo_id_fkey"
+            columns: ["recibo_id"]
+            isOneToOne: false
+            referencedRelation: "recibos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       perfiles: {
         Row: {
           avatar_url: string | null
@@ -432,30 +746,43 @@ export type Database = {
       periodos: {
         Row: {
           anio: number
+          cierre_tipo: Database["public"]["Enums"]["tipo_cierre_periodo"] | null
           completado_at: string | null
+          completado_por: string | null
           created_at: string
           estado: Database["public"]["Enums"]["estado_periodo"]
           familia_id: string
           id: string
           mes: number
+          motivo_cierre: string | null
         }
         Insert: {
           anio: number
+          cierre_tipo?:
+            | Database["public"]["Enums"]["tipo_cierre_periodo"]
+            | null
           completado_at?: string | null
+          completado_por?: string | null
           created_at?: string
           estado?: Database["public"]["Enums"]["estado_periodo"]
           familia_id: string
           id?: string
           mes: number
+          motivo_cierre?: string | null
         }
         Update: {
           anio?: number
+          cierre_tipo?:
+            | Database["public"]["Enums"]["tipo_cierre_periodo"]
+            | null
           completado_at?: string | null
+          completado_por?: string | null
           created_at?: string
           estado?: Database["public"]["Enums"]["estado_periodo"]
           familia_id?: string
           id?: string
           mes?: number
+          motivo_cierre?: string | null
         }
         Relationships: [
           {
@@ -559,6 +886,264 @@ export type Database = {
           },
         ]
       }
+      recibo_ajustes: {
+        Row: {
+          anulacion_motivo: string | null
+          anulado_at: string | null
+          anulado_por: string | null
+          creado_por: string | null
+          created_at: string
+          delta: number
+          estado: Database["public"]["Enums"]["estado_ajuste_recibo"]
+          familia_id: string
+          id: string
+          monto_anterior: number
+          monto_nuevo: number
+          motivo: string
+          recibo_id: string
+        }
+        Insert: {
+          anulacion_motivo?: string | null
+          anulado_at?: string | null
+          anulado_por?: string | null
+          creado_por?: string | null
+          created_at?: string
+          delta: number
+          estado?: Database["public"]["Enums"]["estado_ajuste_recibo"]
+          familia_id: string
+          id?: string
+          monto_anterior: number
+          monto_nuevo: number
+          motivo: string
+          recibo_id: string
+        }
+        Update: {
+          anulacion_motivo?: string | null
+          anulado_at?: string | null
+          anulado_por?: string | null
+          creado_por?: string | null
+          created_at?: string
+          delta?: number
+          estado?: Database["public"]["Enums"]["estado_ajuste_recibo"]
+          familia_id?: string
+          id?: string
+          monto_anterior?: number
+          monto_nuevo?: number
+          motivo?: string
+          recibo_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recibo_ajustes_familia_id_fkey"
+            columns: ["familia_id"]
+            isOneToOne: false
+            referencedRelation: "familias"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recibo_ajustes_recibo_id_fkey"
+            columns: ["recibo_id"]
+            isOneToOne: false
+            referencedRelation: "recibos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      recibo_cuentas_snapshot: {
+        Row: {
+          alias: string | null
+          created_at: string
+          id: string
+          identificador_nombre: string
+          identificador_valor: string
+          recibo_id: string
+        }
+        Insert: {
+          alias?: string | null
+          created_at?: string
+          id?: string
+          identificador_nombre: string
+          identificador_valor: string
+          recibo_id: string
+        }
+        Update: {
+          alias?: string | null
+          created_at?: string
+          id?: string
+          identificador_nombre?: string
+          identificador_valor?: string
+          recibo_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recibo_cuentas_snapshot_recibo_id_fkey"
+            columns: ["recibo_id"]
+            isOneToOne: true
+            referencedRelation: "recibos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      recibo_participantes_snapshot: {
+        Row: {
+          created_at: string
+          id: string
+          miembro_id: string
+          modalidad: Database["public"]["Enums"]["modalidad_participante_concepto"]
+          nombre_miembro: string
+          orden: number
+          recibo_id: string
+          usuario_id: string
+          valor: number | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          miembro_id: string
+          modalidad: Database["public"]["Enums"]["modalidad_participante_concepto"]
+          nombre_miembro: string
+          orden: number
+          recibo_id: string
+          usuario_id: string
+          valor?: number | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          miembro_id?: string
+          modalidad?: Database["public"]["Enums"]["modalidad_participante_concepto"]
+          nombre_miembro?: string
+          orden?: number
+          recibo_id?: string
+          usuario_id?: string
+          valor?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recibo_participantes_snapshot_miembro_id_fkey"
+            columns: ["miembro_id"]
+            isOneToOne: false
+            referencedRelation: "miembros_familia"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recibo_participantes_snapshot_recibo_id_fkey"
+            columns: ["recibo_id"]
+            isOneToOne: false
+            referencedRelation: "recibos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      recibos: {
+        Row: {
+          categoria_nombre: string
+          concepto_id: string
+          created_at: string
+          dias_anticipacion_aporte: number
+          estado: Database["public"]["Enums"]["estado_recibo"]
+          estado_recaudacion: Database["public"]["Enums"]["estado_recaudacion"]
+          familia_id: string
+          fecha_limite_aporte: string | null
+          fecha_vencimiento: string | null
+          frecuencia: Database["public"]["Enums"]["frecuencia_concepto"]
+          id: string
+          metodo_obtencion: Database["public"]["Enums"]["metodo_obtencion_monto"]
+          monto_ajustes: number
+          monto_base: number | null
+          monto_confirmado_at: string | null
+          monto_total: number | null
+          nombre_concepto: string
+          periodo_id: string
+          proveedor_nombre: string
+          reparto_resto:
+            | Database["public"]["Enums"]["tipo_reparto_resto"]
+            | null
+          tipo_distribucion: Database["public"]["Enums"]["tipo_distribucion_concepto"]
+          tipo_servicio: Database["public"]["Enums"]["tipo_servicio"]
+          tipo_vencimiento: Database["public"]["Enums"]["tipo_vencimiento_concepto"]
+          updated_at: string
+        }
+        Insert: {
+          categoria_nombre: string
+          concepto_id: string
+          created_at?: string
+          dias_anticipacion_aporte: number
+          estado?: Database["public"]["Enums"]["estado_recibo"]
+          estado_recaudacion?: Database["public"]["Enums"]["estado_recaudacion"]
+          familia_id: string
+          fecha_limite_aporte?: string | null
+          fecha_vencimiento?: string | null
+          frecuencia: Database["public"]["Enums"]["frecuencia_concepto"]
+          id?: string
+          metodo_obtencion: Database["public"]["Enums"]["metodo_obtencion_monto"]
+          monto_ajustes?: number
+          monto_base?: number | null
+          monto_confirmado_at?: string | null
+          monto_total?: number | null
+          nombre_concepto: string
+          periodo_id: string
+          proveedor_nombre: string
+          reparto_resto?:
+            | Database["public"]["Enums"]["tipo_reparto_resto"]
+            | null
+          tipo_distribucion: Database["public"]["Enums"]["tipo_distribucion_concepto"]
+          tipo_servicio: Database["public"]["Enums"]["tipo_servicio"]
+          tipo_vencimiento: Database["public"]["Enums"]["tipo_vencimiento_concepto"]
+          updated_at?: string
+        }
+        Update: {
+          categoria_nombre?: string
+          concepto_id?: string
+          created_at?: string
+          dias_anticipacion_aporte?: number
+          estado?: Database["public"]["Enums"]["estado_recibo"]
+          estado_recaudacion?: Database["public"]["Enums"]["estado_recaudacion"]
+          familia_id?: string
+          fecha_limite_aporte?: string | null
+          fecha_vencimiento?: string | null
+          frecuencia?: Database["public"]["Enums"]["frecuencia_concepto"]
+          id?: string
+          metodo_obtencion?: Database["public"]["Enums"]["metodo_obtencion_monto"]
+          monto_ajustes?: number
+          monto_base?: number | null
+          monto_confirmado_at?: string | null
+          monto_total?: number | null
+          nombre_concepto?: string
+          periodo_id?: string
+          proveedor_nombre?: string
+          reparto_resto?:
+            | Database["public"]["Enums"]["tipo_reparto_resto"]
+            | null
+          tipo_distribucion?: Database["public"]["Enums"]["tipo_distribucion_concepto"]
+          tipo_servicio?: Database["public"]["Enums"]["tipo_servicio"]
+          tipo_vencimiento?: Database["public"]["Enums"]["tipo_vencimiento_concepto"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recibos_concepto_id_fkey"
+            columns: ["concepto_id"]
+            isOneToOne: false
+            referencedRelation: "conceptos_pago"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recibos_familia_id_fkey"
+            columns: ["familia_id"]
+            isOneToOne: false
+            referencedRelation: "familias"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recibos_periodo_id_fkey"
+            columns: ["periodo_id"]
+            isOneToOne: false
+            referencedRelation: "periodos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tipos_identificador_proveedor: {
         Row: {
           activo: boolean
@@ -605,12 +1190,41 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      anular_aporte: {
+        Args: { p_aporte_id: string; p_motivo: string }
+        Returns: undefined
+      }
+      anular_pago_proveedor: {
+        Args: { p_motivo: string; p_pago_id: string }
+        Returns: undefined
+      }
       cambiar_estado_concepto: {
         Args: { p_activo: boolean; p_concepto_id: string }
         Returns: undefined
       }
       cambiar_estado_proveedor_personalizado: {
         Args: { p_activo: boolean; p_proveedor_id: string }
+        Returns: undefined
+      }
+      cerrar_periodo: {
+        Args: { p_motivo?: string; p_periodo_id: string }
+        Returns: undefined
+      }
+      confirmar_monto_recibo: {
+        Args: {
+          p_fecha_vencimiento: string
+          p_monto: number
+          p_recibo_id: string
+        }
+        Returns: undefined
+      }
+      corregir_monto_recibo: {
+        Args: {
+          p_fecha_vencimiento?: string
+          p_motivo: string
+          p_nuevo_monto: number
+          p_recibo_id: string
+        }
         Returns: undefined
       }
       crear_familia_inicial: { Args: { p_nombre: string }; Returns: string }
@@ -643,12 +1257,84 @@ export type Database = {
         }
         Returns: string
       }
+      guardar_concepto_servicio_fase6: {
+        Args: {
+          p_categoria_id: string
+          p_concepto_id: string
+          p_cuenta: Json
+          p_dia_vencimiento: number
+          p_dias_anticipacion_aporte: number
+          p_fallback_manual: boolean
+          p_familia_id: string
+          p_fecha_inicio_generacion: string
+          p_frecuencia: Database["public"]["Enums"]["frecuencia_concepto"]
+          p_metodo_obtencion: Database["public"]["Enums"]["metodo_obtencion_monto"]
+          p_monto_fijo: number
+          p_nombre: string
+          p_participantes: Json
+          p_plantilla_id: string
+          p_proveedor_id: string
+          p_reparto_resto: Database["public"]["Enums"]["tipo_reparto_resto"]
+          p_tipo_distribucion: Database["public"]["Enums"]["tipo_distribucion_concepto"]
+          p_tipo_vencimiento: Database["public"]["Enums"]["tipo_vencimiento_concepto"]
+        }
+        Returns: string
+      }
+      registrar_aporte: {
+        Args: {
+          p_cuota_id: string
+          p_metodo: Database["public"]["Enums"]["metodo_pago_familiar"]
+          p_monto: number
+          p_nota?: string
+          p_referencia?: string
+        }
+        Returns: string
+      }
+      registrar_pago_proveedor: {
+        Args: {
+          p_fecha_pago: string
+          p_monto: number
+          p_nota?: string
+          p_origen: Database["public"]["Enums"]["origen_pago_proveedor"]
+          p_pagador_miembro_id: string
+          p_recibo_id: string
+          p_referencia?: string
+        }
+        Returns: string
+      }
+      sincronizar_periodo_actual: {
+        Args: { p_familia_id: string }
+        Returns: number
+      }
+      validar_aporte: {
+        Args: { p_aporte_id: string; p_aprobar: boolean; p_motivo?: string }
+        Returns: undefined
+      }
     }
     Enums: {
+      destino_aporte: "FONDO_FAMILIAR" | "INTEGRANTE"
+      estado_ajuste_recibo: "APLICADO" | "ANULADO"
+      estado_aporte: "POR_VALIDAR" | "CONFIRMADO" | "RECHAZADO" | "ANULADO"
+      estado_cuota:
+        | "PENDIENTE"
+        | "PARCIAL"
+        | "POR_VALIDAR"
+        | "PAGADA"
+        | "RECHAZADA"
+        | "ANULADA"
       estado_integracion_proveedor: "NO_DISPONIBLE" | "PREPARADO" | "DISPONIBLE"
       estado_invitacion: "PENDIENTE" | "ACEPTADA" | "EXPIRADA" | "REVOCADA"
       estado_miembro: "ACTIVO" | "INACTIVO"
+      estado_pago_proveedor: "CONFIRMADO" | "ANULADO"
       estado_periodo: "ABIERTO" | "COMPLETADO"
+      estado_recaudacion: "PENDIENTE" | "PARCIAL" | "COMPLETA"
+      estado_recibo:
+        | "ESPERANDO_MONTO"
+        | "PENDIENTE"
+        | "PAGADO"
+        | "VENCIDO"
+        | "ANULADO"
+        | "REQUIERE_REVISION"
       frecuencia_concepto: "MENSUAL" | "ANUAL" | "UNICA"
       metodo_obtencion_monto: "MANUAL" | "FIJO" | "AUTOMATICO"
       metodo_pago_familiar: "YAPE" | "TRANSFERENCIA" | "EFECTIVO" | "OTRO"
@@ -658,7 +1344,10 @@ export type Database = {
         | "MONTO_FIJO"
         | "RESTO_IGUAL"
         | "RESTO_PORCENTAJE"
+      origen_pago_proveedor: "FONDO_FAMILIAR" | "ADELANTO_INTEGRANTE"
       rol_familia: "ADMINISTRADOR" | "INTEGRANTE"
+      tipo_aporte: "APORTE_FAMILIAR" | "REEMBOLSO" | "COBERTURA_ADELANTO"
+      tipo_cierre_periodo: "AUTOMATICO" | "MANUAL"
       tipo_distribucion_concepto:
         | "IGUAL"
         | "PORCENTAJE"
@@ -794,6 +1483,17 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      destino_aporte: ["FONDO_FAMILIAR", "INTEGRANTE"],
+      estado_ajuste_recibo: ["APLICADO", "ANULADO"],
+      estado_aporte: ["POR_VALIDAR", "CONFIRMADO", "RECHAZADO", "ANULADO"],
+      estado_cuota: [
+        "PENDIENTE",
+        "PARCIAL",
+        "POR_VALIDAR",
+        "PAGADA",
+        "RECHAZADA",
+        "ANULADA",
+      ],
       estado_integracion_proveedor: [
         "NO_DISPONIBLE",
         "PREPARADO",
@@ -801,7 +1501,17 @@ export const Constants = {
       ],
       estado_invitacion: ["PENDIENTE", "ACEPTADA", "EXPIRADA", "REVOCADA"],
       estado_miembro: ["ACTIVO", "INACTIVO"],
+      estado_pago_proveedor: ["CONFIRMADO", "ANULADO"],
       estado_periodo: ["ABIERTO", "COMPLETADO"],
+      estado_recaudacion: ["PENDIENTE", "PARCIAL", "COMPLETA"],
+      estado_recibo: [
+        "ESPERANDO_MONTO",
+        "PENDIENTE",
+        "PAGADO",
+        "VENCIDO",
+        "ANULADO",
+        "REQUIERE_REVISION",
+      ],
       frecuencia_concepto: ["MENSUAL", "ANUAL", "UNICA"],
       metodo_obtencion_monto: ["MANUAL", "FIJO", "AUTOMATICO"],
       metodo_pago_familiar: ["YAPE", "TRANSFERENCIA", "EFECTIVO", "OTRO"],
@@ -812,7 +1522,10 @@ export const Constants = {
         "RESTO_IGUAL",
         "RESTO_PORCENTAJE",
       ],
+      origen_pago_proveedor: ["FONDO_FAMILIAR", "ADELANTO_INTEGRANTE"],
       rol_familia: ["ADMINISTRADOR", "INTEGRANTE"],
+      tipo_aporte: ["APORTE_FAMILIAR", "REEMBOLSO", "COBERTURA_ADELANTO"],
+      tipo_cierre_periodo: ["AUTOMATICO", "MANUAL"],
       tipo_distribucion_concepto: [
         "IGUAL",
         "PORCENTAJE",
