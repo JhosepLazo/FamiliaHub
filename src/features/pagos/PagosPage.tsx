@@ -1,5 +1,5 @@
 import { Check, ExternalLink, ReceiptText, ShieldCheck, X } from 'lucide-react'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { supabase } from '../../lib/supabase'
 import type { Tables } from '../../types/database'
 import { useAuth } from '../auth/AuthContext'
@@ -177,7 +177,7 @@ export default function PagosPage() {
 	)
 }
 
-function TabButton({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
+function TabButton({ active, onClick, children }: { active: boolean; onClick: () => void; children: ReactNode }) {
 	return <button type="button" onClick={onClick} className={`flex-1 rounded-xl px-4 py-2 text-xs font-semibold transition ${active ? 'bg-[#0f766e] text-white' : 'text-slate-500'}`}>{children}</button>
 }
 
