@@ -1,4 +1,4 @@
-import { CalendarDays, HousePlug, ShieldCheck, Users, WalletCards } from 'lucide-react'
+import { CalendarDays, ReceiptText, ShieldCheck, Users, WalletCards } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { useFamilia } from '../familia/FamiliaContext'
@@ -10,11 +10,7 @@ export default function InicioPage() {
 	return (
 		<div>
 			<div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-				<div>
-					<p className="text-sm font-semibold text-[#0f766e]">Inicio</p>
-					<h1 className="mt-1 text-3xl font-semibold tracking-tight">{familia?.nombre}</h1>
-					<p className="mt-2 text-sm text-slate-500">La base familiar está lista para empezar a configurar los servicios.</p>
-				</div>
+				<div><p className="text-sm font-semibold text-[#0f766e]">Inicio</p><h1 className="mt-1 text-3xl font-semibold tracking-tight">{familia?.nombre}</h1><p className="mt-2 text-sm text-slate-500">FamiliaHub ya puede convertir tus servicios en recibos y cuotas por periodo.</p></div>
 				<p className="capitalize text-sm font-medium text-slate-400">{now}</p>
 			</div>
 
@@ -26,20 +22,16 @@ export default function InicioPage() {
 			</div>
 
 			<div className="mt-8 rounded-3xl border border-slate-200 bg-white p-6">
-				<p className="text-sm font-semibold">Siguiente paso</p>
-				<h2 className="mt-2 text-xl font-semibold">Configura integrantes y cuenta receptora</h2>
-				<p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">Antes de crear servicios y recibos, FamiliaHub necesita saber quiénes forman parte de la familia y dónde se recibirán las cuotas.</p>
+				<div className="grid size-10 place-items-center rounded-xl bg-emerald-50 text-[#0f766e]"><ReceiptText size={18} /></div>
+				<p className="mt-4 text-sm font-semibold">Control del periodo</p>
+				<h2 className="mt-2 text-xl font-semibold">Revisa los recibos del hogar</h2>
+				<p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">Consulta el total de cada recibo, tu cuota, fechas límite y el progreso familiar. Los estados del proveedor y de la recaudación se mantienen separados.</p>
+				<Link to="/recibos" className="fh-button-primary mt-5 inline-flex">Ver recibos</Link>
 			</div>
 		</div>
 	)
 }
 
 function Card({ icon, label, value }: { icon: ReactNode; label: string; value: string }) {
-	return (
-		<div className="rounded-2xl border border-slate-200 bg-white p-5">
-			<div className="text-[#0f766e] [&>svg]:size-5">{icon}</div>
-			<p className="mt-5 text-xs font-medium text-slate-400">{label}</p>
-			<p className="mt-1 text-sm font-semibold">{value}</p>
-		</div>
-	)
+	return <div className="rounded-2xl border border-slate-200 bg-white p-5"><div className="text-[#0f766e] [&>svg]:size-5">{icon}</div><p className="mt-5 text-xs font-medium text-slate-400">{label}</p><p className="mt-1 text-sm font-semibold">{value}</p></div>
 }
