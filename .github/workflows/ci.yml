@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-      - fase-3-4
+      - 'fase-*'
   pull_request:
     branches:
       - main
