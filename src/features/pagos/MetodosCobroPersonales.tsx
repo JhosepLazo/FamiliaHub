@@ -65,6 +65,7 @@ export default function MetodosCobroPersonales() {
 		}
 
 		const { error } = await supabase.rpc('guardar_metodo_cobro_personal', {
+			p_familia_id: familia.id,
 			p_metodo: metodo,
 			p_titular: titular.trim(),
 			p_referencia: referencia.trim() || undefined,
