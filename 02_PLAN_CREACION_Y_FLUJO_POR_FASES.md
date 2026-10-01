@@ -541,17 +541,19 @@ Octubre 2026.
 
 ### Automatización
 
-Al comenzar un periodo:
+FamiliaHub ejecuta un ciclo diario idempotente a las 00:10 de Lima.
 
-1. crear periodo si no existe;
-2. identificar conceptos activos;
-3. clasificar cada concepto:
-   - fijo;
-   - automático;
-   - manual;
-4. programar/ejecutar obtención.
+En cada ejecución:
 
-No es necesario generar recibos vacíos de todos los servicios si no aportan valor; la implementación debe evitar datos innecesarios.
+1. crea el periodo actual si no existe;
+2. identifica conceptos activos cuya frecuencia corresponde al periodo;
+3. crea como máximo un recibo por concepto y periodo;
+4. los servicios fijos nacen con monto conocido y cuotas calculadas;
+5. los servicios manuales o automáticos sin integración nacen en **Esperando monto**;
+6. actualiza vencimientos;
+7. intenta cerrar automáticamente los periodos completamente resueltos.
+
+La existencia del recibo antes de conocer el monto es intencional: permite que la familia vea qué obligación está pendiente sin inventar una deuda definitiva. Las cuotas solo se materializan cuando el monto está confirmado.
 
 ---
 
@@ -579,15 +581,21 @@ Crea el recibo automáticamente para el periodo.
 
 El administrador recibe una tarea simple:
 
-> Falta registrar el monto de Mantenimiento.
+> Falta confirmar el recibo.
 
-Campos:
+Campos de Fase 6:
 
 - monto;
-- vencimiento;
-- archivo opcional.
+- vencimiento.
 
-Después FamiliaHub continúa automáticamente.
+Después FamiliaHub:
+
+1. confirma el monto;
+2. calcula la fecha límite familiar según los días de anticipación del servicio;
+3. crea las cuotas desde el snapshot;
+4. continúa el flujo financiero.
+
+Los documentos/comprobantes se incorporan en la fase específica de pagos y evidencias.
 
 ---
 
@@ -614,23 +622,21 @@ No permitir que cada proveedor contamine el modelo de FamiliaHub con estructuras
 
 ## 18. Fase funcional I — Generación del recibo
 
-Cuando existe información suficiente:
+Al materializar un servicio:
 
-1. crear recibo;
-2. asociar familia;
-3. asociar concepto;
-4. asociar periodo;
-5. guardar importe;
-6. guardar vencimiento;
-7. guardar referencia externa;
-8. guardar origen;
-9. guardar documento si existe;
-10. generar snapshot de participantes;
-11. ejecutar cálculo de cuotas.
+1. crear recibo único por concepto + periodo;
+2. asociar familia, concepto y periodo;
+3. copiar nombre, categoría, proveedor y tipo de servicio;
+4. copiar frecuencia, método de obtención y regla de vencimiento;
+5. congelar cuenta de servicio en snapshot privado para administradores;
+6. congelar participantes, nombres y reglas de distribución;
+7. si el monto es fijo, confirmar importe y generar cuotas inmediatamente;
+8. si el monto todavía no existe, dejar el recibo en **Esperando monto**;
+9. cuando el monto se confirma, calcular cuotas determinísticamente en centavos.
 
 ### Idempotencia
 
-El mismo recibo no se crea dos veces aunque el job se ejecute repetidamente.
+El ciclo puede ejecutarse repetidamente sin duplicar periodos ni recibos. La clave lógica es un solo recibo por concepto y periodo.
 
 ---
 
@@ -638,15 +644,27 @@ El mismo recibo no se crea dos veces aunque el job se ejecute repetidamente.
 
 ### Igualitaria
 
-Monto / participantes.
+Divide el total en centavos. Cualquier resto de redondeo se asigna de forma determinística.
 
-### Personalizada por porcentaje
+Ejemplo: S/100 / 3 → S/33.33, S/33.33 y S/33.34.
 
-Monto × porcentaje.
+### Porcentaje
 
-### Personalizada por importe
+Utiliza los porcentajes del snapshot y distribuye los centavos residuales mediante resto mayor, conservando exactamente el total.
 
-Importes definidos.
+### Monto fijo
+
+La suma de importes debe coincidir con el total del recibo.
+
+### Mixta
+
+1. descuenta los montos fijos;
+2. valida que quede saldo positivo;
+3. distribuye el saldo restante por partes iguales o porcentajes.
+
+### Invariante
+
+La suma de todas las cuotas siempre debe coincidir exactamente con el total vigente del recibo.
 
 ### Validaciones
 
@@ -668,6 +686,21 @@ Ejemplo S/100 / 3:
 - S/33.34
 
 Nunca dejar una diferencia contable.
+
+---
+
+### Reglas financieras implementadas en Fase 6
+
+- Los aportes pueden ser parciales.
+- Un aporte de un integrante queda **Por validar** hasta que lo confirme un administrador o, si es reembolso, el integrante receptor.
+- El sistema bloquea sobrepagos considerando tanto importes confirmados como aportes pendientes de validación.
+- El pago al proveedor es independiente de la recaudación familiar.
+- Si un integrante adelanta el total al proveedor, su propia cuota queda cubierta y las demás cuotas pasan a ser reembolsos hacia ese integrante.
+- No se permite convertir a adelanto un recibo que ya tenga aportes activos, evitando doble contabilización.
+- Corregir un monto genera un ajuste auditable; no reescribe silenciosamente el valor anterior.
+- Un recibo se anula lógicamente con motivo, nunca mediante borrado físico.
+- Un periodo completado es inmutable.
+- El cierre automático o manual exige proveedor pagado y recaudación completa en todos los recibos no anulados.
 
 ---
 
