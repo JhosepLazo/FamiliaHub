@@ -106,7 +106,7 @@ export default function RecibosPage() {
 	const closePeriod = async () => {
 		if (!currentPeriod) return
 		setMessage(null)
-		const { error } = await supabase.rpc('cerrar_periodo', { p_periodo_id: currentPeriod.id, p_motivo: null })
+		const { error } = await supabase.rpc('cerrar_periodo', { p_periodo_id: currentPeriod.id })
 		setMessage(error ? error.message : 'Periodo cerrado correctamente.')
 		if (!error) await loadPeriods(false)
 	}
