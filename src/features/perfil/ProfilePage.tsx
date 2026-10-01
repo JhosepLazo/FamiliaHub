@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../auth/AuthContext'
 import { useFamilia } from '../familia/FamiliaContext'
+import MetodosCobroPersonales from '../pagos/MetodosCobroPersonales'
 
 export default function ProfilePage() {
 	const { user } = useAuth()
@@ -38,6 +39,8 @@ export default function ProfilePage() {
 				<button className="fh-button-primary mt-6" disabled={loading}>{loading ? 'Guardando...' : 'Guardar cambios'}</button>
 				{message && <p className="fh-alert mt-4">{message}</p>}
 			</form>
+
+			<MetodosCobroPersonales />
 
 			<Link to="/familia" className="fh-button-secondary mt-4 flex items-center gap-2 lg:hidden"><Users size={16} />Familia e integrantes</Link>
 			{membresia?.rol === 'ADMINISTRADOR' && (
