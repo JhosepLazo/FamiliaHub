@@ -49,6 +49,53 @@ export type Database = {
           },
         ]
       }
+      configuracion_pago_familiar: {
+        Row: {
+          activo: boolean
+          created_at: string
+          familia_id: string
+          id: string
+          instrucciones: string | null
+          metodo: Database["public"]["Enums"]["metodo_pago_familiar"]
+          qr_storage_path: string | null
+          referencia: string
+          titular: string
+          updated_at: string
+        }
+        Insert: {
+          activo?: boolean
+          created_at?: string
+          familia_id: string
+          id?: string
+          instrucciones?: string | null
+          metodo?: Database["public"]["Enums"]["metodo_pago_familiar"]
+          qr_storage_path?: string | null
+          referencia: string
+          titular: string
+          updated_at?: string
+        }
+        Update: {
+          activo?: boolean
+          created_at?: string
+          familia_id?: string
+          id?: string
+          instrucciones?: string | null
+          metodo?: Database["public"]["Enums"]["metodo_pago_familiar"]
+          qr_storage_path?: string | null
+          referencia?: string
+          titular?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "configuracion_pago_familiar_familia_id_fkey"
+            columns: ["familia_id"]
+            isOneToOne: true
+            referencedRelation: "familias"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       familias: {
         Row: {
           activo: boolean
@@ -92,6 +139,7 @@ export type Database = {
           expira_at: string
           familia_id: string
           id: string
+          nombre: string | null
           rol: Database["public"]["Enums"]["rol_familia"]
           token_hash: string
         }
@@ -104,6 +152,7 @@ export type Database = {
           expira_at: string
           familia_id: string
           id?: string
+          nombre?: string | null
           rol?: Database["public"]["Enums"]["rol_familia"]
           token_hash: string
         }
@@ -116,6 +165,7 @@ export type Database = {
           expira_at?: string
           familia_id?: string
           id?: string
+          nombre?: string | null
           rol?: Database["public"]["Enums"]["rol_familia"]
           token_hash?: string
         }
@@ -231,12 +281,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      crear_familia_inicial: { Args: { p_nombre: string }; Returns: string }
     }
     Enums: {
       estado_invitacion: "PENDIENTE" | "ACEPTADA" | "EXPIRADA" | "REVOCADA"
       estado_miembro: "ACTIVO" | "INACTIVO"
       estado_periodo: "ABIERTO" | "COMPLETADO"
+      metodo_pago_familiar: "YAPE" | "TRANSFERENCIA" | "EFECTIVO" | "OTRO"
       rol_familia: "ADMINISTRADOR" | "INTEGRANTE"
     }
     CompositeTypes: {
@@ -368,6 +419,7 @@ export const Constants = {
       estado_invitacion: ["PENDIENTE", "ACEPTADA", "EXPIRADA", "REVOCADA"],
       estado_miembro: ["ACTIVO", "INACTIVO"],
       estado_periodo: ["ABIERTO", "COMPLETADO"],
+      metodo_pago_familiar: ["YAPE", "TRANSFERENCIA", "EFECTIVO", "OTRO"],
       rol_familia: ["ADMINISTRADOR", "INTEGRANTE"],
     },
   },

@@ -1,7 +1,7 @@
 {
   "name": "familiahub",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -11,8 +11,10 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "2.117.2",
+    "lucide-react": "1.49.0",
     "react": "19.3.0",
-    "react-dom": "19.3.0"
+    "react-dom": "19.3.0",
+    "react-router-dom": "7.18.3"
   },
   "devDependencies": {
     "@tailwindcss/vite": "4.3.3",
