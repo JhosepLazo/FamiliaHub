@@ -6,13 +6,12 @@ import {
 	CircleAlert,
 	CirclePlus,
 	Info,
-	Sparkles,
 	UsersRound,
 } from 'lucide-react'
 import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
-import type { Database, Enums, Json, Tables } from '../../types/database'
+import type { Database, Json, Tables } from '../../types/database'
 import { useFamilia } from '../familia/FamiliaContext'
 import {
 	distribucionLabel,
@@ -270,7 +269,7 @@ export default function ServicioFormPage() {
 		const firstIdentifier = identifiers.find((item) => item.proveedor_id === providerId)
 		setState((current) => ({
 			...current,
-			proveedorId,
+			proveedorId: providerId,
 			cuentaTipoId: firstIdentifier?.id ?? '',
 			cuentaNombre: '',
 			cuentaValor: '',
