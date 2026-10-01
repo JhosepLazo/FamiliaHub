@@ -25,8 +25,8 @@ Asistente privado para organizar recibos, cuotas y pagos familiares.
 
 ### Funcionalidad disponible
 
-- Login y sesión persistente.
-- Registro de acceso personal.
+- Login por usuario + contraseña y sesión persistente.
+- Registro con correo verificado, usuario único y contraseña.
 - Recuperación y cambio de contraseña.
 - Creación inicial de familia.
 - Perfil personal.
@@ -103,7 +103,13 @@ Las claves secretas de Supabase nunca pertenecen al frontend ni al repositorio. 
 ```text
 Acceso personal
     ↓
-Login / Registro / Recuperación
+Registro: correo + usuario + contraseña
+    ↓
+Confirmación de correo
+    ↓
+Login diario: usuario + contraseña
+    ↓
+Recuperación: correo
     ↓
 ¿Pertenece a una familia?
     ├── No → Crear familia o aceptar invitación

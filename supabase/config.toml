@@ -5,3 +5,6 @@ verify_jwt = true
 
 [functions.aceptar-invitacion]
 verify_jwt = true
+
+[functions.login-usuario]
+verify_jwt = false

@@ -999,6 +999,7 @@ export type Database = {
           id: string
           nombre: string | null
           updated_at: string
+          usuario: string | null
         }
         Insert: {
           avatar_url?: string | null
@@ -1006,6 +1007,7 @@ export type Database = {
           id: string
           nombre?: string | null
           updated_at?: string
+          usuario?: string | null
         }
         Update: {
           avatar_url?: string | null
@@ -1013,6 +1015,7 @@ export type Database = {
           id?: string
           nombre?: string | null
           updated_at?: string
+          usuario?: string | null
         }
         Relationships: []
       }

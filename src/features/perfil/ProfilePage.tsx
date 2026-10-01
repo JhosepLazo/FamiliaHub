@@ -10,12 +10,16 @@ export default function ProfilePage() {
 	const { user } = useAuth()
 	const { membresia } = useFamilia()
 	const [nombre, setNombre] = useState('')
+	const [usuario, setUsuario] = useState('')
 	const [loading, setLoading] = useState(false)
 	const [message, setMessage] = useState<string | null>(null)
 
 	useEffect(() => {
 		if (!user) return
-		void supabase.from('perfiles').select('nombre').eq('id', user.id).single().then(({ data }) => setNombre(data?.nombre ?? ''))
+		void supabase.from('perfiles').select('nombre,usuario').eq('id', user.id).single().then(({ data }) => {
+			setNombre(data?.nombre ?? '')
+			setUsuario(data?.usuario ?? '')
+		})
 	}, [user])
 
 	const save = async (event: FormEvent) => {
@@ -35,7 +39,8 @@ export default function ProfilePage() {
 
 			<form onSubmit={save} className="mt-8 rounded-3xl border border-slate-200 bg-white p-6 sm:p-8">
 				<label className="block"><span className="fh-label">Nombre</span><input className="fh-input" required value={nombre} onChange={(e) => setNombre(e.target.value)} /></label>
-				<label className="mt-5 block"><span className="fh-label">Correo</span><input className="fh-input bg-slate-50 text-slate-500" value={user?.email ?? ''} disabled /></label>
+				<label className="mt-5 block"><span className="fh-label">Usuario</span><input className="fh-input bg-slate-50 text-slate-500" value={usuario} disabled /></label>
+				<label className="mt-5 block"><span className="fh-label">Correo de recuperación</span><input className="fh-input bg-slate-50 text-slate-500" value={user?.email ?? ''} disabled /></label>
 				<button className="fh-button-primary mt-6" disabled={loading}>{loading ? 'Guardando...' : 'Guardar cambios'}</button>
 				{message && <p className="fh-alert mt-4">{message}</p>}
 			</form>

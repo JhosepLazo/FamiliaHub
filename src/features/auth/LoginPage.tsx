@@ -1,4 +1,4 @@
-import { LockKeyhole, Mail } from 'lucide-react'
+import { LockKeyhole, UserRound } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { FormEvent, useEffect, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
@@ -12,7 +12,7 @@ export default function LoginPage() {
 	const [params] = useSearchParams()
 	const navigate = useNavigate()
 	const next = safeNext(params.get('next'))
-	const [email, setEmail] = useState('')
+	const [usuario, setUsuario] = useState('')
 	const [password, setPassword] = useState('')
 	const [loading, setLoading] = useState(false)
 	const [message, setMessage] = useState<string | null>(null)
@@ -26,9 +26,23 @@ export default function LoginPage() {
 		setLoading(true)
 		setMessage(null)
 
-		const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password })
+		const { data, error } = await supabase.functions.invoke('login-usuario', {
+			body: { usuario: usuario.trim(), password },
+		})
 
-		if (error) setMessage('No pudimos iniciar sesión. Revisa tu correo y contraseña.')
+		const session = data?.session
+		if (error || !session?.access_token || !session?.refresh_token) {
+			setMessage('No pudimos iniciar sesión. Revisa tu usuario y contraseña.')
+			setLoading(false)
+			return
+		}
+
+		const { error: sessionError } = await supabase.auth.setSession({
+			access_token: session.access_token,
+			refresh_token: session.refresh_token,
+		})
+
+		if (sessionError) setMessage('No pudimos iniciar sesión. Inténtalo nuevamente.')
 		else navigate(next, { replace: true })
 
 		setLoading(false)
@@ -37,8 +51,8 @@ export default function LoginPage() {
 	return (
 		<AuthLayout title="Ingresa a tu familia" subtitle="Consulta tus cuotas y la información del hogar desde tu acceso personal.">
 			<form className="space-y-5" onSubmit={submit}>
-				<Field label="Correo" icon={<Mail size={17} />}>
-					<input className="fh-input pl-11" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="nombre@correo.com" />
+				<Field label="Usuario" icon={<UserRound size={17} />}>
+					<input className="fh-input pl-11" autoComplete="username" required value={usuario} onChange={(e) => setUsuario(e.target.value)} placeholder="Jhosep" />
 				</Field>
 				<Field label="Contraseña" icon={<LockKeyhole size={17} />}>
 					<input className="fh-input pl-11" type="password" autoComplete="current-password" required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" />
