@@ -71,6 +71,7 @@ export default function ReciboDetallePage() {
 	const [providerPayer, setProviderPayer] = useState('')
 	const [providerDate, setProviderDate] = useState(todayLima())
 	const [providerReference, setProviderReference] = useState('')
+	const [pendingDueDate, setPendingDueDate] = useState('')
 
 	const load = useCallback(async () => {
 		if (!familia || !id) return
@@ -224,6 +225,32 @@ export default function ReciboDetallePage() {
 		)
 	}
 
+	const updateDueDate = async (event: FormEvent) => {
+		event.preventDefault()
+		if (!receipt || !pendingDueDate) return
+		await run(
+			() => supabase.rpc('actualizar_vencimiento_recibo', {
+				p_recibo_id: receipt.id,
+				p_fecha_vencimiento: pendingDueDate,
+			}).then(({ error }) => ({ error })),
+			'Vencimiento y fecha límite familiar actualizados.',
+		)
+		setPendingDueDate('')
+	}
+
+	const annulReceipt = async () => {
+		if (!receipt) return
+		const reason = window.prompt('Motivo de la anulación del recibo:')
+		if (!reason) return
+		await run(
+			() => supabase.rpc('anular_recibo', {
+				p_recibo_id: receipt.id,
+				p_motivo: reason,
+			}).then(({ error }) => ({ error })),
+			'Recibo anulado sin eliminar su historial.',
+		)
+	}
+
 	const annulProviderPayment = async (payment: PagoProveedor) => {
 		const reason = window.prompt('Motivo de la anulación del pago al proveedor:')
 		if (!reason) return
@@ -263,6 +290,19 @@ export default function ReciboDetallePage() {
 						<p className="text-sm font-semibold text-[#0f766e]">{progress}%</p>
 					</div>
 					<div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-[#0f766e]" style={{ width: `${progress}%` }} /></div>
+				</section>
+			)}
+
+			{receipt.monto_total != null && !receipt.fecha_vencimiento && receipt.tipo_vencimiento !== 'DIA_FIJO' && isAdmin && receipt.estado !== 'ANULADO' && receipt.estado !== 'PAGADO' && (
+				<section className="mt-6 rounded-3xl border border-amber-100 bg-amber-50 p-5 sm:p-6">
+					<div className="flex items-center gap-3 text-amber-800">
+						<CircleAlert size={20} />
+						<div><h2 className="font-semibold">Falta el vencimiento del proveedor</h2><p className="mt-1 text-xs">El monto ya es conocido. Registra únicamente la fecha para calcular la fecha límite familiar.</p></div>
+					</div>
+					<form onSubmit={updateDueDate} className="mt-5 flex flex-col gap-3 sm:flex-row">
+						<input className="fh-input max-w-xs" type="date" required value={pendingDueDate} onChange={(e) => setPendingDueDate(e.target.value)} />
+						<button disabled={working} className="fh-button-primary">Guardar vencimiento</button>
+					</form>
 				</section>
 			)}
 
@@ -357,6 +397,15 @@ export default function ReciboDetallePage() {
 						<div className="flex items-end"><button disabled={working} className="fh-button-secondary w-full">Aplicar ajuste</button></div>
 					</form>
 					{adjustments.length > 0 && <div className="mt-4 space-y-2">{adjustments.map((adjustment) => <div key={adjustment.id} className="rounded-xl bg-slate-50 px-4 py-3 text-xs text-slate-500">{money(adjustment.monto_anterior)} → {money(adjustment.monto_nuevo)} · {adjustment.motivo}</div>)}</div>}
+				</section>
+			)}
+
+			{isAdmin && receipt.estado !== 'ANULADO' && (
+				<section className="mt-6 rounded-3xl border border-rose-100 bg-rose-50/50 p-5">
+					<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+						<div><p className="text-sm font-semibold text-rose-700">Anular recibo</p><p className="mt-1 text-xs leading-5 text-rose-600/70">No elimina datos. FamiliaHub exige resolver primero cualquier aporte o pago al proveedor activo.</p></div>
+						<button type="button" disabled={working} onClick={() => void annulReceipt()} className="fh-button-secondary shrink-0 text-rose-600">Anular recibo</button>
+					</div>
 				</section>
 			)}
 
