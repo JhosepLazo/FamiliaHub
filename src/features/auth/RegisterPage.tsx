@@ -26,7 +26,7 @@ export default function RegisterPage() {
 			password,
 			options: {
 				data: { nombre: nombre.trim() },
-				emailRedirectTo: window.location.origin,
+				emailRedirectTo: `${window.location.origin}${next}`,
 			},
 		})
 
