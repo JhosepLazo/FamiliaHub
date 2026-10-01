@@ -14,7 +14,7 @@ import {
 import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
-import type { Database, Enums, Tables } from '../../types/database'
+import type { Database, Enums, Json, Tables } from '../../types/database'
 import { useAuth } from '../auth/AuthContext'
 import { useFamilia } from '../familia/FamiliaContext'
 import {
@@ -72,6 +72,9 @@ export default function ReciboDetallePage() {
 	const [providerDate, setProviderDate] = useState(todayLima())
 	const [providerReference, setProviderReference] = useState('')
 	const [pendingDueDate, setPendingDueDate] = useState('')
+	const [distributionOpen, setDistributionOpen] = useState(false)
+	const [distributionReason, setDistributionReason] = useState('')
+	const [distributionDraft, setDistributionDraft] = useState<Record<string, { selected: boolean; amount: string }>>({})
 
 	const load = useCallback(async () => {
 		if (!familia || !id) return
@@ -130,6 +133,7 @@ export default function ReciboDetallePage() {
 	const assigned = useMemo(() => quotas.reduce((sum, quota) => sum + quota.monto_asignado, 0), [quotas])
 	const paid = useMemo(() => quotas.reduce((sum, quota) => sum + quota.monto_pagado, 0), [quotas])
 	const progress = assigned > 0 ? Math.min(100, Math.round((paid / assigned) * 100)) : 0
+	const hasActiveContributions = contributions.some((item) => item.estado === 'POR_VALIDAR' || item.estado === 'CONFIRMADO')
 
 	const run = async (operation: () => PromiseLike<{ error: { message: string } | null }>, success: string) => {
 		setWorking(true)
@@ -223,6 +227,56 @@ export default function ReciboDetallePage() {
 			}) as unknown as Database['public']['Functions']['registrar_pago_proveedor']['Args']).then(({ error }) => ({ error })),
 			'Pago al proveedor registrado.',
 		)
+	}
+
+	const openDistributionOverride = () => {
+		setDistributionDraft(Object.fromEntries(members.map((member) => {
+			const quota = quotas.find((item) => item.miembro_id === member.id)
+			return [member.id, { selected: Boolean(quota), amount: quota ? String(quota.monto_asignado) : '' }]
+		})))
+		setDistributionReason(receipt?.distribucion_ajuste_motivo ?? '')
+		setDistributionOpen(true)
+	}
+
+	const equalizeDistribution = () => {
+		if (!receipt?.monto_total) return
+		const selected = members.filter((member) => distributionDraft[member.id]?.selected)
+		const shares = splitMoney(receipt.monto_total, selected.length)
+		setDistributionDraft((current) => {
+			const next = structuredClone(current)
+			selected.forEach((member, index) => {
+				next[member.id] = { selected: true, amount: shares[index] ?? '' }
+			})
+			return next
+		})
+	}
+
+	const saveDistributionOverride = async (event: FormEvent) => {
+		event.preventDefault()
+		if (!receipt?.monto_total) return
+		const rows = members
+			.filter((member) => distributionDraft[member.id]?.selected)
+			.map((member) => ({
+				miembro_id: member.id,
+				monto: Number(distributionDraft[member.id]?.amount || 0),
+			}))
+
+		if (!rows.length) return setMessage('Selecciona al menos un integrante para este recibo.')
+		const total = rows.reduce((sum, row) => sum + row.monto, 0)
+		if (rows.some((row) => row.monto <= 0) || Math.abs(total - receipt.monto_total) > 0.005) {
+			return setMessage(`La distribución debe sumar exactamente ${money(receipt.monto_total)} y todas las cuotas deben ser mayores a cero.`)
+		}
+		if (!distributionReason.trim()) return setMessage('Indica el motivo del ajuste de este periodo.')
+
+		await run(
+			() => supabase.rpc('ajustar_cuotas_recibo', {
+				p_recibo_id: receipt.id,
+				p_cuotas: rows as Json,
+				p_motivo: distributionReason.trim(),
+			}).then(({ error }) => ({ error })),
+			'Distribución del periodo actualizada sin modificar la plantilla del servicio.',
+		)
+		setDistributionOpen(false)
 	}
 
 	const updateDueDate = async (event: FormEvent) => {
@@ -333,6 +387,45 @@ export default function ReciboDetallePage() {
 				</section>
 			)}
 
+			{isAdmin && receipt.monto_total != null && receipt.estado !== 'PAGADO' && receipt.estado !== 'ANULADO' && (
+				<section className="mt-5 rounded-3xl border border-slate-200 bg-white p-5 sm:p-6">
+					<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+						<div>
+							<div className="flex flex-wrap items-center gap-2">
+								<h2 className="font-semibold">Excepción de este periodo</h2>
+								{receipt.distribucion_ajustada && <span className="rounded-full bg-amber-50 px-2 py-1 text-[10px] font-semibold text-amber-700">Distribución ajustada</span>}
+							</div>
+							<p className="mt-1 text-xs leading-5 text-slate-400">Permite excluir o reasignar integrantes solo en este recibo. La plantilla del servicio no cambia.</p>
+							{receipt.distribucion_ajuste_motivo && <p className="mt-2 text-xs text-slate-500">Motivo actual: {receipt.distribucion_ajuste_motivo}</p>}
+						</div>
+						<button type="button" disabled={hasActiveContributions || Boolean(activeProviderPayment)} onClick={openDistributionOverride} className="fh-button-secondary shrink-0 disabled:opacity-40">Ajustar distribución</button>
+					</div>
+
+					{(hasActiveContributions || activeProviderPayment) && <p className="mt-3 text-xs text-amber-700">La distribución queda bloqueada desde el primer aporte activo o pago al proveedor.</p>}
+
+					{distributionOpen && (
+						<form onSubmit={saveDistributionOverride} className="mt-5 rounded-2xl bg-slate-50 p-4">
+							<div className="space-y-3">
+								{members.map((member) => {
+									const draft = distributionDraft[member.id] ?? { selected: false, amount: '' }
+									return (
+										<div key={member.id} className="grid gap-3 rounded-xl bg-white p-3 sm:grid-cols-[1fr_180px] sm:items-center">
+											<label className="flex items-center gap-3 text-sm font-medium"><input type="checkbox" checked={draft.selected} onChange={(e) => setDistributionDraft((current) => ({ ...current, [member.id]: { ...draft, selected: e.target.checked, amount: e.target.checked ? draft.amount : '' } }))} className="size-4 accent-[#0f766e]" />{member.nombre}</label>
+											{draft.selected && <input className="fh-input" type="number" min="0.01" step="0.01" required value={draft.amount} onChange={(e) => setDistributionDraft((current) => ({ ...current, [member.id]: { ...draft, amount: e.target.value } }))} placeholder="Monto" />}
+										</div>
+									)
+								})}
+							</div>
+							<div className="mt-4 grid gap-3 sm:grid-cols-[1fr_auto_auto]">
+								<input className="fh-input" required value={distributionReason} onChange={(e) => setDistributionReason(e.target.value)} placeholder="Motivo de la excepción de este periodo" />
+								<button type="button" onClick={equalizeDistribution} className="fh-button-secondary">Repartir igual</button>
+								<button disabled={working} className="fh-button-primary">Guardar ajuste</button>
+							</div>
+						</form>
+					)}
+				</section>
+			)}
+
 			{quotaId && (
 				<section className="mt-5 rounded-3xl border border-emerald-100 bg-emerald-50/50 p-5">
 					<div className="flex items-center justify-between"><div><h2 className="font-semibold">Registrar aporte</h2><p className="mt-1 text-xs text-slate-500">Puedes pagar parcialmente; FamiliaHub conservará el saldo restante.</p></div><button onClick={() => setQuotaId('')} className="text-slate-400"><X size={18} /></button></div>
@@ -416,4 +509,13 @@ export default function ReciboDetallePage() {
 
 function Metric({ label, value, accent = false }: { label: string; value: string; accent?: boolean }) {
 	return <div className={`rounded-2xl border p-5 ${accent ? 'border-emerald-100 bg-emerald-50/60' : 'border-slate-200 bg-white'}`}><p className={`text-[10px] font-semibold uppercase tracking-wide ${accent ? 'text-emerald-700/60' : 'text-slate-400'}`}>{label}</p><p className={`mt-2 text-lg font-semibold ${accent ? 'text-[#0f766e]' : 'text-slate-800'}`}>{value}</p></div>
+}
+
+function splitMoney(total: number, count: number) {
+	if (!count) return []
+	const cents = Math.round(total * 100)
+	const base = Math.floor(cents / count)
+	const values = Array.from({ length: count }, () => base)
+	values[count - 1] = cents - base * (count - 1)
+	return values.map((value) => (value / 100).toFixed(2))
 }
