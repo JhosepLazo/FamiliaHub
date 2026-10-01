@@ -108,18 +108,26 @@ export function useCurrentFinance() {
 			setCuotas([])
 		}
 
+		const { data: paymentRows, error: paymentError } = await supabase
+			.from('pagos_familiares')
+			.select('*')
+			.eq('familia_id', familia.id)
+			.eq('estado', 'POR_VALIDAR')
+			.order('created_at')
+		if (paymentError) setError(paymentError.message)
+		setPagosPorValidar(paymentRows ?? [])
+
 		if (isAdmin) {
-			const [{ data: legacyRows, error: legacyError }, { data: paymentRows, error: paymentError }] = await Promise.all([
-				supabase.from('aportes').select('*').eq('familia_id', familia.id).eq('estado', 'POR_VALIDAR').order('created_at'),
-				supabase.from('pagos_familiares').select('*').eq('familia_id', familia.id).eq('estado', 'POR_VALIDAR').order('created_at'),
-			])
+			const { data: legacyRows, error: legacyError } = await supabase
+				.from('aportes')
+				.select('*')
+				.eq('familia_id', familia.id)
+				.eq('estado', 'POR_VALIDAR')
+				.order('created_at')
 			if (legacyError) setError(legacyError.message)
-			if (paymentError) setError(paymentError.message)
 			setAportesPorValidar(legacyRows ?? [])
-			setPagosPorValidar(paymentRows ?? [])
 		} else {
 			setAportesPorValidar([])
-			setPagosPorValidar([])
 		}
 
 		setLoading(false)
@@ -164,6 +172,11 @@ export function useCurrentFinance() {
 		}
 	}, [cuotasConRecibo])
 
+	const pagosParaValidar = useMemo(
+		() => pagosPorValidar.filter((payment) => payment.responsable_receptor_miembro_id === membresia?.id).length,
+		[pagosPorValidar, membresia],
+	)
+
 	const adminAttention = useMemo<AdminAttention>(() => {
 		if (!isAdmin) return emptyAttention()
 
@@ -201,6 +214,7 @@ export function useCurrentFinance() {
 		cuotasConRecibo,
 		resumen,
 		adminAttention,
+		pagosParaValidar,
 		loading,
 		error,
 		reload: load,
