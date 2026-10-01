@@ -129,7 +129,7 @@ export default function FamiliaSettingsPage() {
 		<div>
 			<p className="text-sm font-semibold text-[#0f766e]">Configuración</p>
 			<h1 className="mt-1 text-3xl font-semibold tracking-tight">Familia y pagos</h1>
-			<p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">Configura únicamente datos familiares reutilizables. Los servicios y recibos se agregarán en la siguiente fase.</p>
+			<p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">Configura los datos generales de la familia y la cuenta receptora. Los servicios se administran desde la sección Servicios.</p>
 
 			<div className="mt-8 grid gap-6 xl:grid-cols-2">
 				<section className="rounded-3xl border border-slate-200 bg-white p-6">
