@@ -1,4 +1,5 @@
 import { FormEvent, useEffect, useState } from 'react'
+import { LogOut } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../auth/AuthContext'
 
