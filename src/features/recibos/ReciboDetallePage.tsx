@@ -14,7 +14,7 @@ import {
 import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
-import type { Enums, Tables } from '../../types/database'
+import type { Database, Enums, Tables } from '../../types/database'
 import { useAuth } from '../auth/AuthContext'
 import { useFamilia } from '../familia/FamiliaContext'
 import {
@@ -130,7 +130,7 @@ export default function ReciboDetallePage() {
 	const paid = useMemo(() => quotas.reduce((sum, quota) => sum + quota.monto_pagado, 0), [quotas])
 	const progress = assigned > 0 ? Math.min(100, Math.round((paid / assigned) * 100)) : 0
 
-	const run = async (operation: () => Promise<{ error: { message: string } | null }>, success: string) => {
+	const run = async (operation: () => PromiseLike<{ error: { message: string } | null }>, success: string) => {
 		setWorking(true)
 		setMessage(null)
 		const { error } = await operation()
@@ -146,7 +146,9 @@ export default function ReciboDetallePage() {
 			() => supabase.rpc('confirmar_monto_recibo', {
 				p_recibo_id: receipt.id,
 				p_monto: Number(amount),
-				p_fecha_vencimiento: receipt.tipo_vencimiento === 'DIA_FIJO' ? null : dueDate || null,
+				p_fecha_vencimiento: receipt.tipo_vencimiento === 'DIA_FIJO'
+					? receipt.fecha_vencimiento ?? todayLima()
+					: dueDate,
 			}).then(({ error }) => ({ error })),
 			'Monto confirmado y cuotas generadas.',
 		)
@@ -160,7 +162,7 @@ export default function ReciboDetallePage() {
 				p_recibo_id: receipt.id,
 				p_nuevo_monto: Number(correctionAmount),
 				p_motivo: correctionReason,
-				p_fecha_vencimiento: dueDate || null,
+				...(dueDate ? { p_fecha_vencimiento: dueDate } : {}),
 			}).then(({ error }) => ({ error })),
 			'Corrección registrada sin reescribir el historial.',
 		)
@@ -175,8 +177,7 @@ export default function ReciboDetallePage() {
 				p_cuota_id: quotaId,
 				p_monto: Number(contributionAmount),
 				p_metodo: contributionMethod,
-				p_referencia: contributionReference || null,
-				p_nota: null,
+				...(contributionReference ? { p_referencia: contributionReference } : {}),
 			}).then(({ error }) => ({ error })),
 			isAdmin ? 'Aporte registrado y confirmado.' : 'Aporte enviado para validación.',
 		)
@@ -192,7 +193,7 @@ export default function ReciboDetallePage() {
 			() => supabase.rpc('validar_aporte', {
 				p_aporte_id: contribution.id,
 				p_aprobar: approved,
-				p_motivo: reason,
+				...(reason ? { p_motivo: reason } : {}),
 			}).then(({ error }) => ({ error })),
 			approved ? 'Aporte confirmado.' : 'Aporte rechazado.',
 		)
@@ -211,15 +212,14 @@ export default function ReciboDetallePage() {
 		event.preventDefault()
 		if (!receipt?.monto_total) return
 		await run(
-			() => supabase.rpc('registrar_pago_proveedor', {
+			() => supabase.rpc('registrar_pago_proveedor', ({
 				p_recibo_id: receipt.id,
 				p_origen: providerOrigin,
-				p_pagador_miembro_id: providerOrigin === 'ADELANTO_INTEGRANTE' ? providerPayer || null : null,
+				p_pagador_miembro_id: providerOrigin === 'ADELANTO_INTEGRANTE' ? providerPayer : null,
 				p_monto: receipt.monto_total,
 				p_fecha_pago: providerDate,
-				p_referencia: providerReference || null,
-				p_nota: null,
-			}).then(({ error }) => ({ error })),
+				...(providerReference ? { p_referencia: providerReference } : {}),
+			}) as unknown as Database['public']['Functions']['registrar_pago_proveedor']['Args']).then(({ error }) => ({ error })),
 			'Pago al proveedor registrado.',
 		)
 	}
@@ -285,7 +285,7 @@ export default function ReciboDetallePage() {
 							<div key={quota.id} className="rounded-2xl border border-slate-100 p-4">
 								<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 									<div><div className="flex flex-wrap items-center gap-2"><p className="text-sm font-semibold">{quota.nombre_miembro}{quota.usuario_id === user?.id ? ' · Tú' : ''}</p><span className={`rounded-full px-2 py-1 text-[10px] font-semibold ${quotaBadgeClass(quota.estado)}`}>{cuotaEstadoLabel[quota.estado]}</span></div><p className="mt-1 text-xs text-slate-400">{quota.destino === 'INTEGRANTE' ? `Reembolso a ${memberMap.get(quota.receptor_miembro_id ?? '') ?? 'integrante'}` : 'Aporte al fondo familiar'}</p></div>
-									<div className="flex items-center gap-5 text-right"><div><p className="text-[10px] uppercase text-slate-400">Cuota</p><p className="text-sm font-semibold">{money(quota.monto_asignado)}</p></div><div><p className="text-[10px] uppercase text-slate-400">Falta</p><p className="text-sm font-semibold text-[#0f766e]">{money(quota.saldo_pendiente)}</p></div>{quota.saldo_pendiente > 0 && (isAdmin || quota.usuario_id === user?.id) && <button onClick={() => { setQuotaId(quota.id); setContributionAmount(String(quota.saldo_pendiente)) }} className="fh-button-secondary">Aportar</button>}</div>
+									<div className="flex items-center gap-5 text-right"><div><p className="text-[10px] uppercase text-slate-400">Cuota</p><p className="text-sm font-semibold">{money(quota.monto_asignado)}</p></div><div><p className="text-[10px] uppercase text-slate-400">Falta</p><p className="text-sm font-semibold text-[#0f766e]">{money(quota.saldo_pendiente)}</p></div>{(quota.saldo_pendiente ?? 0) > 0 && (isAdmin || quota.usuario_id === user?.id) && <button onClick={() => { setQuotaId(quota.id); setContributionAmount(String(quota.saldo_pendiente ?? 0)) }} className="fh-button-secondary">Aportar</button>}</div>
 								</div>
 							</div>
 						))}
