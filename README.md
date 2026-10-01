@@ -19,6 +19,7 @@ Asistente privado para organizar recibos, cuotas y pagos familiares.
 - Fase 3: acceso personal e invitaciones.
 - Fase 4: configuración familiar.
 - Fase 5: conceptos y servicios del hogar.
+- Fase 6: periodos, recibos y motor financiero de cuotas.
 
 ### Funcionalidad disponible
 
@@ -44,6 +45,14 @@ Asistente privado para organizar recibos, cuotas y pagos familiares.
 - Participantes explícitos por servicio.
 - División igual, porcentual, monto fijo y mixta.
 - Activación/desactivación lógica sin borrar historial.
+- Periodos automáticos por mes y cron diario idempotente.
+- Recibos con snapshot histórico de servicio, proveedor, cuenta y participantes.
+- Cuotas determinísticas con redondeo en centavos.
+- Aportes parciales y validación.
+- Adelanto de un integrante con reembolsos automáticos.
+- Pago al proveedor separado de la recaudación familiar.
+- Correcciones mediante ajustes auditables.
+- Cierre automático o manual cuando todo está resuelto.
 
 ## Desarrollo local
 
@@ -90,7 +99,7 @@ Login / Registro / Recuperación
  Categorías + cuenta receptora
 ```
 
-La Fase 5 deja configuradas las plantillas permanentes del hogar. La siguiente fase generará periodos, recibos y cuotas reales a partir de estas reglas.
+La Fase 6 materializa las plantillas en periodos, recibos y cuotas reales, preservando snapshots y movimientos financieros. La siguiente fase mejorará Inicio y Mis cuotas.
 
 ## Documentación
 
