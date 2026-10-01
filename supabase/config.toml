@@ -1,0 +1,7 @@
+project_id = "dqddeokbxzbmlbsltige"
+
+[functions.invitar-integrante]
+verify_jwt = true
+
+[functions.aceptar-invitacion]
+verify_jwt = true
