@@ -1,4 +1,4 @@
-import { CircleDollarSign, Home, HousePlug, LogOut, ReceiptText, Settings2, UserRound, Users } from 'lucide-react'
+import { CircleDollarSign, CreditCard, Home, HousePlug, LogOut, ReceiptText, Settings2, UserRound, Users } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
 import { useAuth } from '../features/auth/AuthContext'
@@ -21,6 +21,7 @@ export default function AppShell() {
 				<nav className="mt-10 space-y-1">
 					<NavLink to="/inicio" className={itemClass}><Home size={18} />Inicio</NavLink>
 					<NavLink to="/mis-cuotas" className={itemClass}><CircleDollarSign size={18} />Mis cuotas</NavLink>
+					<NavLink to="/pagos" className={itemClass}><CreditCard size={18} />Pagos</NavLink>
 					<NavLink to="/recibos" className={itemClass}><ReceiptText size={18} />Hogar</NavLink>
 					<NavLink to="/familia" className={itemClass}><Users size={18} />Familia</NavLink>
 					{membresia?.rol === 'ADMINISTRADOR' && (
