@@ -1,5 +1,5 @@
 import { CheckCircle2, ChevronRight, CircleDollarSign, Clock3, ReceiptText, WalletCards } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useMemo, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { cuotaEstadoLabel, dateLabel, money, quotaBadgeClass } from '../recibos/reciboUi'
 import { useCurrentFinance, type CuotaConRecibo } from './useCurrentFinance'
@@ -100,7 +100,7 @@ function QuotaCard({ row }: { row: CuotaConRecibo }) {
 	)
 }
 
-function SummaryCard({ icon, label, value, accent = false }: { icon: React.ReactNode; label: string; value: string; accent?: boolean }) {
+function SummaryCard({ icon, label, value, accent = false }: { icon: ReactNode; label: string; value: string; accent?: boolean }) {
 	return (
 		<div className={`rounded-2xl border p-5 ${accent ? 'border-emerald-100 bg-emerald-50/60' : 'border-slate-200 bg-white'}`}>
 			<div className={accent ? 'text-[#0f766e]' : 'text-slate-400'}>{icon}</div>
@@ -114,7 +114,7 @@ function Data({ label, value, accent = false, wideMobile = false }: { label: str
 	return <div className={`rounded-2xl p-3 ${accent ? 'bg-emerald-50 text-[#0f766e]' : 'bg-slate-50 text-slate-700'} ${wideMobile ? 'col-span-2 sm:col-span-1' : ''}`}><p className="text-[10px] font-semibold uppercase tracking-wide opacity-60">{label}</p><p className="mt-1 text-sm font-semibold">{value}</p></div>
 }
 
-function FilterButton({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
+function FilterButton({ active, onClick, children }: { active: boolean; onClick: () => void; children: ReactNode }) {
 	return <button type="button" onClick={onClick} className={`rounded-xl px-4 py-2 text-xs font-semibold transition ${active ? 'bg-[#0f766e] text-white' : 'text-slate-500 hover:bg-slate-50'}`}>{children}</button>
 }
 
