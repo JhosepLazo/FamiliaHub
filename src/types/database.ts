@@ -1614,6 +1614,7 @@ export type Database = {
       }
       guardar_metodo_cobro_personal: {
         Args: {
+          p_familia_id: string
           p_instrucciones?: string
           p_metodo: Database["public"]["Enums"]["metodo_pago_familiar"]
           p_qr_storage_path?: string
