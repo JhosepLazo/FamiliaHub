@@ -70,16 +70,30 @@ Deno.serve(async (req) => {
 			return json({ error: "Solo un administrador puede invitar integrantes." }, 403)
 		}
 
-		const { data: existing } = await adminClient
+		const { data: existing, error: existingError } = await adminClient
 			.from("invitaciones")
-			.select("id")
+			.select("id, expira_at")
 			.eq("familia_id", familiaId)
 			.eq("email", normalizedEmail)
 			.eq("estado", "PENDIENTE")
-			.gt("expira_at", new Date().toISOString())
+			.order("created_at", { ascending: false })
+			.limit(1)
 			.maybeSingle()
 
-		if (existing) return json({ error: "Ya existe una invitación pendiente para este correo." }, 409)
+		if (existingError) throw existingError
+
+		if (existing) {
+			if (new Date(existing.expira_at).getTime() > Date.now()) {
+				return json({ error: "Ya existe una invitación pendiente para este correo." }, 409)
+			}
+
+			const { error: expireError } = await adminClient
+				.from("invitaciones")
+				.update({ estado: "EXPIRADA" })
+				.eq("id", existing.id)
+
+			if (expireError) throw expireError
+		}
 
 		const token = randomToken()
 		const tokenHash = await hashToken(token)
@@ -95,6 +109,9 @@ Deno.serve(async (req) => {
 			creado_por: user.id,
 		})
 
+		if (insertError?.code === "23505") {
+			return json({ error: "Ya existe una invitación pendiente para este correo." }, 409)
+		}
 		if (insertError) throw insertError
 
 		return json({ token, expiraAt })
