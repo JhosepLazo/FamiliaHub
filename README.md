@@ -18,6 +18,7 @@ Asistente privado para organizar recibos, cuotas y pagos familiares.
 - Fase 2: Supabase y seguridad base.
 - Fase 3: acceso personal e invitaciones.
 - Fase 4: configuración familiar.
+- Fase 5: conceptos y servicios del hogar.
 
 ### Funcionalidad disponible
 
@@ -36,6 +37,13 @@ Asistente privado para organizar recibos, cuotas y pagos familiares.
 - QR privado almacenado en Supabase Storage.
 - RLS por familia.
 - Edge Functions protegidas para crear y aceptar invitaciones.
+- Catálogo de proveedores y proveedores personalizados.
+- Plantillas inteligentes para Agua, Luz, Internet y Gas.
+- Cuenta de servicio mediante identificador real del proveedor.
+- Frecuencia, método de monto y vencimiento por concepto.
+- Participantes explícitos por servicio.
+- División igual, porcentual, monto fijo y mixta.
+- Activación/desactivación lógica sin borrar historial.
 
 ## Desarrollo local
 
@@ -82,7 +90,7 @@ Login / Registro / Recuperación
  Categorías + cuenta receptora
 ```
 
-La siguiente fase incorpora conceptos y servicios del hogar; todavía no se crean recibos ni cuotas.
+La Fase 5 deja configuradas las plantillas permanentes del hogar. La siguiente fase generará periodos, recibos y cuotas reales a partir de estas reglas.
 
 ## Documentación
 
