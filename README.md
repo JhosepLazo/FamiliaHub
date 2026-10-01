@@ -20,6 +20,7 @@ Asistente privado para organizar recibos, cuotas y pagos familiares.
 - Fase 4: configuración familiar.
 - Fase 5: conceptos y servicios del hogar.
 - Fase 6: periodos, recibos y motor financiero de cuotas.
+- Fase 7: Inicio inteligente y Mis cuotas.
 
 ### Funcionalidad disponible
 
@@ -53,6 +54,11 @@ Asistente privado para organizar recibos, cuotas y pagos familiares.
 - Pago al proveedor separado de la recaudación familiar.
 - Correcciones mediante ajustes auditables.
 - Cierre automático o manual cuando todo está resuelto.
+- Inicio personal con deuda, pagado, pendientes y próximo vencimiento.
+- Priorización automática de cuotas vencidas y próximas.
+- Mis cuotas con filtros Pendientes / Pagadas / Todas.
+- Bloque administrativo “Necesita tu atención” basado en excepciones reales.
+- Navegación móvil diferenciada por rol sin perder acceso a Familia/Configuración.
 
 ## Desarrollo local
 
@@ -99,7 +105,7 @@ Login / Registro / Recuperación
  Categorías + cuenta receptora
 ```
 
-La Fase 6 materializa las plantillas en periodos, recibos y cuotas reales, preservando snapshots y movimientos financieros. La siguiente fase mejorará Inicio y Mis cuotas.
+La Fase 7 convierte esos datos financieros en una experiencia personal accionable: Inicio resume el mes, Mis cuotas concentra únicamente las obligaciones del usuario y el administrador ve excepciones que requieren intervención. El pago agrupado real y los comprobantes se implementan en la fase de pagos.
 
 ## Documentación
 

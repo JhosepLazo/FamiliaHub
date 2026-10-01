@@ -5,6 +5,7 @@ import InvitePage from '../features/auth/InvitePage'
 import LoginPage from '../features/auth/LoginPage'
 import RegisterPage from '../features/auth/RegisterPage'
 import UpdatePasswordPage from '../features/auth/UpdatePasswordPage'
+import MisCuotasPage from '../features/cuotas/MisCuotasPage'
 import FamiliaPage from '../features/familia/FamiliaPage'
 import FamiliaScope from '../features/familia/FamiliaScope'
 import FamiliaSettingsPage from '../features/familia/FamiliaSettingsPage'
@@ -38,6 +39,7 @@ export default function AppRouter() {
 					<Route element={<RequireFamilia />}>
 						<Route element={<AppShell />}>
 							<Route path="/inicio" element={<InicioPage />} />
+							<Route path="/mis-cuotas" element={<MisCuotasPage />} />
 							<Route path="/familia" element={<FamiliaPage />} />
 							<Route path="/recibos" element={<RecibosPage />} />
 							<Route path="/recibos/:id" element={<ReciboDetallePage />} />

@@ -1,4 +1,4 @@
-import { LogOut, Settings2 } from 'lucide-react'
+import { LogOut, Settings2, Users } from 'lucide-react'
 import { FormEvent, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
@@ -39,8 +39,9 @@ export default function ProfilePage() {
 				{message && <p className="fh-alert mt-4">{message}</p>}
 			</form>
 
+			<Link to="/familia" className="fh-button-secondary mt-4 flex items-center gap-2 lg:hidden"><Users size={16} />Familia e integrantes</Link>
 			{membresia?.rol === 'ADMINISTRADOR' && (
-				<Link to="/configuracion" className="fh-button-secondary mt-4 flex items-center gap-2 lg:hidden"><Settings2 size={16} />Configuración familiar</Link>
+				<Link to="/configuracion" className="fh-button-secondary mt-3 flex items-center gap-2 lg:hidden"><Settings2 size={16} />Configuración familiar</Link>
 			)}
 			<button type="button" onClick={() => void supabase.auth.signOut()} className="fh-button-secondary mt-3 flex items-center gap-2 lg:hidden"><LogOut size={16} />Cerrar sesión</button>
 		</div>

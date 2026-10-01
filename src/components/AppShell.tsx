@@ -1,4 +1,4 @@
-import { Home, HousePlug, LogOut, ReceiptText, Settings2, UserRound, Users } from 'lucide-react'
+import { CircleDollarSign, Home, HousePlug, LogOut, ReceiptText, Settings2, UserRound, Users } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
 import { useAuth } from '../features/auth/AuthContext'
@@ -20,7 +20,8 @@ export default function AppShell() {
 				<Brand />
 				<nav className="mt-10 space-y-1">
 					<NavLink to="/inicio" className={itemClass}><Home size={18} />Inicio</NavLink>
-					<NavLink to="/recibos" className={itemClass}><ReceiptText size={18} />Recibos</NavLink>
+					<NavLink to="/mis-cuotas" className={itemClass}><CircleDollarSign size={18} />Mis cuotas</NavLink>
+					<NavLink to="/recibos" className={itemClass}><ReceiptText size={18} />Hogar</NavLink>
 					<NavLink to="/familia" className={itemClass}><Users size={18} />Familia</NavLink>
 					{membresia?.rol === 'ADMINISTRADOR' && (
 						<>
@@ -59,8 +60,8 @@ export default function AppShell() {
 
 			<nav className={`fixed inset-x-0 bottom-0 z-30 grid ${membresia?.rol === 'ADMINISTRADOR' ? 'grid-cols-5' : 'grid-cols-4'} border-t border-slate-200 bg-white/95 px-2 pb-[max(8px,env(safe-area-inset-bottom))] pt-2 backdrop-blur lg:hidden`}>
 				<MobileLink to="/inicio" label="Inicio" icon={<Home size={19} />} />
-				<MobileLink to="/recibos" label="Recibos" icon={<ReceiptText size={19} />} />
-				<MobileLink to="/familia" label="Familia" icon={<Users size={19} />} />
+				<MobileLink to="/mis-cuotas" label="Mis cuotas" icon={<CircleDollarSign size={19} />} />
+				<MobileLink to="/recibos" label="Hogar" icon={<ReceiptText size={19} />} />
 				{membresia?.rol === 'ADMINISTRADOR' && <MobileLink to="/servicios" label="Servicios" icon={<HousePlug size={19} />} />}
 								<MobileLink to="/perfil" label="Perfil" icon={<UserRound size={19} />} />
 			</nav>
