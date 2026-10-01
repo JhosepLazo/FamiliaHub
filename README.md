@@ -12,18 +12,30 @@ Asistente privado para organizar recibos, cuotas y pagos familiares.
 
 ## Estado actual
 
-La implementación comenzó con:
+### Fases completadas
 
-- proyecto Supabase `FamiliaHub`;
-- autenticación preparada con Supabase Auth;
-- esquema base de familias e integrantes;
-- Row Level Security desde el inicio;
-- perfiles;
-- invitaciones;
-- categorías;
-- periodos;
-- Login responsive;
-- tipos TypeScript generados desde la base real.
+- Fase 0: base del repositorio.
+- Fase 2: Supabase y seguridad base.
+- Fase 3: acceso personal e invitaciones.
+- Fase 4: configuración familiar.
+
+### Funcionalidad disponible
+
+- Login y sesión persistente.
+- Registro de acceso personal.
+- Recuperación y cambio de contraseña.
+- Creación inicial de familia.
+- Perfil personal.
+- Roles Administrador / Integrante.
+- Activación y desactivación de integrantes.
+- Protección para conservar al menos un administrador activo.
+- Invitaciones privadas con token de un solo uso y expiración de 7 días.
+- Enlaces de invitación compartibles por WhatsApp u otros canales.
+- Categorías familiares.
+- Cuenta receptora familiar.
+- QR privado almacenado en Supabase Storage.
+- RLS por familia.
+- Edge Functions protegidas para crear y aceptar invitaciones.
 
 ## Desarrollo local
 
@@ -35,14 +47,7 @@ npm install
 
 2. Crea `.env.local` a partir de `.env.example`.
 
-3. Configura:
-
-```env
-VITE_SUPABASE_URL=https://TU_PROYECTO.supabase.co
-VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_xxxxxxxxx
-```
-
-4. Ejecuta:
+3. Ejecuta:
 
 ```bash
 npm run dev
@@ -50,14 +55,34 @@ npm run dev
 
 ## Variables del proyecto
 
-Las claves secretas de Supabase no pertenecen al frontend ni al repositorio.
-
 El navegador utiliza únicamente:
 
 - `VITE_SUPABASE_URL`
 - `VITE_SUPABASE_PUBLISHABLE_KEY`
 
-Las operaciones sensibles e integraciones externas se implementarán en backend/Edge Functions.
+Las claves secretas de Supabase nunca pertenecen al frontend ni al repositorio. Las operaciones privilegiadas se ejecutan en Edge Functions.
+
+## Flujo actual
+
+```text
+Acceso personal
+    ↓
+Login / Registro / Recuperación
+    ↓
+¿Pertenece a una familia?
+    ├── No → Crear familia o aceptar invitación
+    └── Sí → Inicio
+               ↓
+            Familia
+               ↓
+        Integrantes y roles
+               ↓
+          Configuración
+               ↓
+ Categorías + cuenta receptora
+```
+
+La siguiente fase incorpora conceptos y servicios del hogar; todavía no se crean recibos ni cuotas.
 
 ## Documentación
 
