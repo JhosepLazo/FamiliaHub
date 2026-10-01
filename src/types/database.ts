@@ -1190,12 +1190,20 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      actualizar_vencimiento_recibo: {
+        Args: { p_fecha_vencimiento: string; p_recibo_id: string }
+        Returns: undefined
+      }
       anular_aporte: {
         Args: { p_aporte_id: string; p_motivo: string }
         Returns: undefined
       }
       anular_pago_proveedor: {
         Args: { p_motivo: string; p_pago_id: string }
+        Returns: undefined
+      }
+      anular_recibo: {
+        Args: { p_motivo: string; p_recibo_id: string }
         Returns: undefined
       }
       cambiar_estado_concepto: {
