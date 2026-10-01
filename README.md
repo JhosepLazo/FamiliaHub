@@ -21,6 +21,7 @@ Asistente privado para organizar recibos, cuotas y pagos familiares.
 - Fase 5: conceptos y servicios del hogar.
 - Fase 6: periodos, recibos y motor financiero de cuotas.
 - Fase 7: Inicio inteligente y Mis cuotas.
+- Fase 8: pagos, Yape, comprobantes y Pagar todo.
 
 ### Funcionalidad disponible
 
@@ -59,6 +60,18 @@ Asistente privado para organizar recibos, cuotas y pagos familiares.
 - Mis cuotas con filtros Pendientes / Pagadas / Todas.
 - Bloque administrativo “Necesita tu atención” basado en excepciones reales.
 - Navegación móvil diferenciada por rol sin perder acceso a Familia/Configuración.
+- Métodos de cobro familiares: Yape, transferencia, efectivo y otro.
+- Métodos de cobro personales para recibir reembolsos.
+- QR privados en Supabase Storage.
+- Pago individual o agrupado de varias cuotas.
+- Pagar todo agrupado automáticamente por receptor.
+- Pagos parciales sin sobrepasar el saldo disponible.
+- Referencia o comprobante obligatorio para Yape/transferencia.
+- Comprobantes privados para aportes familiares y reembolsos.
+- Validación por administrador o receptor responsable.
+- Aplicación atómica de pagos multi-cuota.
+- Historial de pagos, rechazos y anulaciones.
+- Comprobante independiente del pago al proveedor.
 
 ## Desarrollo local
 
@@ -83,7 +96,7 @@ El navegador utiliza únicamente:
 - `VITE_SUPABASE_URL`
 - `VITE_SUPABASE_PUBLISHABLE_KEY`
 
-Las claves secretas de Supabase nunca pertenecen al frontend ni al repositorio. Las operaciones privilegiadas se ejecutan en Edge Functions.
+Las claves secretas de Supabase nunca pertenecen al frontend ni al repositorio. Las operaciones privilegiadas se ejecutan en Edge Functions o funciones privadas de base de datos con validación explícita, según el flujo.
 
 ## Flujo actual
 
@@ -105,7 +118,7 @@ Login / Registro / Recuperación
  Categorías + cuenta receptora
 ```
 
-La Fase 7 convierte esos datos financieros en una experiencia personal accionable: Inicio resume el mes, Mis cuotas concentra únicamente las obligaciones del usuario y el administrador ve excepciones que requieren intervención. El pago agrupado real y los comprobantes se implementan en la fase de pagos.
+La Fase 8 completa el pago manual asistido: FamiliaHub prepara el importe, separa receptores, muestra Yape/cuenta/QR, recibe referencia o comprobante privado y mantiene el pago en validación hasta que el receptor real o un administrador lo confirme. “Pagar todo” utiliza una cabecera de pago con asignaciones multi-cuota y nunca mezcla destinatarios distintos en una sola operación externa.
 
 ## Documentación
 
