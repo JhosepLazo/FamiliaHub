@@ -725,48 +725,102 @@ No enviar múltiples notificaciones por una misma generación.
 
 ## 21. Fase funcional L — Inicio personal
 
-Un integrante entra y debe ver:
+Fase 7 implementa Inicio como un asistente, no como un dashboard genérico.
 
-### Resumen
+### Resumen personal
 
-- Tu pendiente.
+El integrante ve inmediatamente:
+
+- Debes este mes.
 - Pagaste este mes.
 - Número de cuotas pendientes.
-- Próximo vencimiento.
+- Próximo servicio con fecha límite.
+
+La fecha personal prioriza `fecha_limite_aporte` y utiliza el vencimiento del proveedor como respaldo cuando sea necesario.
 
 ### Lista inmediata
 
-Cada cuota:
+Inicio muestra como máximo las siguientes tres cuotas accionables.
 
-- icono;
+Cada elemento indica:
+
 - servicio;
-- total del recibo;
-- tu cuota;
-- vencimiento;
-- estado;
-- botón Pagar/Ver.
+- fecha límite;
+- saldo pendiente;
+- estado relevante;
+- acceso directo al recibo.
 
 ### Prioridad
 
-Ordenar por:
+El orden es determinístico:
 
-1. vencidas;
-2. vencimiento más próximo;
-3. resto.
+1. cuotas con saldo pendiente;
+2. vencidas;
+3. fecha límite más próxima;
+4. cuotas sin fecha;
+5. nombre del servicio como desempate.
+
+Un pago enviado que todavía está por validar se muestra como **Pago enviado** y no se disfraza como una cuota resuelta.
+
+### Administrador — Necesita tu atención
+
+El administrador ve un panel separado de su situación personal.
+
+Solo aparecen excepciones:
+
+- recibos esperando monto;
+- vencimientos faltantes;
+- aportes por validar;
+- recibos vencidos;
+- recaudaciones fuera de la fecha familiar.
+
+Si no existe ninguna excepción, FamiliaHub muestra **Todo está al día**.
+
+La administración nunca reemplaza el resumen personal del administrador: ambos contextos se mantienen separados.
 
 ---
 
 ## 22. Fase funcional M — Mis cuotas
 
-Filtros simples:
+Mis cuotas muestra exclusivamente obligaciones del usuario autenticado dentro del periodo actual.
 
-- Pendientes
-- Pagadas
-- Todas
+### Resumen
 
-Cada cuota permite abrir detalle.
+- total pendiente;
+- total pagado;
+- cuotas pendientes;
+- cuotas pagadas.
 
-No incorporar filtros avanzados en V1 si no son necesarios.
+### Filtros simples
+
+- Pendientes;
+- Pagadas;
+- Todas.
+
+No se incorporan filtros avanzados en V1.
+
+### Cada cuota muestra
+
+- servicio;
+- proveedor;
+- total completo del recibo;
+- monto asignado al usuario;
+- saldo pendiente;
+- fecha límite personal;
+- estado;
+- acción contextual.
+
+Acciones:
+
+- saldo pendiente → **Pagar saldo**;
+- aporte por validar → **Ver pago enviado**;
+- cuota pagada → **Ver detalle**.
+
+### Pagar todo
+
+Fase 7 puede consolidar y mostrar el total pendiente, pero no crea un pago único multi-cuota.
+
+El pago agrupado real requiere una entidad de pago cabecera + asignaciones a múltiples cuotas y corresponde a la fase de pagos. FamiliaHub no simulará esa operación antes de que exista el modelo transaccional correcto.
 
 ---
 
