@@ -20,7 +20,7 @@ Deno.serve(async (req) => {
 
 	try {
 		const { usuario, password } = await req.json()
-		const normalizedUser = String(usuario ?? "").trim()
+		const normalizedUser = String(usuario ?? "").trim()\n\t\tconst normalizedLookup = normalizedUser.toLowerCase()
 		const rawPassword = String(password ?? "")
 
 		if (!/^[A-Za-z][A-Za-z0-9._-]{2,29}$/.test(normalizedUser) || rawPassword.length < 8) {
@@ -44,7 +44,7 @@ Deno.serve(async (req) => {
 		const { data: profile, error: profileError } = await admin
 			.from("perfiles")
 			.select("id")
-			.ilike("usuario", normalizedUser)
+			.eq("usuario_normalizado", normalizedLookup)
 			.maybeSingle()
 
 		if (profileError || !profile?.id) {
