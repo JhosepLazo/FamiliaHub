@@ -1,4 +1,4 @@
-import { Home, HousePlug, LogOut, Settings2, UserRound, Users } from 'lucide-react'
+import { Home, HousePlug, LogOut, ReceiptText, Settings2, UserRound, Users } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
 import { useAuth } from '../features/auth/AuthContext'
@@ -20,6 +20,7 @@ export default function AppShell() {
 				<Brand />
 				<nav className="mt-10 space-y-1">
 					<NavLink to="/inicio" className={itemClass}><Home size={18} />Inicio</NavLink>
+					<NavLink to="/recibos" className={itemClass}><ReceiptText size={18} />Recibos</NavLink>
 					<NavLink to="/familia" className={itemClass}><Users size={18} />Familia</NavLink>
 					{membresia?.rol === 'ADMINISTRADOR' && (
 						<>
@@ -56,12 +57,12 @@ export default function AppShell() {
 				<main className="mx-auto max-w-6xl px-5 py-7 pb-28 sm:px-7 lg:px-8 lg:pb-10"><Outlet /></main>
 			</div>
 
-			<nav className={`fixed inset-x-0 bottom-0 z-30 grid ${membresia?.rol === 'ADMINISTRADOR' ? 'grid-cols-5' : 'grid-cols-3'} border-t border-slate-200 bg-white/95 px-2 pb-[max(8px,env(safe-area-inset-bottom))] pt-2 backdrop-blur lg:hidden`}>
+			<nav className={`fixed inset-x-0 bottom-0 z-30 grid ${membresia?.rol === 'ADMINISTRADOR' ? 'grid-cols-5' : 'grid-cols-4'} border-t border-slate-200 bg-white/95 px-2 pb-[max(8px,env(safe-area-inset-bottom))] pt-2 backdrop-blur lg:hidden`}>
 				<MobileLink to="/inicio" label="Inicio" icon={<Home size={19} />} />
+				<MobileLink to="/recibos" label="Recibos" icon={<ReceiptText size={19} />} />
 				<MobileLink to="/familia" label="Familia" icon={<Users size={19} />} />
 				{membresia?.rol === 'ADMINISTRADOR' && <MobileLink to="/servicios" label="Servicios" icon={<HousePlug size={19} />} />}
-				{membresia?.rol === 'ADMINISTRADOR' && <MobileLink to="/configuracion" label="Config." icon={<Settings2 size={19} />} />}
-				<MobileLink to="/perfil" label="Perfil" icon={<UserRound size={19} />} />
+								<MobileLink to="/perfil" label="Perfil" icon={<UserRound size={19} />} />
 			</nav>
 		</div>
 	)

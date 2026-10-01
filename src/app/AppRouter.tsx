@@ -11,6 +11,8 @@ import FamiliaSettingsPage from '../features/familia/FamiliaSettingsPage'
 import OnboardingPage from '../features/familia/OnboardingPage'
 import InicioPage from '../features/inicio/InicioPage'
 import ProfilePage from '../features/perfil/ProfilePage'
+import ReciboDetallePage from '../features/recibos/ReciboDetallePage'
+import RecibosPage from '../features/recibos/RecibosPage'
 import ServicioFormPage from '../features/servicios/ServicioFormPage'
 import ServiciosPage from '../features/servicios/ServiciosPage'
 import RequireAdmin from './RequireAdmin'
@@ -37,6 +39,8 @@ export default function AppRouter() {
 						<Route element={<AppShell />}>
 							<Route path="/inicio" element={<InicioPage />} />
 							<Route path="/familia" element={<FamiliaPage />} />
+							<Route path="/recibos" element={<RecibosPage />} />
+							<Route path="/recibos/:id" element={<ReciboDetallePage />} />
 							<Route path="/perfil" element={<ProfilePage />} />
 							<Route element={<RequireAdmin />}>
 								<Route path="/configuracion" element={<FamiliaSettingsPage />} />
