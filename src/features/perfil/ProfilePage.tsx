@@ -5,6 +5,7 @@ import { supabase } from '../../lib/supabase'
 import { useAuth } from '../auth/AuthContext'
 import { useFamilia } from '../familia/FamiliaContext'
 import MetodosCobroPersonales from '../pagos/MetodosCobroPersonales'
+import WhatsappVinculo from '../whatsapp/WhatsappVinculo'
 
 export default function ProfilePage() {
 	const { user } = useAuth()
@@ -44,6 +45,8 @@ export default function ProfilePage() {
 				<button className="fh-button-primary mt-6" disabled={loading}>{loading ? 'Guardando...' : 'Guardar cambios'}</button>
 				{message && <p className="fh-alert mt-4">{message}</p>}
 			</form>
+
+			<WhatsappVinculo tipo="INTEGRANTE" />
 
 			<MetodosCobroPersonales />
 

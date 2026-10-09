@@ -23,6 +23,10 @@ Asistente privado para organizar recibos, cuotas y pagos familiares.
 - Fase 7: Inicio inteligente y Mis cuotas.
 - Fase 8: pagos, Yape, comprobantes y Pagar todo.
 
+### En curso
+
+- Fase 12: asistente familiar en WhatsApp. Código completo (vínculos, avisos automáticos y comandos); pendiente el despliegue 24/7 del bot con el chip dedicado. Ver [Asistente en WhatsApp](./03_ASISTENTE_WHATSAPP.md).
+
 ### Funcionalidad disponible
 
 - Login por usuario + contraseña y sesión persistente.
@@ -72,6 +76,9 @@ Asistente privado para organizar recibos, cuotas y pagos familiares.
 - Aplicación atómica de pagos multi-cuota.
 - Historial de pagos, rechazos y anulaciones.
 - Comprobante independiente del pago al proveedor.
+- Vinculación del grupo familiar de WhatsApp y de cada integrante con códigos de un solo uso.
+- Avisos automáticos en el grupo de recibos por vencer y vencidos, con faltante y pendientes por integrante.
+- Comandos /deuda, /vence y /resumen en el grupo con los mismos montos de Inicio y Mis cuotas.
 
 ## Desarrollo local
 
@@ -130,6 +137,7 @@ La Fase 8 completa el pago manual asistido: FamiliaHub prepara el importe, separ
 
 - [Documentación funcional](./01_DOCUMENTACION_FUNCIONAL.md)
 - [Plan de creación y flujo por fases](./02_PLAN_CREACION_Y_FLUJO_POR_FASES.md)
+- [Asistente familiar en WhatsApp](./03_ASISTENTE_WHATSAPP.md)
 
 ## Regla principal
 

@@ -37,3 +37,9 @@ Select set_config('familiahub.e2e_liliana_email', '<correo-integrante>', false);
 ```
 
 Después se ejecuta `e2e_flujo_familiar.sql`.
+
+## Asistente de WhatsApp
+
+`whatsapp_asistente.sql` valida la Fase 12 con usuarios ficticios creados dentro de la transacción: códigos de vinculación, vínculos de grupo e integrantes, permisos, cola de avisos (idempotencia, ventana horaria, reintentos y descartes) y los comandos `/deuda`, `/vence` y `/resumen`.
+
+Se ejecuta como `postgres` sin configuración previa y termina con `Rollback`. Todas las filas del resultado deben indicar `OK`.
