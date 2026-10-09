@@ -8,3 +8,6 @@ verify_jwt = true
 
 [functions.login-usuario]
 verify_jwt = false
+
+[functions.bot-whatsapp]
+verify_jwt = false
