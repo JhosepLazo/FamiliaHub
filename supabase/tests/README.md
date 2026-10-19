@@ -37,3 +37,28 @@ Select set_config('familiahub.e2e_liliana_email', '<correo-integrante>', false);
 ```
 
 Después se ejecuta `e2e_flujo_familiar.sql`.
+
+## Asistente de WhatsApp (Fase 12)
+
+El archivo `e2e_whatsapp.sql` usa los mismos usuarios E2E y las mismas variables de sesión. Requiere que ninguno de los dos pertenezca a una familia activa, porque crea una familia de prueba dentro de la transacción.
+
+Valida, sin enviar ningún mensaje real:
+
+1. códigos de vinculación: solo administradores generan el de grupo, regenerar reemplaza el anterior, un solo uso y 10 minutos de vigencia;
+2. permisos: `authenticated` no lee las tablas `whatsapp_*` ni ejecuta las funciones de `service_role`;
+3. vinculación de grupo e integrantes, con rechazo de códigos equivocados, grupos ajenos, IDs repetidos (principal o alterno) e integrantes inactivos;
+4. reconocimiento del integrante por su ID alterno (LID o número);
+5. `/deuda`, `/pendientes`, `/resumen`, `/recibo`, `/recibos`, `/vence`, `/pagar` y `/porvalidar` con las mismas reglas de la app;
+6. `/avisos` y `guardar_configuracion_whatsapp` solo para administradores, con validación de claves y rangos;
+7. avisos `POR_VENCER`, `VENCE_HOY`, `VENCIDO`, `RECIBO_MONTO`, `RECAUDACION_COMPLETA`, `PENDIENTES_ADMIN`, `PAGO_ENVIADO` y `PAGO_CONFIRMADO`, sin duplicados aunque los jobs corran dos veces;
+8. descarte de eventos de más de 12 horas, ventana horaria, expiración, reintentos y pausa de avisos;
+9. salida del bot del grupo, heartbeat y pérdida del vínculo al pasar a `INACTIVO`.
+
+Las funciones de los jobs (`whatsapp_procesar_eventos`, `whatsapp_generar_avisos_familia`) se llaman directamente; no hace falta esperar a `pg_cron`. Para que el resultado no dependa de la hora de ejecución, la prueba configura una ventana de envío de 00:00 a 23:59 dentro de la transacción.
+
+```sql
+Select set_config('familiahub.e2e_jhosep_email', '<correo-admin>', false);
+Select set_config('familiahub.e2e_liliana_email', '<correo-integrante>', false);
+```
+
+Después se ejecuta `e2e_whatsapp.sql`. El resultado es una tabla con una fila por prueba (`OK` o `ERROR` y el detalle). Todo termina con `Rollback`.
