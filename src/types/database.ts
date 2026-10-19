@@ -142,69 +142,6 @@ export type Database = {
           },
         ]
       }
-      avisos_whatsapp: {
-        Row: {
-          created_at: string
-          enviado_at: string | null
-          error: string | null
-          estado: Database["public"]["Enums"]["estado_aviso_whatsapp"]
-          familia_id: string
-          fecha_aviso: string
-          id: string
-          intentos: number
-          mensaje: string
-          recibo_id: string
-          tipo: Database["public"]["Enums"]["tipo_aviso_whatsapp"]
-          tomado_at: string | null
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          enviado_at?: string | null
-          error?: string | null
-          estado?: Database["public"]["Enums"]["estado_aviso_whatsapp"]
-          familia_id: string
-          fecha_aviso: string
-          id?: string
-          intentos?: number
-          mensaje: string
-          recibo_id: string
-          tipo: Database["public"]["Enums"]["tipo_aviso_whatsapp"]
-          tomado_at?: string | null
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          enviado_at?: string | null
-          error?: string | null
-          estado?: Database["public"]["Enums"]["estado_aviso_whatsapp"]
-          familia_id?: string
-          fecha_aviso?: string
-          id?: string
-          intentos?: number
-          mensaje?: string
-          recibo_id?: string
-          tipo?: Database["public"]["Enums"]["tipo_aviso_whatsapp"]
-          tomado_at?: string | null
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "avisos_whatsapp_familia_id_fkey"
-            columns: ["familia_id"]
-            isOneToOne: false
-            referencedRelation: "familias"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "avisos_whatsapp_recibo_id_fkey"
-            columns: ["recibo_id"]
-            isOneToOne: false
-            referencedRelation: "recibos"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       categorias: {
         Row: {
           activo: boolean
@@ -1533,60 +1470,6 @@ export type Database = {
           },
         ]
       }
-      whatsapp_vinculos: {
-        Row: {
-          codigo: string | null
-          codigo_expira_at: string | null
-          created_at: string
-          familia_id: string
-          id: string
-          miembro_id: string | null
-          tipo: Database["public"]["Enums"]["tipo_vinculo_whatsapp"]
-          updated_at: string
-          vinculado_at: string | null
-          whatsapp_id: string | null
-        }
-        Insert: {
-          codigo?: string | null
-          codigo_expira_at?: string | null
-          created_at?: string
-          familia_id: string
-          id?: string
-          miembro_id?: string | null
-          tipo: Database["public"]["Enums"]["tipo_vinculo_whatsapp"]
-          updated_at?: string
-          vinculado_at?: string | null
-          whatsapp_id?: string | null
-        }
-        Update: {
-          codigo?: string | null
-          codigo_expira_at?: string | null
-          created_at?: string
-          familia_id?: string
-          id?: string
-          miembro_id?: string | null
-          tipo?: Database["public"]["Enums"]["tipo_vinculo_whatsapp"]
-          updated_at?: string
-          vinculado_at?: string | null
-          whatsapp_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "whatsapp_vinculos_familia_id_fkey"
-            columns: ["familia_id"]
-            isOneToOne: false
-            referencedRelation: "familias"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "whatsapp_vinculos_miembro_id_fkey"
-            columns: ["miembro_id"]
-            isOneToOne: false
-            referencedRelation: "miembros_familia"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
     }
     Views: {
       [_ in never]: never
@@ -1673,24 +1556,6 @@ export type Database = {
         }
         Returns: string
       }
-      desvincular_whatsapp: {
-        Args: {
-          p_familia_id: string
-          p_tipo: Database["public"]["Enums"]["tipo_vinculo_whatsapp"]
-        }
-        Returns: undefined
-      }
-      estado_whatsapp: {
-        Args: { p_familia_id: string }
-        Returns: {
-          grupo_vinculado: boolean
-          grupo_vinculado_at: string
-          integrante_vinculado: boolean
-          integrante_vinculado_at: string
-          integrantes_activos: number
-          integrantes_vinculados: number
-        }[]
-      }
       finalizar_pago_familiar: {
         Args: {
           p_comprobante_storage_path?: string
@@ -1699,16 +1564,6 @@ export type Database = {
           p_referencia_operacion?: string
         }
         Returns: undefined
-      }
-      generar_codigo_whatsapp: {
-        Args: {
-          p_familia_id: string
-          p_tipo: Database["public"]["Enums"]["tipo_vinculo_whatsapp"]
-        }
-        Returns: {
-          codigo: string
-          expira_at: string
-        }[]
       }
       guardar_concepto_servicio: {
         Args: {
@@ -1777,10 +1632,6 @@ export type Database = {
         }
         Returns: string
       }
-      marcar_aviso_whatsapp: {
-        Args: { p_aviso_id: string; p_enviado: boolean; p_error?: string }
-        Returns: boolean
-      }
       registrar_aporte: {
         Args: {
           p_cuota_id: string
@@ -1803,26 +1654,9 @@ export type Database = {
         }
         Returns: string
       }
-      responder_comando_whatsapp: {
-        Args: {
-          p_comando: string
-          p_grupo_id: string
-          p_remitente_alt?: string
-          p_remitente_id: string
-        }
-        Returns: string
-      }
       sincronizar_periodo_actual: {
         Args: { p_familia_id: string }
         Returns: number
-      }
-      tomar_avisos_whatsapp: {
-        Args: never
-        Returns: {
-          grupo_id: string
-          id: string
-          mensaje: string
-        }[]
       }
       validar_aporte: {
         Args: { p_aporte_id: string; p_aprobar: boolean; p_motivo?: string }
@@ -1832,16 +1666,11 @@ export type Database = {
         Args: { p_aprobar: boolean; p_motivo?: string; p_pago_id: string }
         Returns: undefined
       }
-      vincular_whatsapp: {
-        Args: { p_codigo: string; p_grupo_id: string; p_remitente_id: string }
-        Returns: string
-      }
     }
     Enums: {
       destino_aporte: "FONDO_FAMILIAR" | "INTEGRANTE"
       estado_ajuste_recibo: "APLICADO" | "ANULADO"
       estado_aporte: "POR_VALIDAR" | "CONFIRMADO" | "RECHAZADO" | "ANULADO"
-      estado_aviso_whatsapp: "PENDIENTE" | "ENVIADO" | "ERROR" | "DESCARTADO"
       estado_cuota:
         | "PENDIENTE"
         | "PARCIAL"
@@ -1880,7 +1709,6 @@ export type Database = {
       origen_pago_proveedor: "FONDO_FAMILIAR" | "ADELANTO_INTEGRANTE"
       rol_familia: "ADMINISTRADOR" | "INTEGRANTE"
       tipo_aporte: "APORTE_FAMILIAR" | "REEMBOLSO" | "COBERTURA_ADELANTO"
-      tipo_aviso_whatsapp: "POR_VENCER" | "VENCIDO"
       tipo_cierre_periodo: "AUTOMATICO" | "MANUAL"
       tipo_distribucion_concepto:
         | "IGUAL"
@@ -1890,7 +1718,6 @@ export type Database = {
       tipo_reparto_resto: "IGUAL" | "PORCENTAJE"
       tipo_servicio: "AGUA" | "LUZ" | "INTERNET" | "GAS" | "OTRO"
       tipo_vencimiento_concepto: "DIA_FIJO" | "VARIABLE" | "PROVEEDOR"
-      tipo_vinculo_whatsapp: "GRUPO" | "INTEGRANTE"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2021,7 +1848,6 @@ export const Constants = {
       destino_aporte: ["FONDO_FAMILIAR", "INTEGRANTE"],
       estado_ajuste_recibo: ["APLICADO", "ANULADO"],
       estado_aporte: ["POR_VALIDAR", "CONFIRMADO", "RECHAZADO", "ANULADO"],
-      estado_aviso_whatsapp: ["PENDIENTE", "ENVIADO", "ERROR", "DESCARTADO"],
       estado_cuota: [
         "PENDIENTE",
         "PARCIAL",
@@ -2068,7 +1894,6 @@ export const Constants = {
       origen_pago_proveedor: ["FONDO_FAMILIAR", "ADELANTO_INTEGRANTE"],
       rol_familia: ["ADMINISTRADOR", "INTEGRANTE"],
       tipo_aporte: ["APORTE_FAMILIAR", "REEMBOLSO", "COBERTURA_ADELANTO"],
-      tipo_aviso_whatsapp: ["POR_VENCER", "VENCIDO"],
       tipo_cierre_periodo: ["AUTOMATICO", "MANUAL"],
       tipo_distribucion_concepto: [
         "IGUAL",
@@ -2079,7 +1904,6 @@ export const Constants = {
       tipo_reparto_resto: ["IGUAL", "PORCENTAJE"],
       tipo_servicio: ["AGUA", "LUZ", "INTERNET", "GAS", "OTRO"],
       tipo_vencimiento_concepto: ["DIA_FIJO", "VARIABLE", "PROVEEDOR"],
-      tipo_vinculo_whatsapp: ["GRUPO", "INTEGRANTE"],
     },
   },
 } as const

@@ -3,7 +3,6 @@ import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import type { Enums, Tables } from '../../types/database'
 import { metodoPagoLabel, signedFileUrl } from '../pagos/pagoUi'
-import WhatsappVinculo from '../whatsapp/WhatsappVinculo'
 import { useFamilia } from './FamiliaContext'
 
 type Category = Tables<'categorias'>
@@ -217,8 +216,6 @@ export default function FamiliaSettingsPage() {
 					</div>
 				)}
 			</section>
-
-			<WhatsappVinculo tipo="GRUPO" />
 
 			{message && <p className="fh-alert mt-5">{message}</p>}
 		</div>
