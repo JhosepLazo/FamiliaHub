@@ -5,6 +5,7 @@ import { supabase } from '../../lib/supabase'
 import { useAuth } from '../auth/AuthContext'
 import { useFamilia } from '../familia/FamiliaContext'
 import MetodosCobroPersonales from '../pagos/MetodosCobroPersonales'
+import WhatsAppPerfilSection from '../whatsapp/WhatsAppPerfilSection'
 
 export default function ProfilePage() {
 	const { user } = useAuth()
@@ -46,6 +47,8 @@ export default function ProfilePage() {
 			</form>
 
 			<MetodosCobroPersonales />
+
+			<WhatsAppPerfilSection />
 
 			<Link to="/pagos" className="fh-button-secondary mt-4 flex items-center gap-2"><CreditCard size={16} />Pagos y validaciones</Link>
 

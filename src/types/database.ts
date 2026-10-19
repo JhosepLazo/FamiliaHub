@@ -142,6 +142,72 @@ export type Database = {
           },
         ]
       }
+      avisos_whatsapp: {
+        Row: {
+          bloqueado_hasta: string | null
+          clave: string
+          created_at: string
+          enviado_at: string | null
+          error: string | null
+          estado: Database["public"]["Enums"]["estado_aviso_whatsapp"]
+          expira_at: string
+          familia_id: string
+          id: string
+          intentos: number
+          menciones: string[]
+          recibo_id: string | null
+          texto: string
+          tipo: Database["public"]["Enums"]["tipo_aviso_whatsapp"]
+        }
+        Insert: {
+          bloqueado_hasta?: string | null
+          clave: string
+          created_at?: string
+          enviado_at?: string | null
+          error?: string | null
+          estado?: Database["public"]["Enums"]["estado_aviso_whatsapp"]
+          expira_at: string
+          familia_id: string
+          id?: string
+          intentos?: number
+          menciones?: string[]
+          recibo_id?: string | null
+          texto: string
+          tipo: Database["public"]["Enums"]["tipo_aviso_whatsapp"]
+        }
+        Update: {
+          bloqueado_hasta?: string | null
+          clave?: string
+          created_at?: string
+          enviado_at?: string | null
+          error?: string | null
+          estado?: Database["public"]["Enums"]["estado_aviso_whatsapp"]
+          expira_at?: string
+          familia_id?: string
+          id?: string
+          intentos?: number
+          menciones?: string[]
+          recibo_id?: string | null
+          texto?: string
+          tipo?: Database["public"]["Enums"]["tipo_aviso_whatsapp"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "avisos_whatsapp_familia_id_fkey"
+            columns: ["familia_id"]
+            isOneToOne: false
+            referencedRelation: "familias"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "avisos_whatsapp_recibo_id_fkey"
+            columns: ["recibo_id"]
+            isOneToOne: false
+            referencedRelation: "recibos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       categorias: {
         Row: {
           activo: boolean
@@ -1470,6 +1536,179 @@ export type Database = {
           },
         ]
       }
+      whatsapp_configuracion: {
+        Row: {
+          avisar_cambios_recibo: boolean
+          avisar_cierre_mes: boolean
+          avisar_inicio_mes: boolean
+          avisar_monto: boolean
+          avisar_pago_confirmado: boolean
+          avisar_pago_enviado: boolean
+          avisar_pago_proveedor: boolean
+          avisar_pendientes_admin: boolean
+          avisar_recaudacion_completa: boolean
+          avisar_vence_hoy: boolean
+          avisos_activos: boolean
+          dia_resumen: number
+          dias_aviso_previo: number[]
+          familia_id: string
+          frecuencia_vencidos_dias: number
+          hora_fin_envio: string
+          hora_inicio_envio: string
+          hora_pendientes_admin: string
+          hora_resumen: string
+          lenguaje_natural: boolean
+          mencionar_integrantes: boolean
+          resumen_semanal: boolean
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          avisar_cambios_recibo?: boolean
+          avisar_cierre_mes?: boolean
+          avisar_inicio_mes?: boolean
+          avisar_monto?: boolean
+          avisar_pago_confirmado?: boolean
+          avisar_pago_enviado?: boolean
+          avisar_pago_proveedor?: boolean
+          avisar_pendientes_admin?: boolean
+          avisar_recaudacion_completa?: boolean
+          avisar_vence_hoy?: boolean
+          avisos_activos?: boolean
+          dia_resumen?: number
+          dias_aviso_previo?: number[]
+          familia_id: string
+          frecuencia_vencidos_dias?: number
+          hora_fin_envio?: string
+          hora_inicio_envio?: string
+          hora_pendientes_admin?: string
+          hora_resumen?: string
+          lenguaje_natural?: boolean
+          mencionar_integrantes?: boolean
+          resumen_semanal?: boolean
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          avisar_cambios_recibo?: boolean
+          avisar_cierre_mes?: boolean
+          avisar_inicio_mes?: boolean
+          avisar_monto?: boolean
+          avisar_pago_confirmado?: boolean
+          avisar_pago_enviado?: boolean
+          avisar_pago_proveedor?: boolean
+          avisar_pendientes_admin?: boolean
+          avisar_recaudacion_completa?: boolean
+          avisar_vence_hoy?: boolean
+          avisos_activos?: boolean
+          dia_resumen?: number
+          dias_aviso_previo?: number[]
+          familia_id?: string
+          frecuencia_vencidos_dias?: number
+          hora_fin_envio?: string
+          hora_inicio_envio?: string
+          hora_pendientes_admin?: string
+          hora_resumen?: string
+          lenguaje_natural?: boolean
+          mencionar_integrantes?: boolean
+          resumen_semanal?: boolean
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_configuracion_familia_id_fkey"
+            columns: ["familia_id"]
+            isOneToOne: true
+            referencedRelation: "familias"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      whatsapp_sistema: {
+        Row: {
+          id: number
+          ultima_revision_pagos_at: string
+          ultimo_evento_id: number
+          ultimo_heartbeat_at: string | null
+          updated_at: string | null
+          version_bot: string | null
+        }
+        Insert: {
+          id?: number
+          ultima_revision_pagos_at?: string
+          ultimo_evento_id: number
+          ultimo_heartbeat_at?: string | null
+          updated_at?: string | null
+          version_bot?: string | null
+        }
+        Update: {
+          id?: number
+          ultima_revision_pagos_at?: string
+          ultimo_evento_id?: number
+          ultimo_heartbeat_at?: string | null
+          updated_at?: string | null
+          version_bot?: string | null
+        }
+        Relationships: []
+      }
+      whatsapp_vinculos: {
+        Row: {
+          codigo: string | null
+          codigo_expira_at: string | null
+          created_at: string
+          familia_id: string
+          id: string
+          miembro_id: string | null
+          tipo: Database["public"]["Enums"]["tipo_vinculo_whatsapp"]
+          updated_at: string
+          vinculado_at: string | null
+          whatsapp_id: string | null
+          whatsapp_id_alt: string | null
+        }
+        Insert: {
+          codigo?: string | null
+          codigo_expira_at?: string | null
+          created_at?: string
+          familia_id: string
+          id?: string
+          miembro_id?: string | null
+          tipo: Database["public"]["Enums"]["tipo_vinculo_whatsapp"]
+          updated_at?: string
+          vinculado_at?: string | null
+          whatsapp_id?: string | null
+          whatsapp_id_alt?: string | null
+        }
+        Update: {
+          codigo?: string | null
+          codigo_expira_at?: string | null
+          created_at?: string
+          familia_id?: string
+          id?: string
+          miembro_id?: string | null
+          tipo?: Database["public"]["Enums"]["tipo_vinculo_whatsapp"]
+          updated_at?: string
+          vinculado_at?: string | null
+          whatsapp_id?: string | null
+          whatsapp_id_alt?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_vinculos_familia_id_fkey"
+            columns: ["familia_id"]
+            isOneToOne: false
+            referencedRelation: "familias"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_vinculos_miembro_id_fkey"
+            columns: ["miembro_id"]
+            isOneToOne: false
+            referencedRelation: "miembros_familia"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -1556,6 +1795,13 @@ export type Database = {
         }
         Returns: string
       }
+      desvincular_whatsapp: {
+        Args: {
+          p_familia_id: string
+          p_tipo: Database["public"]["Enums"]["tipo_vinculo_whatsapp"]
+        }
+        Returns: undefined
+      }
       finalizar_pago_familiar: {
         Args: {
           p_comprobante_storage_path?: string
@@ -1564,6 +1810,13 @@ export type Database = {
           p_referencia_operacion?: string
         }
         Returns: undefined
+      }
+      generar_codigo_whatsapp: {
+        Args: {
+          p_familia_id: string
+          p_tipo: Database["public"]["Enums"]["tipo_vinculo_whatsapp"]
+        }
+        Returns: Json
       }
       guardar_concepto_servicio: {
         Args: {
@@ -1609,6 +1862,10 @@ export type Database = {
         }
         Returns: string
       }
+      guardar_configuracion_whatsapp: {
+        Args: { p_configuracion: Json; p_familia_id: string }
+        Returns: undefined
+      }
       guardar_metodo_cobro_familiar: {
         Args: {
           p_familia_id: string
@@ -1631,6 +1888,10 @@ export type Database = {
           p_titular: string
         }
         Returns: string
+      }
+      obtener_estado_whatsapp: {
+        Args: { p_familia_id: string }
+        Returns: Json
       }
       registrar_aporte: {
         Args: {
@@ -1666,11 +1927,37 @@ export type Database = {
         Args: { p_aprobar: boolean; p_motivo?: string; p_pago_id: string }
         Returns: undefined
       }
+      whatsapp_grupo_salida: {
+        Args: { p_grupo_id: string }
+        Returns: undefined
+      }
+      whatsapp_heartbeat: {
+        Args: { p_version: string }
+        Returns: undefined
+      }
+      whatsapp_marcar_aviso: {
+        Args: { p_aviso_id: string; p_enviado: boolean; p_error: string }
+        Returns: undefined
+      }
+      whatsapp_procesar_comando: {
+        Args: {
+          p_argumento: string
+          p_comando: string
+          p_grupo_id: string
+          p_remitente_ids: string[]
+        }
+        Returns: Json
+      }
+      whatsapp_tomar_avisos: {
+        Args: { p_limite?: number }
+        Returns: Json
+      }
     }
     Enums: {
       destino_aporte: "FONDO_FAMILIAR" | "INTEGRANTE"
       estado_ajuste_recibo: "APLICADO" | "ANULADO"
       estado_aporte: "POR_VALIDAR" | "CONFIRMADO" | "RECHAZADO" | "ANULADO"
+      estado_aviso_whatsapp: "PENDIENTE" | "ENVIADO" | "ERROR" | "EXPIRADO"
       estado_cuota:
         | "PENDIENTE"
         | "PARCIAL"
@@ -1709,6 +1996,20 @@ export type Database = {
       origen_pago_proveedor: "FONDO_FAMILIAR" | "ADELANTO_INTEGRANTE"
       rol_familia: "ADMINISTRADOR" | "INTEGRANTE"
       tipo_aporte: "APORTE_FAMILIAR" | "REEMBOLSO" | "COBERTURA_ADELANTO"
+      tipo_aviso_whatsapp:
+        | "INICIO_MES"
+        | "RECIBO_MONTO"
+        | "POR_VENCER"
+        | "VENCE_HOY"
+        | "VENCIDO"
+        | "PAGO_ENVIADO"
+        | "PAGO_CONFIRMADO"
+        | "RECAUDACION_COMPLETA"
+        | "PAGO_PROVEEDOR"
+        | "RECIBO_ACTUALIZADO"
+        | "PENDIENTES_ADMIN"
+        | "RESUMEN_SEMANAL"
+        | "CIERRE_MES"
       tipo_cierre_periodo: "AUTOMATICO" | "MANUAL"
       tipo_distribucion_concepto:
         | "IGUAL"
@@ -1718,6 +2019,7 @@ export type Database = {
       tipo_reparto_resto: "IGUAL" | "PORCENTAJE"
       tipo_servicio: "AGUA" | "LUZ" | "INTERNET" | "GAS" | "OTRO"
       tipo_vencimiento_concepto: "DIA_FIJO" | "VARIABLE" | "PROVEEDOR"
+      tipo_vinculo_whatsapp: "GRUPO" | "INTEGRANTE"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1848,6 +2150,7 @@ export const Constants = {
       destino_aporte: ["FONDO_FAMILIAR", "INTEGRANTE"],
       estado_ajuste_recibo: ["APLICADO", "ANULADO"],
       estado_aporte: ["POR_VALIDAR", "CONFIRMADO", "RECHAZADO", "ANULADO"],
+      estado_aviso_whatsapp: ["PENDIENTE", "ENVIADO", "ERROR", "EXPIRADO"],
       estado_cuota: [
         "PENDIENTE",
         "PARCIAL",
@@ -1894,6 +2197,21 @@ export const Constants = {
       origen_pago_proveedor: ["FONDO_FAMILIAR", "ADELANTO_INTEGRANTE"],
       rol_familia: ["ADMINISTRADOR", "INTEGRANTE"],
       tipo_aporte: ["APORTE_FAMILIAR", "REEMBOLSO", "COBERTURA_ADELANTO"],
+      tipo_aviso_whatsapp: [
+        "INICIO_MES",
+        "RECIBO_MONTO",
+        "POR_VENCER",
+        "VENCE_HOY",
+        "VENCIDO",
+        "PAGO_ENVIADO",
+        "PAGO_CONFIRMADO",
+        "RECAUDACION_COMPLETA",
+        "PAGO_PROVEEDOR",
+        "RECIBO_ACTUALIZADO",
+        "PENDIENTES_ADMIN",
+        "RESUMEN_SEMANAL",
+        "CIERRE_MES",
+      ],
       tipo_cierre_periodo: ["AUTOMATICO", "MANUAL"],
       tipo_distribucion_concepto: [
         "IGUAL",
@@ -1904,6 +2222,7 @@ export const Constants = {
       tipo_reparto_resto: ["IGUAL", "PORCENTAJE"],
       tipo_servicio: ["AGUA", "LUZ", "INTERNET", "GAS", "OTRO"],
       tipo_vencimiento_concepto: ["DIA_FIJO", "VARIABLE", "PROVEEDOR"],
+      tipo_vinculo_whatsapp: ["GRUPO", "INTEGRANTE"],
     },
   },
 } as const
