@@ -278,8 +278,8 @@ function Encender-Bot {
 
 try {
 	Registrar '=== Lanzamiento iniciado'
-	Write-Host 'Lanzamiento del bot de WhatsApp de FamiliaHub. Ten a mano el celular con el chip del bot,' -ForegroundColor White
-	Write-Host 'la contraseña de la base de datos de Supabase y la dirección web de tu FamiliaHub.' -ForegroundColor White
+	Write-Host 'Lanzamiento del bot de WhatsApp de FamiliaHub. Ten a mano el celular con el chip del bot' -ForegroundColor White
+	Write-Host 'y la dirección web de tu FamiliaHub.' -ForegroundColor White
 
 	Escribir-Paso 'Herramientas (Node.js y Git)'
 	Asegurar-Herramientas

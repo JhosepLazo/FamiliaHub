@@ -26,7 +26,7 @@ Si prefieres hacerlo paso a paso:
 | Paso | Qué hacer |
 |---|---|
 | 1 | Instala Node.js y Git (una vez): `winget install OpenJS.NodeJS.LTS` y `winget install Git.Git`. |
-| 2 | **`configurar-supabase.cmd`**: inicia sesión en Supabase, aplica las migraciones, guarda los secretos, publica la función, crea `.env` y comprueba que la función responde. Te pide la contraseña de la base de datos y la dirección web de FamiliaHub. |
+| 2 | **`configurar-supabase.cmd`**: inicia sesión en Supabase, aplica las migraciones, guarda los secretos, publica la función, crea `.env` y comprueba que la función responde. Te pide la dirección web de FamiliaHub; la contraseña de la base de datos es opcional (sin ella, la CLI entra con un acceso temporal de tu sesión). |
 | 3 | Sube el código: `git push -u origin fase-12-whatsapp`, abre el Pull Request en GitHub y únelo a `main`. GitHub Actions vuelve a publicar la app con las pantallas de WhatsApp. |
 | 4 | **`iniciar-bot.cmd`**: escanea el QR con el celular del chip. El bot queda en segundo plano y se enciende solo cada vez que entras a Windows. |
 | 5 | Agrega el número del chip al grupo familiar. En FamiliaHub, un administrador entra a Configuración > Asistente de WhatsApp > **Vincular grupo** y escribe en el grupo `/vincular-grupo CÓDIGO`. |

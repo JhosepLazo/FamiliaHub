@@ -139,7 +139,7 @@ function Revisar-Proyecto {
 function Recuperar-PatchAnterior {
 	$ErrorActionPreference = 'Continue'
 	$historial = (& $script:Cli migration list --linked) -join "`n"
-	if ($LASTEXITCODE -ne 0) { throw 'No pude leer el historial de migraciones de la base. Revisa la contraseña y vuelve a intentarlo.' }
+	if ($LASTEXITCODE -ne 0) { throw 'No pude leer el historial de migraciones de la base. Si escribiste una contraseña, revísala o déjala vacía, y vuelve a intentarlo.' }
 
 	$faltan = @($MigracionesPatchAnterior | Where-Object {
 		$historial.Contains($_.Substring(0, 14)) -and -not (Test-Path (Join-Path $DirRepo "supabase\migrations\$_"))
@@ -233,11 +233,11 @@ try {
 	Revisar-Proyecto
 
 	Escribir-Paso 'Enlazar el proyecto'
-	Write-Host '    Necesito la contraseña de la base de datos de tu proyecto.'
-	Write-Host '    La encuentras (o la cambias) en Supabase > Project Settings > Database > Database password.'
-	$clave = Texto-Plano (Read-Host '    Contraseña' -AsSecureString)
-	if (-not $clave) { throw 'La contraseña no puede quedar vacía.' }
-	$env:SUPABASE_DB_PASSWORD = $clave
+	# Sin contraseña, la CLI entra con un rol temporal que crea con tu sesión ("Initialising login role...").
+	Write-Host '    La contraseña de la base de datos es opcional: si la dejas vacía, la CLI usa un acceso temporal'
+	Write-Host '    con la sesión que acabas de iniciar. Si la CLI vuelve a pedirla, presiona Enter.'
+	$clave = Texto-Plano (Read-Host '    Contraseña (Enter para omitir)' -AsSecureString)
+	if ($clave) { $env:SUPABASE_DB_PASSWORD = $clave }
 	Supabase link --project-ref $ProyectoRef
 	Escribir-Ok "Proyecto $ProyectoRef enlazado"
 
