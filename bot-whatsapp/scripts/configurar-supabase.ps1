@@ -29,6 +29,8 @@ $DirBot = Split-Path -Parent $PSScriptRoot
 $DirRepo = Split-Path -Parent $DirBot
 $ArchivoEnv = Join-Path $DirBot '.env'
 $ArchivoTipos = Join-Path $DirRepo 'src\types\database.ts'
+# Solo en esta PC (no va al repositorio): la usan este script y lanzar.ps1.
+$ArchivoAppUrl = Join-Path $env:LOCALAPPDATA 'FamiliaHub\app-url.txt'
 $UrlFuncion = "https://$ProyectoRef.supabase.co/functions/v1/bot-whatsapp"
 $Utf8 = New-Object Text.UTF8Encoding($false)
 $TotalPasos = 8
@@ -179,8 +181,12 @@ function Generar-Tipos {
 }
 
 function Pedir-AppUrl {
+	$guardada = if (Test-Path $ArchivoAppUrl) { [IO.File]::ReadAllText($ArchivoAppUrl).Trim() } else { '' }
+	$pregunta = '    Dirección web de tu FamiliaHub (la que abres en el navegador, por ejemplo https://algo.vercel.app)'
+	if ($guardada) { $pregunta += " [Enter = $guardada]" }
 	while ($true) {
-		$url = (Read-Host '    Dirección web de tu FamiliaHub (la que abres en el navegador, por ejemplo https://algo.vercel.app)').Trim().TrimEnd('/')
+		$url = (Read-Host $pregunta).Trim().TrimEnd('/')
+		if (-not $url) { $url = $guardada }
 		if ($url -notmatch '^https://[^\s/]+') {
 			Escribir-Aviso 'Debe empezar con https://'
 			continue
@@ -257,6 +263,8 @@ try {
 		Escribir-Ok 'Secreto nuevo generado'
 	}
 	$appUrl = Pedir-AppUrl
+	New-Item -ItemType Directory -Force (Split-Path $ArchivoAppUrl) | Out-Null
+	[IO.File]::WriteAllText($ArchivoAppUrl, $appUrl, $Utf8)
 	Write-Host ''
 	Write-Host '    Opcional: para que el bot responda preguntas libres (por ejemplo "@bot cuánto debo?")'
 	Write-Host '    pega una clave de API de Anthropic (console.anthropic.com). Deja vacío para omitir.'
@@ -307,7 +315,9 @@ try {
 
 	Write-Host ''
 	Write-Host 'Supabase quedó listo.' -ForegroundColor Green
-	Write-Host 'Siguiente paso: sube el código a GitHub (git push) y luego ejecuta iniciar-bot.cmd.'
+	if (-not $env:FAMILIAHUB_LANZADOR) {
+		Write-Host 'Siguiente paso: sube el código a GitHub (git push) y luego ejecuta iniciar-bot.cmd.'
+	}
 } catch {
 	Write-Host ''
 	Write-Host $_.Exception.Message -ForegroundColor Red

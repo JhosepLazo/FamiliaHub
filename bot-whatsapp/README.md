@@ -10,6 +10,19 @@ Grupo de WhatsApp ⇄ bot-whatsapp (este proceso) ⇄ Edge Function bot-whatsapp
 
 Todo se hace con doble clic sobre los archivos `.cmd` de esta carpeta. El resto de este documento explica lo mismo paso a paso y para Linux o macOS.
 
+**La forma más simple: doble clic en `lanzar-bot.cmd`.** Hace los pasos 1 a 4 en orden y salta lo que ya esté hecho:
+
+- instala Node.js y Git si faltan;
+- si el proyecto de Supabase está pausado, abre el panel para que lo restaures y espera;
+- configura Supabase;
+- sube el código a GitHub y lo publica en `main`, preguntándote antes;
+- espera a que la app nueva esté en línea;
+- enciende el bot y muestra el QR.
+
+Al terminar solo quedan los pasos 5 y 6. El avance queda en `logs/lanzamiento.log`, sin secretos.
+
+Si prefieres hacerlo paso a paso:
+
 | Paso | Qué hacer |
 |---|---|
 | 1 | Instala Node.js y Git (una vez): `winget install OpenJS.NodeJS.LTS` y `winget install Git.Git`. |
