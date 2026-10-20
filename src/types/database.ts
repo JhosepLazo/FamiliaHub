@@ -1889,10 +1889,7 @@ export type Database = {
         }
         Returns: string
       }
-      obtener_estado_whatsapp: {
-        Args: { p_familia_id: string }
-        Returns: Json
-      }
+      obtener_estado_whatsapp: { Args: { p_familia_id: string }; Returns: Json }
       registrar_aporte: {
         Args: {
           p_cuota_id: string
@@ -1931,10 +1928,7 @@ export type Database = {
         Args: { p_grupo_id: string }
         Returns: undefined
       }
-      whatsapp_heartbeat: {
-        Args: { p_version: string }
-        Returns: undefined
-      }
+      whatsapp_heartbeat: { Args: { p_version: string }; Returns: undefined }
       whatsapp_marcar_aviso: {
         Args: { p_aviso_id: string; p_enviado: boolean; p_error: string }
         Returns: undefined
@@ -1948,10 +1942,7 @@ export type Database = {
         }
         Returns: Json
       }
-      whatsapp_tomar_avisos: {
-        Args: { p_limite?: number }
-        Returns: Json
-      }
+      whatsapp_tomar_avisos: { Args: { p_limite?: number }; Returns: Json }
     }
     Enums: {
       destino_aporte: "FONDO_FAMILIAR" | "INTEGRANTE"
