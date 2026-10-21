@@ -99,7 +99,7 @@ export default function MetodosCobroPersonales() {
 
 			<div className="mt-5 flex flex-wrap gap-2">
 				{(['YAPE','TRANSFERENCIA','EFECTIVO','OTRO'] as Metodo[]).map((value) => (
-					<button key={value} type="button" onClick={() => setMetodo(value)} className={`rounded-xl px-4 py-2 text-xs font-semibold ${metodo === value ? 'bg-[#0f766e] text-white' : 'bg-slate-50 text-slate-500'}`}>{metodoPagoLabel[value]}</button>
+					<button key={value} type="button" onClick={() => setMetodo(value)} className={`rounded-xl px-4 py-2 text-xs font-semibold ${metodo === value ? 'bg-brand text-white' : 'bg-slate-50 text-slate-500'}`}>{metodoPagoLabel[value]}</button>
 				))}
 			</div>
 

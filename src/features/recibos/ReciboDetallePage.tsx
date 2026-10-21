@@ -335,7 +335,7 @@ export default function ReciboDetallePage() {
 				</div>
 			</div>
 
-			<div className="mt-7 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+			<div className="mt-7 grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
 				<Metric label="Total recibo" value={money(receipt.monto_total)} />
 				<Metric label="Tu cuota" value={ownQuota ? money(ownQuota.monto_asignado) : 'No participas'} accent />
 				<Metric label="Vence proveedor" value={dateLabel(receipt.fecha_vencimiento)} />
@@ -346,9 +346,9 @@ export default function ReciboDetallePage() {
 				<section className="mt-5 rounded-3xl border border-slate-200 bg-white p-5">
 					<div className="flex items-center justify-between gap-4">
 						<div><p className="text-sm font-semibold">Recaudación familiar</p><p className="mt-1 text-xs text-slate-400">{recaudacionLabel[receipt.estado_recaudacion]} · {money(paid)} de {money(assigned)}</p></div>
-						<p className="text-sm font-semibold text-[#0f766e]">{progress}%</p>
+						<p className="text-sm font-semibold text-brand">{progress}%</p>
 					</div>
-					<div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-[#0f766e]" style={{ width: `${progress}%` }} /></div>
+					<div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-brand" style={{ width: `${progress}%` }} /></div>
 				</section>
 			)}
 
@@ -379,13 +379,13 @@ export default function ReciboDetallePage() {
 
 			{quotas.length > 0 && (
 				<section className="mt-6 rounded-3xl border border-slate-200 bg-white p-5 sm:p-6">
-					<div className="flex items-center gap-3"><HandCoins size={19} className="text-[#0f766e]" /><div><h2 className="font-semibold">Distribución familiar</h2><p className="text-xs text-slate-400">Cada cuota conserva su propio saldo y estado.</p></div></div>
+					<div className="flex items-center gap-3"><HandCoins size={19} className="text-brand" /><div><h2 className="font-semibold">Distribución familiar</h2><p className="text-xs text-slate-400">Cada cuota conserva su propio saldo y estado.</p></div></div>
 					<div className="mt-5 space-y-3">
 						{quotas.map((quota) => (
 							<div key={quota.id} className="rounded-2xl border border-slate-100 p-4">
 								<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 									<div><div className="flex flex-wrap items-center gap-2"><p className="text-sm font-semibold">{quota.nombre_miembro}{quota.usuario_id === user?.id ? ' · Tú' : ''}</p><span className={`rounded-full px-2 py-1 text-[10px] font-semibold ${quotaBadgeClass(quota.estado)}`}>{cuotaEstadoLabel[quota.estado]}</span></div><p className="mt-1 text-xs text-slate-400">{quota.destino === 'INTEGRANTE' ? `Reembolso a ${memberMap.get(quota.receptor_miembro_id ?? '') ?? 'integrante'}` : 'Aporte al fondo familiar'}</p></div>
-									<div className="flex items-center gap-5 text-right"><div><p className="text-[10px] uppercase text-slate-400">Cuota</p><p className="text-sm font-semibold">{money(quota.monto_asignado)}</p></div><div><p className="text-[10px] uppercase text-slate-400">Falta</p><p className="text-sm font-semibold text-[#0f766e]">{money(quota.saldo_pendiente)}</p></div>{quota.usuario_id === user?.id && quota.estado === 'POR_VALIDAR' && <Link to="/pagos" className="fh-button-secondary">Pago enviado</Link>}
+									<div className="flex items-center gap-5 text-right"><div><p className="text-[10px] uppercase text-slate-400">Cuota</p><p className="text-sm font-semibold">{money(quota.monto_asignado)}</p></div><div><p className="text-[10px] uppercase text-slate-400">Falta</p><p className="text-sm font-semibold text-brand">{money(quota.saldo_pendiente)}</p></div>{quota.usuario_id === user?.id && quota.estado === 'POR_VALIDAR' && <Link to={isAdmin ? '/pagos?tab=historial' : '/pagos?tab=mis-pagos'} className="fh-button-secondary">Pago enviado</Link>}
 {quota.usuario_id === user?.id && quota.estado !== 'POR_VALIDAR' && quota.estado !== 'PAGADA' && quota.estado !== 'ANULADA' && (quota.saldo_pendiente ?? 0) > 0 && <Link to={`/pagar?cuotas=${quota.id}`} className="fh-button-primary">Pagar</Link>}</div>
 								</div>
 							</div>
@@ -417,7 +417,7 @@ export default function ReciboDetallePage() {
 									const draft = distributionDraft[member.id] ?? { selected: false, amount: '' }
 									return (
 										<div key={member.id} className="grid gap-3 rounded-xl bg-white p-3 sm:grid-cols-[1fr_180px] sm:items-center">
-											<label className="flex items-center gap-3 text-sm font-medium"><input type="checkbox" checked={draft.selected} onChange={(e) => setDistributionDraft((current) => ({ ...current, [member.id]: { ...draft, selected: e.target.checked, amount: e.target.checked ? draft.amount : '' } }))} className="size-4 accent-[#0f766e]" />{member.nombre}</label>
+											<label className="flex items-center gap-3 text-sm font-medium"><input type="checkbox" checked={draft.selected} onChange={(e) => setDistributionDraft((current) => ({ ...current, [member.id]: { ...draft, selected: e.target.checked, amount: e.target.checked ? draft.amount : '' } }))} className="size-4 accent-brand" />{member.nombre}</label>
 											{draft.selected && <input className="fh-input" type="number" min="0.01" step="0.01" required value={draft.amount} onChange={(e) => setDistributionDraft((current) => ({ ...current, [member.id]: { ...draft, amount: e.target.value } }))} placeholder="Monto" />}
 										</div>
 									)
@@ -435,14 +435,14 @@ export default function ReciboDetallePage() {
 
 			{contributions.length > 0 && (
 				<section className="mt-6 rounded-3xl border border-slate-200 bg-white p-5 sm:p-6">
-					<div className="flex items-center gap-3"><CreditCard size={19} className="text-[#0f766e]" /><div><h2 className="font-semibold">Aportes y reembolsos</h2><p className="text-xs text-slate-400">Libro financiero del recibo. Los pagos nuevos se validan desde la sección Pagos.</p></div></div>
+					<div className="flex items-center gap-3"><CreditCard size={19} className="text-brand" /><div><h2 className="font-semibold">Aportes y reembolsos</h2><p className="text-xs text-slate-400">Libro financiero del recibo. Los pagos nuevos se validan desde la sección Pagos.</p></div></div>
 					<div className="mt-5 space-y-3">
 						{contributions.map((contribution) => {
 							const quota = quotaMap.get(contribution.cuota_id)
 							return (
 								<div key={contribution.id} className="flex flex-col gap-2 rounded-2xl border border-slate-100 p-4 sm:flex-row sm:items-center sm:justify-between">
 									<div><p className="text-sm font-semibold">{quota?.nombre_miembro ?? 'Integrante'} · {money(contribution.monto)}</p><p className="mt-1 text-xs text-slate-400">{contribution.tipo === 'REEMBOLSO' ? 'Reembolso' : contribution.tipo === 'COBERTURA_ADELANTO' ? 'Cubierto por adelanto' : 'Aporte familiar'} · {contribution.estado.replaceAll('_', ' ')}</p></div>
-									{contribution.pago_familiar_id && <Link to="/pagos" className="text-xs font-semibold text-[#0f766e]">Ver pago</Link>}
+									{contribution.pago_familiar_id && <Link to={isAdmin ? '/pagos?tab=historial' : '/pagos?tab=mis-pagos'} className="text-xs font-semibold text-brand">Ver pago</Link>}
 								</div>
 							)
 						})}
@@ -452,7 +452,7 @@ export default function ReciboDetallePage() {
 
 			{receipt.monto_total != null && (
 				<section className="mt-6 rounded-3xl border border-slate-200 bg-white p-5 sm:p-6">
-					<div className="flex items-center gap-3"><Banknote size={19} className="text-[#0f766e]" /><div><h2 className="font-semibold">Pago al proveedor</h2><p className="text-xs text-slate-400">Este estado es independiente de la recaudación familiar.</p></div></div>
+					<div className="flex items-center gap-3"><Banknote size={19} className="text-brand" /><div><h2 className="font-semibold">Pago al proveedor</h2><p className="text-xs text-slate-400">Este estado es independiente de la recaudación familiar.</p></div></div>
 
 					{activeProviderPayment ? (
 						<div className="mt-5 rounded-2xl border border-emerald-100 bg-emerald-50 p-4">
@@ -500,7 +500,7 @@ export default function ReciboDetallePage() {
 }
 
 function Metric({ label, value, accent = false }: { label: string; value: string; accent?: boolean }) {
-	return <div className={`rounded-2xl border p-5 ${accent ? 'border-emerald-100 bg-emerald-50/60' : 'border-slate-200 bg-white'}`}><p className={`text-[10px] font-semibold uppercase tracking-wide ${accent ? 'text-emerald-700/60' : 'text-slate-400'}`}>{label}</p><p className={`mt-2 text-lg font-semibold ${accent ? 'text-[#0f766e]' : 'text-slate-800'}`}>{value}</p></div>
+	return <div className={`min-w-0 rounded-2xl border p-4 sm:p-5 ${accent ? 'border-emerald-100 bg-emerald-50/60' : 'border-slate-200 bg-white'}`}><p className={`text-[10px] font-bold uppercase tracking-wide ${accent ? 'text-emerald-700/70' : 'text-slate-400'}`}>{label}</p><p className={`mt-1.5 truncate text-base font-extrabold tabular-nums sm:text-lg ${accent ? 'text-brand' : 'text-slate-800'}`}>{value}</p></div>
 }
 
 function splitMoney(total: number, count: number) {

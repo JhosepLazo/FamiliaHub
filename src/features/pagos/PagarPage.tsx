@@ -1,6 +1,7 @@
-import { ArrowLeft, CheckCircle2, Copy, ImageUp, ReceiptText, ShieldCheck } from 'lucide-react'
+import { CheckCircle2, Copy, ImageUp, ReceiptText, ShieldCheck } from 'lucide-react'
 import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
+import PageHeader from '../../components/ui/PageHeader'
 import { supabase } from '../../lib/supabase'
 import type { Enums, Json, Tables } from '../../types/database'
 import { useAuth } from '../auth/AuthContext'
@@ -246,10 +247,7 @@ export default function PagarPage() {
 
 	return (
 		<div className="mx-auto max-w-5xl">
-			<div className="flex items-start gap-4">
-				<Link to="/mis-cuotas" className="mt-1 grid size-10 shrink-0 place-items-center rounded-xl border border-slate-200 bg-white text-slate-500"><ArrowLeft size={17} /></Link>
-				<div><p className="text-sm font-semibold text-[#0f766e]">Pago</p><h1 className="mt-1 text-3xl font-semibold tracking-tight">Pagar cuotas</h1><p className="mt-2 text-sm leading-6 text-slate-500">FamiliaHub separa automáticamente destinatarios distintos para que un solo pago externo nunca mezcle receptores.</p></div>
-			</div>
+			<PageHeader backTo="/pagos" eyebrow="Pagos" title="Pagar cuotas" description="Si tus cuotas van a personas distintas, FamiliaHub las separa en un pago por persona para que nunca se mezclen." />
 
 			{groups.length > 1 && <div className="mt-6 rounded-2xl border border-sky-100 bg-sky-50 p-4 text-sm text-sky-700">Estas cuotas pertenecen a {groups.length} receptores. Deberás completar un pago por cada grupo.</div>}
 
@@ -261,7 +259,7 @@ export default function PagarPage() {
 					return (
 						<section key={group.key} className={`rounded-3xl border bg-white p-5 sm:p-6 ${sent ? 'border-emerald-100 opacity-70' : 'border-slate-200'}`}>
 							<div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-								<div><div className="flex items-center gap-2"><ShieldCheck size={18} className="text-[#0f766e]" /><h2 className="font-semibold">{group.receptorNombre}</h2></div><p className="mt-1 text-xs text-slate-400">{group.destino === 'FONDO_FAMILIAR' ? 'Aporte al fondo familiar' : 'Reembolso a integrante'}</p></div>
+								<div><div className="flex items-center gap-2"><ShieldCheck size={18} className="text-brand" /><h2 className="font-semibold">{group.receptorNombre}</h2></div><p className="mt-1 text-xs text-slate-400">{group.destino === 'FONDO_FAMILIAR' ? 'Aporte al fondo familiar' : 'Reembolso a integrante'}</p></div>
 								{sent && <span className="rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700">Pago enviado</span>}
 							</div>
 
@@ -304,7 +302,7 @@ export default function PagarPage() {
 				})}
 			</div>
 
-			{sentGroups.length > 0 && <div className="mt-6 rounded-2xl bg-emerald-50 p-4 text-sm text-emerald-800"><ReceiptText size={17} className="mb-2" />Los pagos enviados quedan reservados mientras esperan validación. <Link to="/pagos" className="font-semibold underline">Ver mis pagos</Link></div>}
+			{sentGroups.length > 0 && <div className="mt-6 rounded-2xl bg-emerald-50 p-4 text-sm text-emerald-800"><ReceiptText size={17} className="mb-2" />Los pagos enviados quedan reservados mientras esperan validación. <Link to="/pagos?tab=mis-pagos" className="font-semibold underline">Ver mis pagos</Link></div>}
 			{message && <p className="fh-alert mt-5">{message}</p>}
 		</div>
 	)

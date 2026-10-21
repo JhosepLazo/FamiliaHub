@@ -80,7 +80,7 @@ export default function WhatsAppPerfilSection() {
 	return (
 		<section className="mt-6 rounded-3xl border border-slate-200 bg-white p-6 sm:p-8">
 			<div className="flex items-center gap-3">
-				<div className="grid size-10 place-items-center rounded-xl bg-emerald-50 text-[#0f766e]"><MessageCircle size={19} /></div>
+				<div className="grid size-10 place-items-center rounded-xl bg-emerald-50 text-brand"><MessageCircle size={19} /></div>
 				<div><h2 className="font-semibold">WhatsApp</h2><p className="text-xs leading-5 text-slate-400">Vincula tu WhatsApp para consultar tu deuda con /deuda y recibir menciones en el grupo familiar.</p></div>
 			</div>
 

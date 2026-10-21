@@ -92,7 +92,7 @@ export default function InicioPage() {
 									<h2 className="mt-1 text-xl font-semibold">{pending.length ? 'Esto es lo que sigue' : 'No tienes cuotas pendientes'}</h2>
 									<p className="mt-1 text-xs leading-5 text-slate-400">{pending.length ? 'FamiliaHub ordena primero lo vencido y después lo que vence más pronto.' : 'Cuando todo está resuelto, no te mostramos tareas innecesarias.'}</p>
 								</div>
-								<Link to="/mis-cuotas" className="hidden items-center gap-1 text-xs font-semibold text-teal-700 sm:flex">Ver todas<ArrowRight size={14} /></Link>
+								<Link to="/pagos" className="fh-button-ghost hidden sm:inline-flex">Ver todas<ArrowRight size={14} /></Link>
 							</div>
 
 							{pending.length ? (
@@ -106,7 +106,7 @@ export default function InicioPage() {
 								</div>
 							)}
 
-							<Link to="/mis-cuotas" className="fh-button-primary mt-5 w-full sm:hidden">Ver mis cuotas</Link>
+							<Link to="/pagos" className="fh-button-primary mt-5 w-full sm:hidden">Ir a mis pagos</Link>
 						</section>
 
 						{isAdmin ? <AdminAttentionPanel attention={adminAttention} /> : <HomeStatusPanel pagosParaValidar={pagosParaValidar} />}
@@ -115,11 +115,11 @@ export default function InicioPage() {
 					<section className="mt-6 rounded-3xl border border-slate-200 bg-white p-5 sm:p-6">
 						<div className="flex items-center gap-3">
 							<IconChip><ReceiptText size={18} /></IconChip>
-							<div><h2 className="font-semibold">Hogar</h2><p className="text-xs text-slate-400">Consulta recibos, distribución familiar y estado del proveedor.</p></div>
+							<div><h2 className="font-bold">Recibos del hogar</h2><p className="text-xs text-slate-400">Total, vencimiento y reparto de cada recibo del mes.</p></div>
 						</div>
 						<div className="mt-5 flex flex-col gap-3 sm:flex-row">
-							<Link to="/recibos" className="fh-button-secondary gap-2">Ver recibos del hogar<ArrowRight size={14} /></Link>
-							{isAdmin && <Link to="/servicios" className="fh-button-secondary">Configurar servicios</Link>}
+							<Link to="/recibos" className="fh-button-secondary gap-2">Ver recibos<ArrowRight size={14} /></Link>
+							{isAdmin && <Link to="/administrar?tab=servicios" className="fh-button-secondary">Configurar servicios</Link>}
 						</div>
 					</section>
 				</>
@@ -149,7 +149,7 @@ function AdminAttentionPanel({ attention }: { attention: AdminAttention }) {
 	const items = [
 		{ label: 'Recibos esperando monto', count: attention.recibosEsperandoMonto, to: '/recibos' },
 		{ label: 'Vencimientos por completar', count: attention.vencimientosFaltantes, to: '/recibos' },
-		{ label: 'Pagos por validar', count: attention.pagosPorValidar, to: '/pagos' },
+		{ label: 'Pagos por validar', count: attention.pagosPorValidar, to: '/pagos?tab=validar' },
 		{ label: 'Recibos vencidos', count: attention.recibosVencidos, to: '/recibos' },
 		{ label: 'Recaudaciones fuera de fecha', count: attention.recaudacionesAtrasadas, to: '/recibos' },
 	].filter((item) => item.count > 0)
@@ -182,7 +182,7 @@ function HomeStatusPanel({ pagosParaValidar }: { pagosParaValidar: number }) {
 		<section className="rounded-3xl border border-slate-200 bg-white p-5 sm:p-6">
 			<div className="flex items-center gap-3"><div className={`grid size-10 place-items-center rounded-xl ${pagosParaValidar ? 'bg-amber-50 text-amber-700' : 'bg-emerald-50 text-emerald-700'}`}><ShieldCheck size={18} /></div><div><p className="text-sm font-semibold">{pagosParaValidar ? 'Necesita tu atención' : 'Estado del hogar'}</p><p className="text-xs text-slate-400">{pagosParaValidar ? 'Eres el receptor responsable de confirmar pagos.' : 'FamiliaHub mantiene tus cuotas y recibos sincronizados.'}</p></div></div>
 			{pagosParaValidar ? (
-				<div className="mt-5 rounded-2xl bg-amber-50 p-4"><p className="text-sm font-semibold text-amber-800">{pagosParaValidar} pago{pagosParaValidar === 1 ? '' : 's'} por validar</p><Link to="/pagos" className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-amber-800">Revisar pagos<ArrowRight size={14} /></Link></div>
+				<div className="mt-5 rounded-2xl bg-amber-50 p-4"><p className="text-sm font-semibold text-amber-800">{pagosParaValidar} pago{pagosParaValidar === 1 ? '' : 's'} por validar</p><Link to="/pagos?tab=validar" className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-amber-800">Revisar pagos<ArrowRight size={14} /></Link></div>
 			) : (
 				<div className="mt-5 rounded-2xl bg-slate-50/80 p-4"><p className="text-xs leading-5 text-slate-500">Tú solo necesitas revisar tus cuotas y registrar un pago cuando corresponda. La administración del recibo permanece separada.</p></div>
 			)}

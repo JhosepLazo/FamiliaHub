@@ -1,6 +1,7 @@
 import { CalendarDays, CheckCircle2, ChevronRight, RefreshCw, ReceiptText } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
+import PageHeader from '../../components/ui/PageHeader'
 import { supabase } from '../../lib/supabase'
 import type { Tables } from '../../types/database'
 import { useAuth } from '../auth/AuthContext'
@@ -113,22 +114,20 @@ export default function RecibosPage() {
 
 	return (
 		<div>
-			<div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-				<div>
-					<p className="text-sm font-semibold text-[#0f766e]">Hogar</p>
-					<h1 className="mt-1 text-3xl font-semibold tracking-tight">Recibos</h1>
-					<p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">Cada recibo conserva su total, vencimiento, distribución familiar y estado del proveedor de forma independiente.</p>
-				</div>
-				{isAdmin && (
-					<button onClick={() => void loadPeriods(true)} disabled={syncing} className="fh-button-secondary flex items-center gap-2">
+			<PageHeader
+				eyebrow="Recibos"
+				title="Recibos del hogar"
+				description="Cada recibo muestra su total, cuándo vence, cuánto le toca a cada uno y si ya se pagó a la empresa."
+				actions={isAdmin && (
+					<button onClick={() => void loadPeriods(true)} disabled={syncing} className="fh-button-secondary">
 						<RefreshCw size={16} className={syncing ? 'animate-spin' : ''} />Sincronizar
 					</button>
 				)}
-			</div>
+			/>
 
 			<div className="mt-7 flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-4 sm:flex-row sm:items-center sm:justify-between">
 				<div className="flex items-center gap-3">
-					<div className="grid size-10 place-items-center rounded-xl bg-emerald-50 text-[#0f766e]"><CalendarDays size={18} /></div>
+					<div className="grid size-10 place-items-center rounded-xl bg-emerald-50 text-brand"><CalendarDays size={18} /></div>
 					<div><p className="text-xs font-medium text-slate-400">Periodo</p><p className="text-sm font-semibold">{currentPeriod ? periodLabel(currentPeriod.anio, currentPeriod.mes) : 'Sin periodo'}</p></div>
 				</div>
 				<div className="flex flex-col gap-2 sm:flex-row">
@@ -167,7 +166,7 @@ export default function RecibosPage() {
 
 								<div className="mt-6 grid grid-cols-2 gap-3">
 									<div className="rounded-2xl bg-slate-50 p-4"><p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Total recibo</p><p className="mt-1 text-lg font-semibold">{money(receipt.monto_total)}</p></div>
-									<div className="rounded-2xl bg-emerald-50/60 p-4"><p className="text-[10px] font-semibold uppercase tracking-wide text-emerald-700/60">Tu cuota</p><p className="mt-1 text-lg font-semibold text-[#0f766e]">{own ? money(own.monto_asignado) : 'No participas'}</p></div>
+									<div className="rounded-2xl bg-emerald-50/60 p-4"><p className="text-[10px] font-semibold uppercase tracking-wide text-emerald-700/60">Tu cuota</p><p className="mt-1 text-lg font-semibold text-brand">{own ? money(own.monto_asignado) : 'No participas'}</p></div>
 								</div>
 
 								<div className="mt-5 grid grid-cols-2 gap-4 text-xs">
@@ -178,7 +177,7 @@ export default function RecibosPage() {
 								{receipt.monto_total != null && (
 									<div className="mt-5">
 										<div className="flex items-center justify-between text-[11px]"><span className="font-medium text-slate-400">Recaudación · {recaudacionLabel[receipt.estado_recaudacion]}</span><span className="font-semibold text-slate-500">{money(paid)} / {money(assigned)}</span></div>
-										<div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-[#0f766e]" style={{ width: `${progress}%` }} /></div>
+										<div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-brand" style={{ width: `${progress}%` }} /></div>
 									</div>
 								)}
 							</Link>

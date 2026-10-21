@@ -48,19 +48,19 @@ export const cuotaEstadoLabel: Record<Enums<'estado_cuota'>, string> = {
 }
 
 export function receiptBadgeClass(value: Enums<'estado_recibo'>) {
-	if (value === 'PAGADO') return 'bg-emerald-50 text-emerald-700'
-	if (value === 'VENCIDO') return 'bg-rose-50 text-rose-600'
-	if (value === 'ESPERANDO_MONTO' || value === 'REQUIERE_REVISION') return 'bg-amber-50 text-amber-700'
-	if (value === 'ANULADO') return 'bg-slate-100 text-slate-400'
-	return 'bg-sky-50 text-sky-700'
+	if (value === 'PAGADO') return 'bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-200/70'
+	if (value === 'VENCIDO') return 'bg-rose-50 text-rose-600 ring-1 ring-inset ring-rose-200/70'
+	if (value === 'ESPERANDO_MONTO' || value === 'REQUIERE_REVISION') return 'bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-200/70'
+	if (value === 'ANULADO') return 'bg-slate-100 text-slate-400 ring-1 ring-inset ring-slate-200'
+	return 'bg-sky-50 text-sky-700 ring-1 ring-inset ring-sky-200/70'
 }
 
 export function quotaBadgeClass(value: Enums<'estado_cuota'>) {
-	if (value === 'PAGADA') return 'bg-emerald-50 text-emerald-700'
-	if (value === 'POR_VALIDAR') return 'bg-amber-50 text-amber-700'
-	if (value === 'PARCIAL') return 'bg-sky-50 text-sky-700'
-	if (value === 'RECHAZADA') return 'bg-rose-50 text-rose-600'
-	return 'bg-slate-100 text-slate-500'
+	if (value === 'PAGADA') return 'bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-200/70'
+	if (value === 'POR_VALIDAR') return 'bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-200/70'
+	if (value === 'PARCIAL') return 'bg-sky-50 text-sky-700 ring-1 ring-inset ring-sky-200/70'
+	if (value === 'RECHAZADA') return 'bg-rose-50 text-rose-600 ring-1 ring-inset ring-rose-200/70'
+	return 'bg-slate-100 text-slate-500 ring-1 ring-inset ring-slate-200'
 }
 
 export function todayLima() {

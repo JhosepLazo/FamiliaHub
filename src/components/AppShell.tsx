@@ -1,4 +1,4 @@
-import { CircleDollarSign, CreditCard, Home, HousePlug, LogOut, ReceiptText, Settings2, UserRound, Users } from 'lucide-react'
+import { Home, LayoutGrid, LogOut, ReceiptText, UserRound, Wallet } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
 import { useAuth } from '../features/auth/AuthContext'
@@ -26,16 +26,9 @@ export default function AppShell() {
 				<div className="relative"><Brand tone="dark" /></div>
 				<nav className="relative mt-10 space-y-1">
 					<NavLink to="/inicio" className={itemClass}><Home size={18} />Inicio</NavLink>
-					<NavLink to="/mis-cuotas" className={itemClass}><CircleDollarSign size={18} />Mis cuotas</NavLink>
-					<NavLink to="/pagos" className={itemClass}><CreditCard size={18} />Pagos</NavLink>
-					<NavLink to="/recibos" className={itemClass}><ReceiptText size={18} />Hogar</NavLink>
-					<NavLink to="/familia" className={itemClass}><Users size={18} />Familia</NavLink>
-					{isAdmin && (
-						<>
-							<NavLink to="/servicios" className={itemClass}><HousePlug size={18} />Servicios</NavLink>
-							<NavLink to="/configuracion" className={itemClass}><Settings2 size={18} />Configuración</NavLink>
-						</>
-					)}
+					<NavLink to="/pagos" className={itemClass}><Wallet size={18} />Pagos</NavLink>
+					<NavLink to="/recibos" className={itemClass}><ReceiptText size={18} />Recibos</NavLink>
+					{isAdmin && <NavLink to="/administrar" className={itemClass}><LayoutGrid size={18} />Administrar</NavLink>}
 					<NavLink to="/perfil" className={itemClass}><UserRound size={18} />Perfil</NavLink>
 				</nav>
 
@@ -73,9 +66,9 @@ export default function AppShell() {
 
 			<nav className={`fixed inset-x-3 bottom-3 z-30 grid ${isAdmin ? 'grid-cols-5' : 'grid-cols-4'} rounded-2xl bg-fh-night/90 px-1.5 pt-1.5 pb-[max(6px,env(safe-area-inset-bottom))] shadow-[0_18px_40px_-12px_rgb(7_11_20/0.65)] ring-1 ring-white/10 backdrop-blur-xl lg:hidden`}>
 				<MobileLink to="/inicio" label="Inicio" icon={<Home size={19} />} />
-				<MobileLink to="/mis-cuotas" label="Mis cuotas" icon={<CircleDollarSign size={19} />} />
-				<MobileLink to="/recibos" label="Hogar" icon={<ReceiptText size={19} />} />
-				{isAdmin && <MobileLink to="/servicios" label="Servicios" icon={<HousePlug size={19} />} />}
+				<MobileLink to="/pagos" label="Pagos" icon={<Wallet size={19} />} />
+				<MobileLink to="/recibos" label="Recibos" icon={<ReceiptText size={19} />} />
+				{isAdmin && <MobileLink to="/administrar" label="Administrar" icon={<LayoutGrid size={19} />} />}
 				<MobileLink to="/perfil" label="Perfil" icon={<UserRound size={19} />} />
 			</nav>
 		</div>

@@ -1,5 +1,6 @@
 import { Check, ExternalLink, ReceiptText, ShieldCheck, X } from 'lucide-react'
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import EmptyState from '../../components/ui/EmptyState'
 import { supabase } from '../../lib/supabase'
 import type { Tables } from '../../types/database'
 import { useAuth } from '../auth/AuthContext'
@@ -11,16 +12,16 @@ type Pago = Tables<'pagos_familiares'>
 type Asignacion = Tables<'pago_asignaciones'>
 type Recibo = Tables<'recibos'>
 
-type Tab = 'MIOS' | 'VALIDAR' | 'HISTORIAL'
+export type VistaPagos = 'MIOS' | 'VALIDAR' | 'HISTORIAL'
 
-export default function PagosPage() {
+// Lista de pagos familiares; el módulo Pagos decide qué vista mostrar con sus pestañas.
+export default function PagosPage({ vista: tab }: { vista: VistaPagos }) {
 	const { user } = useAuth()
 	const { familia, membresia } = useFamilia()
 	const isAdmin = membresia?.rol === 'ADMINISTRADOR'
 	const [payments, setPayments] = useState<Pago[]>([])
 	const [assignments, setAssignments] = useState<Asignacion[]>([])
 	const [receipts, setReceipts] = useState<Recibo[]>([])
-	const [tab, setTab] = useState<Tab>('MIOS')
 	const [loading, setLoading] = useState(true)
 	const [working, setWorking] = useState(false)
 	const [message, setMessage] = useState<string | null>(null)
@@ -117,25 +118,19 @@ export default function PagosPage() {
 	}
 
 	return (
-		<div>
-			<div>
-				<p className="text-sm font-semibold text-[#0f766e]">Pagos</p>
-				<h1 className="mt-1 text-3xl font-semibold tracking-tight">Pagos y validaciones</h1>
-				<p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">Un pago enviado no modifica una cuota hasta que el receptor responsable lo confirme.</p>
-			</div>
-
-			<div className="mt-7 flex rounded-2xl border border-slate-200 bg-white p-1">
-				<TabButton active={tab === 'MIOS'} onClick={() => setTab('MIOS')}>Mis pagos</TabButton>
-				<TabButton active={tab === 'VALIDAR'} onClick={() => setTab('VALIDAR')}>Por validar</TabButton>
-				<TabButton active={tab === 'HISTORIAL'} onClick={() => setTab('HISTORIAL')}>Historial</TabButton>
-			</div>
+		<div className="fh-entrada">
+			{tab === 'VALIDAR' && <p className="mb-4 text-sm text-slate-500">Un pago enviado no cambia la cuota hasta que su receptor responsable lo confirma.</p>}
 
 			{loading ? (
-				<div className="mt-6 h-72 animate-pulse rounded-3xl bg-white" />
+				<div className="h-72 animate-pulse rounded-3xl bg-white/60" />
 			) : visible.length === 0 ? (
-				<div className="mt-6 rounded-3xl border border-dashed border-slate-300 bg-white p-8 text-center"><ReceiptText className="mx-auto text-slate-400" /><h2 className="mt-3 font-semibold">{tab === 'VALIDAR' ? 'No tienes pagos por validar' : 'Todavía no hay pagos aquí'}</h2></div>
+				<EmptyState
+					icon={tab === 'VALIDAR' ? <ShieldCheck size={20} /> : <ReceiptText size={20} />}
+					title={tab === 'VALIDAR' ? 'No tienes pagos por validar' : tab === 'MIOS' ? 'Todavía no registraste pagos' : 'Todavía no hay pagos en la familia'}
+					description={tab === 'VALIDAR' ? 'Cuando alguien te envíe un pago, aparecerá aquí para que lo confirmes.' : 'Los pagos aparecen aquí apenas se registran desde "Por pagar".'}
+				/>
 			) : (
-				<div className="mt-6 space-y-4">
+				<div className="space-y-4">
 					{visible.map((payment) => {
 						const rows = assignmentMap.get(payment.id) ?? []
 						const names = [...new Set(rows.map((row) => receiptMap.get(row.recibo_id)?.nombre_concepto).filter(Boolean))]
@@ -145,10 +140,13 @@ export default function PagosPage() {
 							|| (payment.estado !== 'CONFIRMADO' && (payment.pagador_usuario_id === user?.id || isAdmin || payment.responsable_receptor_miembro_id === membresia?.id))
 						)
 						return (
-							<article key={payment.id} className="rounded-3xl border border-slate-200 bg-white p-5 sm:p-6">
+							<article key={payment.id} className={`fh-card p-5 sm:p-6 ${canValidate ? 'ring-2 ring-amber-200/70' : ''}`}>
 								<div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-									<div><div className="flex flex-wrap items-center gap-2"><h2 className="font-semibold">{payment.receptor_nombre_snapshot}</h2><span className={`rounded-full px-2.5 py-1 text-[10px] font-semibold ${estadoPagoClass(payment.estado)}`}>{estadoPagoLabel[payment.estado]}</span></div><p className="mt-1 text-xs text-slate-400">{metodoPagoLabel[payment.metodo]} · {names.join(', ') || 'Cuotas familiares'}</p></div>
-									<p className="text-xl font-semibold">{money(payment.monto_total)}</p>
+									<div className="min-w-0">
+										<div className="flex flex-wrap items-center gap-2"><h2 className="font-bold text-slate-900">Para {payment.receptor_nombre_snapshot}</h2><span className={`fh-pill ${estadoPagoClass(payment.estado)}`}>{estadoPagoLabel[payment.estado]}</span></div>
+										<p className="mt-1 text-xs text-slate-400">{metodoPagoLabel[payment.metodo]} · {names.join(', ') || 'Cuotas familiares'}</p>
+									</div>
+									<p className="text-2xl font-extrabold tracking-tight tabular-nums text-slate-900">{money(payment.monto_total)}</p>
 								</div>
 
 								<div className="mt-5 grid gap-3 sm:grid-cols-3">
@@ -160,11 +158,11 @@ export default function PagosPage() {
 								{payment.rechazo_motivo && <p className="mt-4 rounded-xl bg-rose-50 p-3 text-xs text-rose-600">Rechazado: {payment.rechazo_motivo}</p>}
 								{payment.anulacion_motivo && <p className="mt-4 rounded-xl bg-slate-50 p-3 text-xs text-slate-500">Anulado: {payment.anulacion_motivo}</p>}
 
-								<div className="mt-5 flex flex-wrap gap-2">
-									{payment.comprobante_storage_path && <button type="button" onClick={() => void openProof(payment)} className="fh-button-secondary flex items-center gap-2"><ExternalLink size={14} />Comprobante</button>}
-									{canValidate && <button disabled={working} onClick={() => void validate(payment, true)} className="fh-button-primary flex items-center gap-2"><Check size={14} />Confirmar</button>}
-									{canValidate && <button disabled={working} onClick={() => void validate(payment, false)} className="fh-button-secondary flex items-center gap-2"><X size={14} />Rechazar</button>}
-									{canAnnul && <button disabled={working} onClick={() => void annul(payment)} className="text-xs font-semibold text-rose-500">Anular</button>}
+								<div className="mt-5 flex flex-wrap items-center gap-2">
+									{canValidate && <button disabled={working} onClick={() => void validate(payment, true)} className="fh-button-primary">{working ? <span className="fh-spinner" /> : <Check size={15} />}Confirmar pago</button>}
+									{canValidate && <button disabled={working} onClick={() => void validate(payment, false)} className="fh-button-danger"><X size={15} />Rechazar</button>}
+									{payment.comprobante_storage_path && <button type="button" onClick={() => void openProof(payment)} className="fh-button-secondary"><ExternalLink size={14} />Ver comprobante</button>}
+									{canAnnul && <button disabled={working} onClick={() => void annul(payment)} className="ml-auto rounded-lg px-2 py-1 text-xs font-bold text-rose-500 transition hover:bg-rose-50 active:scale-95">Anular</button>}
 								</div>
 							</article>
 						)
@@ -177,10 +175,6 @@ export default function PagosPage() {
 	)
 }
 
-function TabButton({ active, onClick, children }: { active: boolean; onClick: () => void; children: ReactNode }) {
-	return <button type="button" onClick={onClick} className={`flex-1 rounded-xl px-4 py-2 text-xs font-semibold transition ${active ? 'bg-[#0f766e] text-white' : 'text-slate-500'}`}>{children}</button>
-}
-
 function Info({ label, value }: { label: string; value: string }) {
-	return <div className="rounded-2xl bg-slate-50 p-3"><p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">{label}</p><p className="mt-1 truncate text-xs font-semibold text-slate-700">{value}</p></div>
+	return <div className="rounded-2xl bg-slate-50/80 p-3"><p className="text-[10px] font-bold uppercase tracking-wide text-slate-400">{label}</p><p className="mt-1 truncate text-xs font-bold text-slate-700">{value}</p></div>
 }

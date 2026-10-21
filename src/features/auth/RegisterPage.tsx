@@ -54,7 +54,7 @@ export default function RegisterPage() {
 
 			{message && <p className="fh-alert mt-4">{message}</p>}
 			<p className="mt-7 text-center text-sm text-slate-500">
-				¿Ya tienes cuenta? <Link className="font-semibold text-[#0f766e]" to={`/login?next=${encodeURIComponent(next)}`}>Ingresar</Link>
+				¿Ya tienes cuenta? <Link className="font-semibold text-brand" to={`/login?next=${encodeURIComponent(next)}`}>Ingresar</Link>
 			</p>
 		</AuthLayout>
 	)

@@ -57,14 +57,14 @@ export default function LoginPage() {
 				<Field label="Contraseña" icon={<LockKeyhole size={17} />}>
 					<input className="fh-input pl-11" type="password" autoComplete="current-password" required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" />
 				</Field>
-				<div className="flex justify-end"><Link className="text-sm font-medium text-[#0f766e] hover:underline" to="/recuperar">Olvidé mi contraseña</Link></div>
+				<div className="flex justify-end"><Link className="text-sm font-medium text-brand hover:underline" to="/recuperar">Olvidé mi contraseña</Link></div>
 				<button className="fh-button-primary w-full" disabled={loading}>{loading ? 'Ingresando...' : 'Ingresar'}</button>
 			</form>
 
 			{message && <p className="fh-alert mt-4">{message}</p>}
 
 			<div className="mt-8 border-t border-slate-200 pt-6 text-center text-sm text-slate-500">
-				¿Vas a crear tu espacio familiar? <Link className="font-semibold text-[#0f766e] hover:underline" to={`/registro?next=${encodeURIComponent(next)}`}>Crear acceso</Link>
+				¿Vas a crear tu espacio familiar? <Link className="font-semibold text-brand hover:underline" to={`/registro?next=${encodeURIComponent(next)}`}>Crear acceso</Link>
 			</div>
 		</AuthLayout>
 	)

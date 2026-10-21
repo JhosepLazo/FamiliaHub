@@ -10,6 +10,7 @@ import {
 } from 'lucide-react'
 import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
+import PageHeader from '../../components/ui/PageHeader'
 import { supabase } from '../../lib/supabase'
 import type { Database, Json, Tables } from '../../types/database'
 import { useFamilia } from '../familia/FamiliaContext'
@@ -488,7 +489,7 @@ export default function ServicioFormPage() {
 			return
 		}
 
-		navigate('/servicios', { replace: true })
+		navigate('/administrar?tab=servicios', { replace: true })
 	}
 
 	if (loading) {
@@ -497,14 +498,7 @@ export default function ServicioFormPage() {
 
 	return (
 		<div className="mx-auto max-w-5xl">
-			<div className="flex items-start gap-4">
-				<Link to="/servicios" className="mt-1 grid size-10 shrink-0 place-items-center rounded-xl border border-slate-200 bg-white text-slate-500"><ArrowLeft size={17} /></Link>
-				<div>
-					<p className="text-sm font-semibold text-[#0f766e]">Servicios</p>
-					<h1 className="mt-1 text-3xl font-semibold tracking-tight">{editing ? 'Editar servicio' : 'Nuevo servicio'}</h1>
-					<p className="mt-2 text-sm leading-6 text-slate-500">FamiliaHub utilizará esta plantilla para crear recibos y cuotas sin volver a preguntarte lo mismo cada mes.</p>
-				</div>
-			</div>
+			<PageHeader backTo="/administrar?tab=servicios" eyebrow="Servicios" title={editing ? 'Editar servicio' : 'Nuevo servicio'} description="Lo configuras una vez y FamiliaHub crea el recibo y reparte las cuotas cada mes." />
 
 			<StepBar current={step} />
 
@@ -514,14 +508,14 @@ export default function ServicioFormPage() {
 						<SectionTitle title="1. ¿Qué servicio quieres organizar?" subtitle="Usa una plantilla para que FamiliaHub complete lo repetitivo por ti." />
 						<div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
 							{templates.map((template) => (
-								<button key={template.id} type="button" onClick={() => chooseTemplate(template)} className={`rounded-2xl border p-4 text-left transition ${state.plantillaId === template.id ? 'border-[#0f766e] bg-emerald-50 ring-2 ring-emerald-100' : 'border-slate-200 hover:border-slate-300'}`}>
-									<div className="text-[#0f766e]"><ServicioIcon tipo={template.tipo_servicio} /></div>
+								<button key={template.id} type="button" onClick={() => chooseTemplate(template)} className={`rounded-2xl border p-4 text-left transition ${state.plantillaId === template.id ? 'border-brand bg-emerald-50 ring-2 ring-emerald-100' : 'border-slate-200 hover:border-slate-300'}`}>
+									<div className="text-brand"><ServicioIcon tipo={template.tipo_servicio} /></div>
 									<p className="mt-4 text-sm font-semibold">{template.nombre}</p>
 									<p className="mt-1 text-xs text-slate-400">{template.descripcion}</p>
 								</button>
 							))}
-							<button type="button" onClick={() => chooseTemplate(null)} className={`rounded-2xl border p-4 text-left transition ${state.plantillaId === null && state.tipoServicio === 'OTRO' ? 'border-[#0f766e] bg-emerald-50 ring-2 ring-emerald-100' : 'border-slate-200 hover:border-slate-300'}`}>
-								<div className="text-[#0f766e]"><CirclePlus size={20} /></div>
+							<button type="button" onClick={() => chooseTemplate(null)} className={`rounded-2xl border p-4 text-left transition ${state.plantillaId === null && state.tipoServicio === 'OTRO' ? 'border-brand bg-emerald-50 ring-2 ring-emerald-100' : 'border-slate-200 hover:border-slate-300'}`}>
+								<div className="text-brand"><CirclePlus size={20} /></div>
 								<p className="mt-4 text-sm font-semibold">Otro</p>
 								<p className="mt-1 text-xs text-slate-400">Configura un servicio personalizado.</p>
 							</button>
@@ -611,7 +605,7 @@ export default function ServicioFormPage() {
 
 						<div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
 							{(['IGUAL','PORCENTAJE','MONTO_FIJO','MIXTA'] as TipoDistribucion[]).map((distribution) => (
-								<button key={distribution} type="button" disabled={distribution === 'MONTO_FIJO' && state.metodo !== 'FIJO'} onClick={() => changeDistribution(distribution)} className={`rounded-2xl border p-4 text-left transition disabled:cursor-not-allowed disabled:opacity-40 ${state.tipoDistribucion === distribution ? 'border-[#0f766e] bg-emerald-50 ring-2 ring-emerald-100' : 'border-slate-200'}`}>
+								<button key={distribution} type="button" disabled={distribution === 'MONTO_FIJO' && state.metodo !== 'FIJO'} onClick={() => changeDistribution(distribution)} className={`rounded-2xl border p-4 text-left transition disabled:cursor-not-allowed disabled:opacity-40 ${state.tipoDistribucion === distribution ? 'border-brand bg-emerald-50 ring-2 ring-emerald-100' : 'border-slate-200'}`}>
 									<p className="text-sm font-semibold">{distribucionLabel[distribution]}</p>
 									<p className="mt-1 text-xs leading-5 text-slate-400">{distributionDescription(distribution)}</p>
 								</button>
@@ -622,8 +616,8 @@ export default function ServicioFormPage() {
 							<div className="mt-5 rounded-2xl bg-slate-50 p-4">
 								<p className="text-xs font-semibold text-slate-500">¿Cómo se divide el saldo después de los montos fijos?</p>
 								<div className="mt-3 flex gap-2">
-									<button type="button" onClick={() => changeRemainderMode('IGUAL')} className={`rounded-xl px-4 py-2 text-xs font-semibold ${state.repartoResto === 'IGUAL' ? 'bg-[#0f766e] text-white' : 'bg-white text-slate-500'}`}>Igual</button>
-									<button type="button" onClick={() => changeRemainderMode('PORCENTAJE')} className={`rounded-xl px-4 py-2 text-xs font-semibold ${state.repartoResto === 'PORCENTAJE' ? 'bg-[#0f766e] text-white' : 'bg-white text-slate-500'}`}>Porcentaje</button>
+									<button type="button" onClick={() => changeRemainderMode('IGUAL')} className={`rounded-xl px-4 py-2 text-xs font-semibold ${state.repartoResto === 'IGUAL' ? 'bg-brand text-white' : 'bg-white text-slate-500'}`}>Igual</button>
+									<button type="button" onClick={() => changeRemainderMode('PORCENTAJE')} className={`rounded-xl px-4 py-2 text-xs font-semibold ${state.repartoResto === 'PORCENTAJE' ? 'bg-brand text-white' : 'bg-white text-slate-500'}`}>Porcentaje</button>
 								</div>
 							</div>
 						)}
@@ -634,7 +628,7 @@ export default function ServicioFormPage() {
 								return (
 									<div key={member.id} className={`rounded-2xl border p-4 transition ${draft.selected ? 'border-emerald-200 bg-emerald-50/40' : 'border-slate-200'}`}>
 										<div className="flex items-center gap-3">
-											<input type="checkbox" checked={draft.selected} onChange={() => toggleParticipant(member.id)} className="size-4 accent-[#0f766e]" />
+											<input type="checkbox" checked={draft.selected} onChange={() => toggleParticipant(member.id)} className="size-4 accent-brand" />
 											<div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold">{member.nombre}</p><p className="text-xs text-slate-400">{draft.selected ? 'Participa en este servicio' : 'No participa'}</p></div>
 										</div>
 
@@ -702,7 +696,7 @@ function StepBar({ current }: { current: number }) {
 			{labels.map((label, index) => {
 				const number = index + 1
 				const active = number <= current
-				return <div key={label}><div className={`h-1.5 rounded-full ${active ? 'bg-[#0f766e]' : 'bg-slate-200'}`} /><p className={`mt-2 hidden text-[10px] font-semibold sm:block ${number === current ? 'text-[#0f766e]' : 'text-slate-400'}`}>{number}. {label}</p></div>
+				return <div key={label}><div className={`h-1.5 rounded-full ${active ? 'bg-brand' : 'bg-slate-200'}`} /><p className={`mt-2 hidden text-[10px] font-semibold sm:block ${number === current ? 'text-brand' : 'text-slate-400'}`}>{number}. {label}</p></div>
 			})}
 		</div>
 	)
@@ -731,7 +725,7 @@ function DistributionSummary({ state, selected }: { state: FormState; selected: 
 		const rest = rows.filter((item) => item.modalidad !== 'MONTO_FIJO').length
 		text += ` · S/ ${fixed.toFixed(2)} fijo · ${rest} en saldo restante`
 	}
-	return <div className="mt-5 flex items-center gap-2 rounded-2xl bg-slate-50 p-4 text-xs font-medium text-slate-600"><UsersRound size={15} className="text-[#0f766e]" />{text}</div>
+	return <div className="mt-5 flex items-center gap-2 rounded-2xl bg-slate-50 p-4 text-xs font-medium text-slate-600"><UsersRound size={15} className="text-brand" />{text}</div>
 }
 
 function validateStep(step: number, state: FormState, identifiers: Identificador[], selectedMembers: MemberView[]) {

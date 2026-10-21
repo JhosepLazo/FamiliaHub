@@ -128,7 +128,7 @@ export default function WhatsAppFamiliaSection() {
 
 	const casilla = (clave: ClaveBooleana, etiqueta: string, ayuda?: string) => (
 		<label key={clave} className="flex cursor-pointer items-start gap-3 rounded-xl px-1 py-2">
-			<input type="checkbox" className="mt-0.5 size-4 accent-[#0f766e]" checked={formulario[clave]} onChange={(e) => actualizar(clave, e.target.checked)} />
+			<input type="checkbox" className="mt-0.5 size-4 accent-brand" checked={formulario[clave]} onChange={(e) => actualizar(clave, e.target.checked)} />
 			<span><span className="block text-sm font-medium text-slate-700">{etiqueta}</span>{ayuda && <span className="mt-0.5 block text-xs text-slate-400">{ayuda}</span>}</span>
 		</label>
 	)
@@ -137,7 +137,7 @@ export default function WhatsAppFamiliaSection() {
 		<section className="mt-6 rounded-3xl border border-slate-200 bg-white p-6">
 			<div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
 				<div className="flex items-center gap-3">
-					<div className="grid size-10 place-items-center rounded-xl bg-emerald-50 text-[#0f766e]"><MessageCircle size={19} /></div>
+					<div className="grid size-10 place-items-center rounded-xl bg-emerald-50 text-brand"><MessageCircle size={19} /></div>
 					<div><h2 className="font-semibold">Asistente de WhatsApp</h2><p className="text-xs leading-5 text-slate-400">Avisa en el grupo familiar y responde consultas. Pagar, validar y editar se sigue haciendo aquí.</p></div>
 				</div>
 				{estado && <span className={`self-start rounded-full px-3 py-1.5 text-xs font-semibold ${bot.activo ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'}`}>Bot: {bot.texto}</span>}
@@ -200,7 +200,7 @@ export default function WhatsAppFamiliaSection() {
 									{DIAS_PREVIOS.map((dia) => {
 										const activo = formulario.diasAvisoPrevio.includes(dia)
 										const bloqueado = !activo && formulario.diasAvisoPrevio.length >= 5
-										return <button key={dia} type="button" disabled={bloqueado} onClick={() => alternarDia(dia)} className={`size-9 rounded-xl text-xs font-semibold transition disabled:opacity-40 ${activo ? 'bg-[#0f766e] text-white' : 'bg-slate-50 text-slate-500'}`}>{dia}</button>
+										return <button key={dia} type="button" disabled={bloqueado} onClick={() => alternarDia(dia)} className={`size-9 rounded-xl text-xs font-semibold transition disabled:opacity-40 ${activo ? 'bg-brand text-white' : 'bg-slate-50 text-slate-500'}`}>{dia}</button>
 									})}
 								</div>
 								{casilla('avisarVenceHoy', 'Avisar el día límite')}
@@ -247,7 +247,7 @@ export default function WhatsAppFamiliaSection() {
 							aria-checked={formulario.lenguajeNatural}
 							disabled={trabajando}
 							onClick={() => void alternarLenguajeNatural()}
-							className={`relative h-7 w-12 shrink-0 rounded-full transition disabled:opacity-60 ${formulario.lenguajeNatural ? 'bg-[#0f766e]' : 'bg-slate-200'}`}
+							className={`relative h-7 w-12 shrink-0 rounded-full transition disabled:opacity-60 ${formulario.lenguajeNatural ? 'bg-brand' : 'bg-slate-200'}`}
 						>
 							<span className={`absolute top-1 size-5 rounded-full bg-white shadow transition ${formulario.lenguajeNatural ? 'left-6' : 'left-1'}`} />
 							<span className="sr-only">Preguntas en lenguaje natural</span>

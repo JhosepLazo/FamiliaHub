@@ -3,7 +3,6 @@ import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import type { Enums, Tables } from '../../types/database'
 import { metodoPagoLabel, signedFileUrl } from '../pagos/pagoUi'
-import WhatsAppFamiliaSection from '../whatsapp/WhatsAppFamiliaSection'
 import { useFamilia } from './FamiliaContext'
 
 type Category = Tables<'categorias'>
@@ -147,12 +146,8 @@ export default function FamiliaSettingsPage() {
 	}
 
 	return (
-		<div>
-			<p className="text-sm font-semibold text-[#0f766e]">Configuración</p>
-			<h1 className="mt-1 text-3xl font-semibold tracking-tight">Familia y pagos</h1>
-			<p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">Configura datos generales y las formas en que la familia recibe aportes. Cada método tiene un responsable real de validación.</p>
-
-			<div className="mt-8 grid gap-6 xl:grid-cols-2">
+		<div className="fh-entrada">
+			<div className="grid gap-6 xl:grid-cols-2">
 				<section className="rounded-3xl border border-slate-200 bg-white p-6">
 					<h2 className="font-semibold">Datos familiares</h2>
 					<form className="mt-5" onSubmit={saveFamily}>
@@ -171,7 +166,7 @@ export default function FamiliaSettingsPage() {
 					<form className="mt-5 flex gap-2" onSubmit={addCategory}><input className="fh-input" value={newCategory} onChange={(e) => setNewCategory(e.target.value)} placeholder="Nueva categoría" /><button className="fh-button-secondary shrink-0"><Plus size={17} /></button></form>
 					<div className="mt-5 flex flex-wrap gap-2">
 						{categories.map((category) => (
-							<button type="button" key={category.id} onClick={() => void toggleCategory(category)} className={`rounded-full border px-3 py-1.5 text-xs font-medium ${category.activo ? 'border-emerald-200 bg-emerald-50 text-[#0f766e]' : 'border-slate-200 bg-slate-50 text-slate-400'}`}>{category.nombre}</button>
+							<button type="button" key={category.id} onClick={() => void toggleCategory(category)} className={`rounded-full border px-3 py-1.5 text-xs font-medium ${category.activo ? 'border-emerald-200 bg-emerald-50 text-brand' : 'border-slate-200 bg-slate-50 text-slate-400'}`}>{category.nombre}</button>
 						))}
 					</div>
 				</section>
@@ -183,7 +178,7 @@ export default function FamiliaSettingsPage() {
 
 				<div className="mt-5 flex flex-wrap gap-2">
 					{(['YAPE','TRANSFERENCIA','EFECTIVO','OTRO'] as Metodo[]).map((value) => (
-						<button key={value} type="button" onClick={() => setMetodo(value)} className={`rounded-xl px-4 py-2 text-xs font-semibold ${metodo === value ? 'bg-[#0f766e] text-white' : 'bg-slate-50 text-slate-500'}`}>{metodoPagoLabel[value]}</button>
+						<button key={value} type="button" onClick={() => setMetodo(value)} className={`rounded-xl px-4 py-2 text-xs font-bold transition active:scale-[0.97] ${metodo === value ? 'bg-linear-to-br from-brand to-brand-2 text-white shadow-[0_8px_18px_-10px_rgb(13_148_136/0.9)]' : 'bg-slate-100/80 text-slate-500 hover:bg-white hover:text-slate-900'}`}>{metodoPagoLabel[value]}</button>
 					))}
 				</div>
 
@@ -211,14 +206,12 @@ export default function FamiliaSettingsPage() {
 					<div className="mt-6 grid gap-3 sm:grid-cols-2">
 						{configs.map((config) => (
 							<div key={config.id} className="rounded-2xl border border-slate-100 p-4">
-								<div className="flex items-center justify-between gap-3"><div><p className="text-sm font-semibold">{metodoPagoLabel[config.metodo]}</p><p className="mt-1 text-xs text-slate-400">{config.titular} · {config.activo ? 'Activo' : 'Inactivo'}</p></div><button type="button" onClick={() => { setMetodo(config.metodo); }} className="text-xs font-semibold text-[#0f766e]">Editar</button></div>
+								<div className="flex items-center justify-between gap-3"><div><p className="text-sm font-semibold">{metodoPagoLabel[config.metodo]}</p><p className="mt-1 text-xs text-slate-400">{config.titular} · {config.activo ? 'Activo' : 'Inactivo'}</p></div><button type="button" onClick={() => { setMetodo(config.metodo); }} className="text-xs font-semibold text-brand">Editar</button></div>
 							</div>
 						))}
 					</div>
 				)}
 			</section>
-
-			<WhatsAppFamiliaSection />
 
 			{message && <p className="fh-alert mt-5">{message}</p>}
 		</div>

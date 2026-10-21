@@ -95,28 +95,21 @@ export default function ServiciosPage() {
 	}
 
 	return (
-		<div>
-			<div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+		<div className="fh-entrada">
+			<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 				<div>
-					<p className="text-sm font-semibold text-[#0f766e]">Configuración</p>
-					<h1 className="mt-1 text-3xl font-semibold tracking-tight">Servicios del hogar</h1>
-					<p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
-						Define una vez cómo funciona cada pago. Los recibos reales se generarán en la siguiente fase a partir de esta configuración.
+					<p className="text-sm font-bold text-slate-800">
+						{conceptos.filter((item) => item.activo).length} servicio{conceptos.filter((item) => item.activo).length === 1 ? '' : 's'} activo{conceptos.filter((item) => item.activo).length === 1 ? '' : 's'}
 					</p>
+					<p className="mt-0.5 text-xs text-slate-500">Cada servicio crea su recibo y reparte las cuotas solo, cada mes.</p>
 				</div>
-				<Link to="/servicios/nuevo" className="fh-button-primary flex items-center gap-2">
-					<CirclePlus size={17} />Nuevo servicio
-				</Link>
-			</div>
-
-			<div className="mt-7 flex items-center justify-between gap-4">
-				<p className="text-sm text-slate-500">
-					{conceptos.filter((item) => item.activo).length} servicio{conceptos.filter((item) => item.activo).length === 1 ? '' : 's'} activo{conceptos.filter((item) => item.activo).length === 1 ? '' : 's'}
-				</p>
-				<label className="flex items-center gap-2 text-xs font-medium text-slate-500">
-					<input type="checkbox" checked={showInactive} onChange={(e) => setShowInactive(e.target.checked)} />
-					Mostrar inactivos
-				</label>
+				<div className="flex items-center gap-3">
+					<label className="flex cursor-pointer items-center gap-2 text-xs font-semibold text-slate-500">
+						<input type="checkbox" className="accent-brand" checked={showInactive} onChange={(e) => setShowInactive(e.target.checked)} />
+						Mostrar inactivos
+					</label>
+					<Link to="/servicios/nuevo" className="fh-button-primary"><CirclePlus size={17} />Nuevo servicio</Link>
+				</div>
 			</div>
 
 			{loading ? (
@@ -126,7 +119,7 @@ export default function ServiciosPage() {
 				</div>
 			) : visibleConcepts.length === 0 ? (
 				<section className="mt-6 rounded-3xl border border-dashed border-slate-300 bg-white p-8 text-center">
-					<div className="mx-auto grid size-12 place-items-center rounded-2xl bg-emerald-50 text-[#0f766e]"><Settings2 /></div>
+					<div className="mx-auto grid size-12 place-items-center rounded-2xl bg-emerald-50 text-brand"><Settings2 /></div>
 					<h2 className="mt-4 text-lg font-semibold">Aún no configuraste servicios</h2>
 					<p className="mx-auto mt-2 max-w-lg text-sm leading-6 text-slate-500">Empieza por Agua, Luz, Internet o Gas. FamiliaHub te sugerirá la configuración inicial y tú solo eliges participantes y forma de división.</p>
 					<Link to="/servicios/nuevo" className="fh-button-primary mt-5 inline-flex">Configurar primer servicio</Link>
@@ -140,13 +133,13 @@ export default function ServiciosPage() {
 							<article key={concepto.id} className={`rounded-3xl border bg-white p-5 sm:p-6 ${concepto.activo ? 'border-slate-200' : 'border-slate-200 opacity-65'}`}>
 								<div className="flex items-start justify-between gap-4">
 									<div className="flex min-w-0 items-center gap-4">
-										<div className="grid size-12 shrink-0 place-items-center rounded-2xl bg-emerald-50 text-[#0f766e]">
+										<div className="grid size-12 shrink-0 place-items-center rounded-2xl bg-emerald-50 text-brand">
 											<ServicioIcon tipo={provider?.tipo_servicio ?? 'OTRO'} />
 										</div>
 										<div className="min-w-0">
 											<div className="flex flex-wrap items-center gap-2">
 												<h2 className="truncate font-semibold">{concepto.nombre}</h2>
-												<span className={`rounded-full px-2 py-1 text-[10px] font-semibold ${concepto.activo ? 'bg-emerald-50 text-[#0f766e]' : 'bg-slate-100 text-slate-400'}`}>{concepto.activo ? 'Activo' : 'Inactivo'}</span>
+												<span className={`rounded-full px-2 py-1 text-[10px] font-semibold ${concepto.activo ? 'bg-emerald-50 text-brand' : 'bg-slate-100 text-slate-400'}`}>{concepto.activo ? 'Activo' : 'Inactivo'}</span>
 											</div>
 											<p className="mt-1 text-xs text-slate-400">{provider?.nombre ?? 'Proveedor'} · {tipoServicioLabel[provider?.tipo_servicio ?? 'OTRO']}</p>
 										</div>

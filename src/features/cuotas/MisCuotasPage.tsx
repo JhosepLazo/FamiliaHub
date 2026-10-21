@@ -1,11 +1,13 @@
-import { CheckCircle2, ChevronRight, CircleDollarSign, Clock3, CreditCard, ReceiptText, WalletCards } from 'lucide-react'
+import { ArrowRight, ChevronRight, ReceiptText } from 'lucide-react'
 import { useMemo, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
+import EmptyState from '../../components/ui/EmptyState'
 import { cuotaEstadoLabel, dateLabel, money, quotaBadgeClass } from '../recibos/reciboUi'
 import { useCurrentFinance, type CuotaConRecibo } from './useCurrentFinance'
 
 type Filter = 'PENDIENTES' | 'PAGADAS' | 'TODAS'
 
+// Pestaña "Por pagar" del módulo Pagos: las cuotas propias del periodo y el acceso a pagarlas.
 export default function MisCuotasPage() {
 	const { periodo, cuotasConRecibo, resumen, loading, error } = useCurrentFinance()
 	const [filter, setFilter] = useState<Filter>('PENDIENTES')
@@ -26,47 +28,44 @@ export default function MisCuotasPage() {
 		[cuotasConRecibo],
 	)
 	const payAllUrl = payable.length ? `/pagar?cuotas=${payable.map(({ cuota }) => cuota.id).join(',')}` : null
+	const payAllTotal = payable.reduce((sum, { cuota }) => sum + (cuota.saldo_pendiente ?? 0), 0)
 
 	return (
-		<div>
-			<div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-				<div>
-					<p className="text-sm font-semibold text-[#0f766e]">Personal</p>
-					<h1 className="mt-1 text-3xl font-semibold tracking-tight">Mis cuotas</h1>
-					<p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">Aquí solo aparece lo que te corresponde. El total del recibo sigue visible para que siempre tengas contexto.</p>
+		<div className="fh-entrada">
+			<section className="fh-card flex flex-col gap-5 p-5 sm:p-6 lg:flex-row lg:items-center lg:justify-between">
+				<div className="grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-4 sm:divide-x sm:divide-slate-200/70">
+					<Metric label="Debes este mes" value={money(resumen.debe)} accent />
+					<Metric label="Pagaste" value={money(resumen.pagado)} />
+					<Metric label="Pendientes" value={String(resumen.pendientes)} />
+					<Metric label="Pagadas" value={String(resumen.pagadas)} />
 				</div>
-				<div className="flex flex-wrap gap-2">
-					<Link to="/pagos" className="fh-button-secondary flex items-center gap-2"><CreditCard size={16} />Mis pagos</Link>
-					{payAllUrl && payable.length >= 2 && <Link to={payAllUrl} className="fh-button-primary">Pagar todo · {money(payable.reduce((sum, { cuota }) => sum + (cuota.saldo_pendiente ?? 0), 0))}</Link>}
-				</div>
-			</div>
+				{payAllUrl && (
+					<Link to={payAllUrl} className="fh-button-primary w-full lg:w-auto">
+						{payable.length >= 2 ? `Pagar todo · ${money(payAllTotal)}` : `Pagar ${money(payAllTotal)}`}<ArrowRight size={16} />
+					</Link>
+				)}
+			</section>
 
-			<div className="mt-7 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-				<SummaryCard icon={<CircleDollarSign />} label="Debes este mes" value={money(resumen.debe)} accent />
-				<SummaryCard icon={<WalletCards />} label="Pagaste" value={money(resumen.pagado)} />
-				<SummaryCard icon={<Clock3 />} label="Pendientes" value={String(resumen.pendientes)} />
-				<SummaryCard icon={<CheckCircle2 />} label="Pagadas" value={String(resumen.pagadas)} />
-			</div>
-
-			<div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-				<div className="flex rounded-2xl border border-slate-200 bg-white p-1">
+			<div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+				<div className="inline-flex self-start rounded-xl border border-white/90 bg-white/70 p-1 shadow-sm backdrop-blur">
 					<FilterButton active={filter === 'PENDIENTES'} onClick={() => setFilter('PENDIENTES')}>Pendientes</FilterButton>
 					<FilterButton active={filter === 'PAGADAS'} onClick={() => setFilter('PAGADAS')}>Pagadas</FilterButton>
 					<FilterButton active={filter === 'TODAS'} onClick={() => setFilter('TODAS')}>Todas</FilterButton>
 				</div>
-				{periodo && <p className="text-xs font-medium text-slate-400">Periodo actual · {String(periodo.mes).padStart(2, '0')}/{periodo.anio}</p>}
+				{periodo && <p className="text-xs font-semibold text-slate-400">Periodo {String(periodo.mes).padStart(2, '0')}/{periodo.anio}</p>}
 			</div>
 
 			{loading ? (
-				<div className="mt-6 grid gap-4 lg:grid-cols-2"><div className="h-52 animate-pulse rounded-3xl bg-white" /><div className="h-52 animate-pulse rounded-3xl bg-white" /></div>
+				<div className="mt-5 grid gap-4 lg:grid-cols-2"><div className="h-52 animate-pulse rounded-3xl bg-white/60" /><div className="h-52 animate-pulse rounded-3xl bg-white/60" /></div>
 			) : visible.length === 0 ? (
-				<section className="mt-6 rounded-3xl border border-dashed border-slate-300 bg-white p-8 text-center">
-					<div className="mx-auto grid size-12 place-items-center rounded-2xl bg-emerald-50 text-[#0f766e]"><ReceiptText /></div>
-					<h2 className="mt-4 text-lg font-semibold">{filter === 'PENDIENTES' ? 'No tienes cuotas pendientes' : filter === 'PAGADAS' ? 'Aún no tienes cuotas pagadas este mes' : 'Todavía no tienes cuotas en este periodo'}</h2>
-					<p className="mx-auto mt-2 max-w-lg text-sm leading-6 text-slate-500">{filter === 'PENDIENTES' ? 'Cuando todo está pagado, FamiliaHub deja de ponerte tareas innecesarias.' : 'Las cuotas aparecerán aquí cuando participes en un recibo del hogar.'}</p>
-				</section>
+				<EmptyState
+					className="mt-5"
+					icon={<ReceiptText size={20} />}
+					title={filter === 'PENDIENTES' ? 'No tienes cuotas pendientes' : filter === 'PAGADAS' ? 'Aún no tienes cuotas pagadas este mes' : 'Todavía no tienes cuotas en este periodo'}
+					description={filter === 'PENDIENTES' ? 'Estás al día. Te avisaremos cuando llegue un recibo nuevo.' : 'Las cuotas aparecerán aquí cuando participes en un recibo del hogar.'}
+				/>
 			) : (
-				<div className="mt-6 grid gap-4 lg:grid-cols-2">
+				<div className="mt-5 grid gap-4 lg:grid-cols-2">
 					{visible.map((row) => <QuotaCard key={row.cuota.id} row={row} />)}
 				</div>
 			)}
@@ -79,50 +78,56 @@ export default function MisCuotasPage() {
 function QuotaCard({ row }: { row: CuotaConRecibo }) {
 	const { cuota, recibo, fechaObjetivo, diasRestantes, vencida } = row
 	const canPay = cuota.estado !== 'POR_VALIDAR' && cuota.estado !== 'PAGADA' && cuota.estado !== 'ANULADA' && (cuota.saldo_pendiente ?? 0) > 0
-	const actionUrl = cuota.estado === 'POR_VALIDAR' ? '/pagos' : canPay ? `/pagar?cuotas=${cuota.id}` : `/recibos/${recibo.id}`
-	const action = cuota.estado === 'POR_VALIDAR' ? 'Ver pago enviado' : canPay ? 'Pagar saldo' : 'Ver detalle'
+	const actionUrl = cuota.estado === 'POR_VALIDAR' ? '/pagos?tab=mis-pagos' : canPay ? `/pagar?cuotas=${cuota.id}` : `/recibos/${recibo.id}`
+	const action = cuota.estado === 'POR_VALIDAR' ? 'Ver pago enviado' : canPay ? 'Pagar' : 'Ver detalle'
 
 	return (
-		<article className="rounded-3xl border border-slate-200 bg-white p-5 sm:p-6">
+		<article className="fh-card group p-5 transition duration-200 hover:-translate-y-0.5 sm:p-6">
 			<div className="flex items-start justify-between gap-4">
 				<div className="min-w-0">
 					<div className="flex flex-wrap items-center gap-2">
-						<Link to={`/recibos/${recibo.id}`} className="truncate text-lg font-semibold hover:text-[#0f766e]">{recibo.nombre_concepto}</Link>
-						<span className={`rounded-full px-2.5 py-1 text-[10px] font-semibold ${quotaBadgeClass(cuota.estado)}`}>{cuotaEstadoLabel[cuota.estado]}</span>
-						{vencida && <span className="rounded-full bg-rose-50 px-2.5 py-1 text-[10px] font-semibold text-rose-600">Vencida</span>}
+						<Link to={`/recibos/${recibo.id}`} className="truncate text-lg font-bold text-slate-900 transition hover:text-brand">{recibo.nombre_concepto}</Link>
+						<span className={`fh-pill ${quotaBadgeClass(cuota.estado)}`}>{cuotaEstadoLabel[cuota.estado]}</span>
+						{vencida && <span className="fh-pill bg-rose-50 text-rose-600 ring-rose-200/70">Vencida</span>}
 					</div>
 					<p className="mt-1 text-xs text-slate-400">{recibo.proveedor_nombre}</p>
 				</div>
-				<Link to={`/recibos/${recibo.id}`} className="text-slate-300 hover:text-slate-500"><ChevronRight size={18} /></Link>
+				<Link to={`/recibos/${recibo.id}`} aria-label="Ver recibo" className="grid size-8 place-items-center rounded-lg text-slate-300 transition hover:bg-slate-100 hover:text-slate-600"><ChevronRight size={18} /></Link>
 			</div>
 
-			<div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
-				<Data label="Total recibo" value={money(recibo.monto_total)} />
-				<Data label="Tu cuota" value={money(cuota.monto_asignado)} accent />
-				<Data label="Te falta" value={money(cuota.saldo_pendiente)} wideMobile />
-			</div>
-
-			<div className="mt-5 flex flex-col gap-3 border-t border-slate-100 pt-4 sm:flex-row sm:items-center sm:justify-between">
+			<div className="mt-5 flex items-end justify-between gap-4">
 				<div>
-					<p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Tu fecha límite</p>
-					<p className={`mt-1 text-xs font-semibold ${vencida ? 'text-rose-600' : 'text-slate-600'}`}>{dateLabel(fechaObjetivo)}{relativeDate(diasRestantes)}</p>
+					<p className="text-[11px] font-bold uppercase tracking-wide text-slate-400">Te falta</p>
+					<p className={`mt-0.5 text-3xl font-extrabold tracking-tight tabular-nums ${(cuota.saldo_pendiente ?? 0) > 0 ? 'text-slate-900' : 'text-emerald-600'}`}>{money(cuota.saldo_pendiente)}</p>
 				</div>
-				<Link to={actionUrl} className={canPay ? 'fh-button-primary text-center' : 'text-xs font-semibold text-[#0f766e]'}>{action}</Link>
+				<div className="text-right text-xs text-slate-500">
+					<p>Tu cuota <span className="font-bold text-slate-700 tabular-nums">{money(cuota.monto_asignado)}</span></p>
+					<p className="mt-0.5">Recibo <span className="font-bold text-slate-700 tabular-nums">{money(recibo.monto_total)}</span></p>
+				</div>
+			</div>
+
+			<div className="mt-5 flex flex-col gap-3 border-t border-slate-200/70 pt-4 sm:flex-row sm:items-center sm:justify-between">
+				<div>
+					<p className="text-[11px] font-bold uppercase tracking-wide text-slate-400">Tu fecha límite</p>
+					<p className={`mt-0.5 text-sm font-bold ${vencida ? 'text-rose-600' : 'text-slate-700'}`}>{dateLabel(fechaObjetivo)}<span className="font-medium text-slate-400">{relativeDate(diasRestantes)}</span></p>
+				</div>
+				<Link to={actionUrl} className={canPay ? 'fh-button-primary' : 'fh-button-secondary'}>{action}{canPay && <ArrowRight size={15} />}</Link>
 			</div>
 		</article>
 	)
 }
 
-function SummaryCard({ icon, label, value, accent = false }: { icon: ReactNode; label: string; value: string; accent?: boolean }) {
-	return <div className={`rounded-2xl border p-5 ${accent ? 'border-emerald-100 bg-emerald-50/60' : 'border-slate-200 bg-white'}`}><div className={accent ? 'text-[#0f766e]' : 'text-slate-400'}>{icon}</div><p className="mt-5 text-xs font-medium text-slate-400">{label}</p><p className={`mt-1 text-xl font-semibold ${accent ? 'text-[#0f766e]' : 'text-slate-800'}`}>{value}</p></div>
-}
-
-function Data({ label, value, accent = false, wideMobile = false }: { label: string; value: string; accent?: boolean; wideMobile?: boolean }) {
-	return <div className={`rounded-2xl p-3 ${accent ? 'bg-emerald-50 text-[#0f766e]' : 'bg-slate-50 text-slate-700'} ${wideMobile ? 'col-span-2 sm:col-span-1' : ''}`}><p className="text-[10px] font-semibold uppercase tracking-wide opacity-60">{label}</p><p className="mt-1 text-sm font-semibold">{value}</p></div>
+function Metric({ label, value, accent = false }: { label: string; value: string; accent?: boolean }) {
+	return (
+		<div className="min-w-0 sm:px-6 sm:first:pl-0">
+			<p className="text-[11px] font-bold uppercase tracking-wide text-slate-400">{label}</p>
+			<p className={`mt-1 truncate text-xl font-extrabold tracking-tight tabular-nums ${accent ? 'text-brand' : 'text-slate-800'}`}>{value}</p>
+		</div>
+	)
 }
 
 function FilterButton({ active, onClick, children }: { active: boolean; onClick: () => void; children: ReactNode }) {
-	return <button type="button" onClick={onClick} className={`rounded-xl px-4 py-2 text-xs font-semibold transition ${active ? 'bg-[#0f766e] text-white' : 'text-slate-500 hover:bg-slate-50'}`}>{children}</button>
+	return <button type="button" onClick={onClick} className={`rounded-lg px-4 py-2 text-xs font-bold transition active:scale-[0.97] ${active ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-500 hover:bg-white hover:text-slate-900'}`}>{children}</button>
 }
 
 function relativeDate(days: number | null) {

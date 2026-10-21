@@ -29,7 +29,7 @@ Si prefieres hacerlo paso a paso:
 | 2 | **`configurar-supabase.cmd`**: inicia sesión en Supabase, aplica las migraciones, guarda los secretos, publica la función, crea `.env` y comprueba que la función responde. Te pide la dirección web de FamiliaHub; la contraseña de la base de datos es opcional (sin ella, la CLI entra con un acceso temporal de tu sesión). |
 | 3 | Sube el código: `git push -u origin fase-12-whatsapp`, abre el Pull Request en GitHub y únelo a `main`. GitHub Actions vuelve a publicar la app con las pantallas de WhatsApp. |
 | 4 | **`iniciar-bot.cmd`**: escanea el QR con el celular del chip. El bot queda en segundo plano y se enciende solo cada vez que entras a Windows. |
-| 5 | Agrega el número del chip al grupo familiar. En FamiliaHub, un administrador entra a Configuración > Asistente de WhatsApp > **Vincular grupo** y escribe en el grupo `/vincular-grupo CÓDIGO`. |
+| 5 | Agrega el número del chip al grupo familiar. En FamiliaHub, un administrador entra a Administrar > WhatsApp > **Vincular grupo** y escribe en el grupo `/vincular-grupo CÓDIGO`. |
 | 6 | Cada integrante entra a Perfil > WhatsApp > **Vincular mi WhatsApp** y escribe en el grupo `/vincular CÓDIGO`. |
 
 - **`estado-bot.cmd`** muestra si el bot funciona y las últimas líneas de `logs/bot.log`; **`detener-bot.cmd`** lo apaga y quita el inicio automático.
@@ -72,7 +72,7 @@ Opcional, Fase 7 (preguntas en lenguaje natural):
 supabase secrets set ANTHROPIC_API_KEY=<clave> ANTHROPIC_MODEL=claude-opus-5-5
 ```
 
-Si `ANTHROPIC_MODEL` no se define, se usa `claude-opus-5-5`. Para gastar menos puedes poner otro modelo. Además, el administrador debe activar el interruptor en Configuración > Asistente de WhatsApp.
+Si `ANTHROPIC_MODEL` no se define, se usa `claude-opus-5-5`. Para gastar menos puedes poner otro modelo. Además, el administrador debe activar el interruptor en Administrar > WhatsApp.
 
 ## 2. Instalar el bot
 
@@ -102,7 +102,7 @@ npm start
 1. En la terminal aparece un código QR.
 2. En el celular del chip: WhatsApp > Dispositivos vinculados > Vincular dispositivo, y escanea el QR.
 3. Cuando aparezca `Conectado a WhatsApp`, agrega el número del chip al grupo familiar.
-4. En FamiliaHub, un administrador entra a Configuración > Asistente de WhatsApp > **Vincular grupo** y escribe en el grupo el comando que muestra la app: `/vincular-grupo CÓDIGO`.
+4. En FamiliaHub, un administrador entra a Administrar > WhatsApp > **Vincular grupo** y escribe en el grupo el comando que muestra la app: `/vincular-grupo CÓDIGO`.
 5. Cada integrante entra a Perfil > WhatsApp > **Vincular mi WhatsApp** y escribe en el grupo `/vincular CÓDIGO`.
 
 Los códigos duran 10 minutos y sirven una sola vez.
@@ -253,7 +253,7 @@ Y en `bot-whatsapp/.env`: `FAMILIAHUB_FUNCTION_URL=http://127.0.0.1:54321/functi
 
 ## Monitoreo
 
-- Configuración > Asistente de WhatsApp muestra "Bot: Activo" si hubo heartbeat en los últimos 10 minutos; si no, desde cuándo no hay conexión.
+- Administrar > WhatsApp muestra "Bot: Activo" si hubo heartbeat en los últimos 10 minutos; si no, desde cuándo no hay conexión.
 - Avisos que fallaron 3 veces quedan en estado `ERROR` con el motivo en la columna `error`:
 
   ```sql

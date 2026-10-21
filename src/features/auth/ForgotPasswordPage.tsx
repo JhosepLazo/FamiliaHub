@@ -28,7 +28,7 @@ export default function ForgotPasswordPage() {
 			</form>
 
 			{message && <p className="fh-alert mt-4">{message}</p>}
-			<p className="mt-7 text-center text-sm"><Link className="font-semibold text-[#0f766e]" to="/login">Volver al ingreso</Link></p>
+			<p className="mt-7 text-center text-sm"><Link className="font-semibold text-brand" to="/login">Volver al ingreso</Link></p>
 		</AuthLayout>
 	)
 }

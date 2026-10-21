@@ -98,19 +98,22 @@ export default function FamiliaPage() {
 	}
 
 	return (
-		<div>
-			<div>
-				<p className="text-sm font-semibold text-[#0f766e]">Familia</p>
-				<h1 className="mt-1 text-3xl font-semibold tracking-tight">Integrantes</h1>
-				<p className="mt-2 text-sm text-slate-500">{activeCount} integrante{activeCount === 1 ? '' : 's'} activo{activeCount === 1 ? '' : 's'} en {familia?.nombre}.</p>
-			</div>
+		<div className="fh-entrada">
+			<p className="text-sm font-bold text-slate-800">{activeCount} integrante{activeCount === 1 ? '' : 's'} activo{activeCount === 1 ? '' : 's'} en {familia?.nombre}</p>
+			<p className="mt-0.5 text-xs text-slate-500">Invita con un enlace privado; cada persona crea su propio acceso.</p>
 
-			<div className="mt-7 grid gap-3">
+			<div className="mt-5 grid gap-3">
 				{members.map((member) => (
 					<div key={member.id} className="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-5 sm:flex-row sm:items-center sm:justify-between">
-						<div className="min-w-0">
-							<p className="truncate font-semibold">{member.nombre}{member.usuario_id === user?.id ? ' · Tú' : ''}</p>
-							<p className="mt-1 text-xs text-slate-400">{member.estado === 'ACTIVO' ? 'Activo' : 'Inactivo'} · {member.rol === 'ADMINISTRADOR' ? 'Administrador' : 'Integrante'}</p>
+						<div className="flex min-w-0 items-center gap-3">
+							<div className={`grid size-11 shrink-0 place-items-center rounded-2xl text-base font-extrabold ${member.estado === 'ACTIVO' ? 'bg-linear-to-br from-teal-500 to-cyan-600 text-white shadow-[0_0_18px_-6px_rgb(34_211_238/0.8)]' : 'bg-slate-100 text-slate-400'}`}>{member.nombre.trim().charAt(0).toUpperCase()}</div>
+							<div className="min-w-0">
+								<p className="truncate font-bold text-slate-900">{member.nombre}{member.usuario_id === user?.id && <span className="ml-1.5 text-xs font-semibold text-slate-400">(tú)</span>}</p>
+								<div className="mt-1 flex flex-wrap gap-1.5">
+									<span className={`fh-pill ${member.rol === 'ADMINISTRADOR' ? 'bg-cyan-50 text-cyan-800 ring-cyan-200/70' : 'bg-slate-100 text-slate-500 ring-slate-200'}`}>{member.rol === 'ADMINISTRADOR' ? 'Administrador' : 'Integrante'}</span>
+									{member.estado !== 'ACTIVO' && <span className="fh-pill bg-slate-100 text-slate-400 ring-slate-200">Inactivo</span>}
+								</div>
+							</div>
 						</div>
 
 						{isAdmin && (
@@ -133,7 +136,7 @@ export default function FamiliaPage() {
 				<div className="mt-9 grid gap-6 lg:grid-cols-2">
 					<section className="rounded-3xl border border-slate-200 bg-white p-6">
 						<div className="flex items-center gap-3">
-							<div className="grid size-10 place-items-center rounded-xl bg-emerald-50 text-[#0f766e]"><UserPlus size={19} /></div>
+							<div className="grid size-10 place-items-center rounded-xl bg-emerald-50 text-brand"><UserPlus size={19} /></div>
 							<div><h2 className="font-semibold">Invitar integrante</h2><p className="text-xs text-slate-400">Genera un enlace privado de 7 días.</p></div>
 						</div>
 

@@ -28,7 +28,7 @@ export default function InvitePage() {
 	return (
 		<AuthLayout title="Invitación familiar" subtitle="Este enlace permite unirte de forma privada a una familia en FamiliaHub.">
 			<div className="rounded-2xl border border-emerald-100 bg-emerald-50 p-5">
-				<CheckCircle2 className="text-[#0f766e]" size={24} />
+				<CheckCircle2 className="text-brand" size={24} />
 				<p className="mt-3 font-semibold">Invitación protegida</p>
 				<p className="mt-1 text-sm leading-6 text-slate-600">El enlace es de un solo uso, vence automáticamente y debe coincidir con el correo invitado.</p>
 			</div>

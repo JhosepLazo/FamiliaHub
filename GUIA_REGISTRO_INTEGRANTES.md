@@ -4,7 +4,7 @@ Cada integrante tiene su propio acceso (usuario y contraseña) y su propio perfi
 
 ## 1. El administrador genera la invitación
 
-1. Entra a FamiliaHub y abre **Familia**. En el celular: **Perfil > Familia e integrantes**.
+1. Entra a FamiliaHub y abre **Administrar > Integrantes**. En el celular, **Administrar** está en la barra inferior.
 2. En **Invitar integrante** completa:
    - **Nombre**: cómo aparecerá en la familia (por ejemplo, "Liliana").
    - **Correo**: el correo real de esa persona. La invitación solo funciona con ese correo.
@@ -34,11 +34,11 @@ En **Perfil** cada integrante ve y configura lo suyo:
 - **Cómo recibir reembolsos**: sus datos de cobro (por ejemplo, Yape o Plin). Solo se muestran cuando otro integrante realmente le debe dinero.
 - **WhatsApp**: **Vincular mi WhatsApp** genera un código. Lo escribe en el grupo familiar como `/vincular CÓDIGO` y desde entonces puede usar `/deuda`, `/vence` y los demás comandos.
 
-En **Mis cuotas** ve cuánto le toca de cada recibo, y en **Pagar** registra sus pagos.
+En **Pagos > Por pagar** ve cuánto le toca de cada recibo y paga desde ahí. En **Recibos** ve el detalle de cada recibo del mes.
 
 ## 4. Cambiar el rol o dar de baja
 
-En **Familia**, junto a cada integrante, el administrador puede cambiar el **rol** (Integrante o Administrador) o el **estado** (Activo o Inactivo). Un integrante inactivo deja de ver la información de la familia y pierde su vínculo de WhatsApp. Si vuelve a activarse, solo tiene que vincular su WhatsApp de nuevo.
+En **Administrar > Integrantes**, junto a cada integrante, el administrador puede cambiar el **rol** (Integrante o Administrador) o el **estado** (Activo o Inactivo). Un integrante inactivo deja de ver la información de la familia y pierde su vínculo de WhatsApp. Si vuelve a activarse, solo tiene que vincular su WhatsApp de nuevo.
 
 La familia siempre debe tener al menos un administrador activo.
 
