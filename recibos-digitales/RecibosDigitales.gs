@@ -33,6 +33,11 @@ const MESES = {
 
 /** Ejecútala una vez: crea la revisión automática cada hora y revisa los recibos de inmediato. */
 function instalar() {
+	if (CONFIG.url.indexOf('__') === 0 || CONFIG.secreto.indexOf('__') === 0) {
+		throw new Error('Este es el archivo plantilla, sin la dirección ni la clave. Pega el script que preparó activar.cmd: ' +
+			'queda en el portapapeles y en %LOCALAPPDATA%\\FamiliaHub\\RecibosDigitales-listo.gs.')
+	}
+
 	const ping = enviar({ accion: 'ping' })
 	if (!ping.ok) throw new Error('No pude conectar con FamiliaHub: ' + (ping.error || 'revisa la dirección y la clave en CONFIG.'))
 

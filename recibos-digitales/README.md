@@ -41,8 +41,9 @@ Se puede ejecutar otra vez sin problema: reutiliza la misma clave.
    la revisión de Google; solo lo usa tu cuenta.
 5. En el registro debe aparecer **"Conectado con FamiliaHub"**. Desde ahí revisa el correo cada hora.
 
-Si se te borró el portapapeles, el script ya completado está en
-`%LOCALAPPDATA%\FamiliaHub\RecibosDigitales-listo.gs`. No lo subas a ningún lado: tiene la clave.
+No pegues `RecibosDigitales.gs` de esta carpeta: es la plantilla, sin la dirección ni la clave. Si se te borró
+el portapapeles, el script ya completado está en `%LOCALAPPDATA%\FamiliaHub\RecibosDigitales-listo.gs`
+(ábrelo con el Bloc de notas y copia todo). No lo subas a ningún lado: tiene la clave.
 
 ## Qué pasa con cada recibo
 
