@@ -7,7 +7,6 @@ import { useFamilia } from '../familia/FamiliaContext'
 import {
 	distribucionLabel,
 	frecuenciaLabel,
-	integrationLabel,
 	metodoLabel,
 	money,
 	ServicioIcon,
@@ -167,9 +166,6 @@ export default function ServiciosPage() {
 
 								<div className="mt-5 flex flex-wrap gap-2 text-xs">
 									{account && <span className="rounded-full bg-slate-100 px-3 py-1.5 text-slate-500">{account.alias || account.identificador_nombre || 'Cuenta'} · {mask(account.identificador_valor)}</span>}
-									{concepto.metodo_obtencion === 'AUTOMATICO' && provider && (
-										<span className={`rounded-full px-3 py-1.5 ${provider.estado_integracion === 'DISPONIBLE' ? 'bg-emerald-50 text-[#0f766e]' : 'bg-amber-50 text-amber-700'}`}>{integrationLabel(provider.estado_integracion)}</span>
-									)}
 								</div>
 							</article>
 						)

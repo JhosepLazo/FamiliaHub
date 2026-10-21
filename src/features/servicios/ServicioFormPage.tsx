@@ -16,7 +16,7 @@ import { useFamilia } from '../familia/FamiliaContext'
 import {
 	distribucionLabel,
 	frecuenciaLabel,
-	integrationLabel,
+	metodoEditable,
 	metodoLabel,
 	ServicioIcon,
 	tipoServicioLabel,
@@ -34,6 +34,19 @@ type Plantilla = Tables<'plantillas_servicio'>
 type Proveedor = Tables<'proveedores'>
 type Categoria = Tables<'categorias'>
 type Identificador = Tables<'tipos_identificador_proveedor'>
+
+const opcionesMonto: { metodo: MetodoObtencion; titulo: string; descripcion: string }[] = [
+	{
+		metodo: 'MANUAL',
+		titulo: 'Variable',
+		descripcion: 'Agua, luz o gas. Cada mes FamiliaHub te pide el monto y, con el número de suministro guardado, lo consultas en la web del proveedor con un clic.',
+	},
+	{
+		metodo: 'FIJO',
+		titulo: 'Fijo',
+		descripcion: 'Internet, cable u otra cuota igual cada mes. Pones el precio una vez y el recibo se crea solo, ya confirmado.',
+	},
+]
 
 type MemberView = {
 	id: string
@@ -191,7 +204,7 @@ export default function ServicioFormPage() {
 			frecuencia: concept.frecuencia,
 			fechaInicioGeneracion: concept.fecha_inicio_generacion,
 			diasAnticipacion: String(concept.dias_anticipacion_aporte),
-			metodo: concept.metodo_obtencion,
+			metodo: metodoEditable(concept.metodo_obtencion),
 			montoFijo: concept.monto_fijo == null ? '' : String(concept.monto_fijo),
 			tipoVencimiento: concept.tipo_vencimiento,
 			diaVencimiento: concept.dia_vencimiento == null ? '' : String(concept.dia_vencimiento),
@@ -260,7 +273,8 @@ export default function ServicioFormPage() {
 			nombre: template.nombre,
 			proveedorId: matching.length === 1 ? matching[0].id : '',
 			frecuencia: template.frecuencia_recomendada,
-			metodo: template.metodo_obtencion_recomendado,
+			// Internet suele cobrar lo mismo cada mes; agua, luz y gas varían.
+			metodo: template.tipo_servicio === 'INTERNET' ? 'FIJO' : metodoEditable(template.metodo_obtencion_recomendado),
 			montoFijo: '',
 			tipoVencimiento: template.tipo_vencimiento_recomendado,
 			diaVencimiento: '',
@@ -548,19 +562,23 @@ export default function ServicioFormPage() {
 							</form>
 						)}
 
-						{provider && state.metodo === 'AUTOMATICO' && (
-							<div className={`mt-5 flex gap-3 rounded-2xl border p-4 text-sm ${provider.estado_integracion === 'DISPONIBLE' ? 'border-emerald-100 bg-emerald-50 text-emerald-800' : 'border-amber-100 bg-amber-50 text-amber-800'}`}>
-								<CircleAlert size={18} className="mt-0.5 shrink-0" />
-								<div><p className="font-semibold">{integrationLabel(provider.estado_integracion)}</p><p className="mt-1 text-xs leading-5">{provider.estado_integracion === 'DISPONIBLE' ? 'FamiliaHub podrá utilizar la integración configurada para este proveedor.' : 'La cuenta quedará preparada para automatización. Hasta que exista un adaptador autorizado, FamiliaHub utilizará el respaldo manual sin bloquear el servicio.'}</p></div>
-							</div>
-						)}
-
 						<div className="mt-7 grid gap-5 md:grid-cols-3">
 							<label className="block"><span className="fh-label">Frecuencia</span><select className="fh-input" value={state.frecuencia} onChange={(e) => setState({ ...state, frecuencia: e.target.value as Frecuencia })}><option value="MENSUAL">Mensual</option><option value="ANUAL">Anual</option><option value="UNICA">Única</option></select></label>
 							<label className="block"><span className="fh-label">{state.frecuencia === 'ANUAL' ? 'Primera generación anual' : state.frecuencia === 'UNICA' ? 'Fecha del periodo único' : 'Generar desde'}</span><input className="fh-input" type="date" value={state.fechaInicioGeneracion} onChange={(e) => setState({ ...state, fechaInicioGeneracion: e.target.value })} /></label>
 							<label className="block"><span className="fh-label">Pedir aporte antes del vencimiento</span><div className="relative"><input className="fh-input pr-14" type="number" min="0" max="31" step="1" value={state.diasAnticipacion} onChange={(e) => setState({ ...state, diasAnticipacion: e.target.value })} /><span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-slate-400">días</span></div></label>
-							<label className="block"><span className="fh-label">Cómo obtener el monto</span><select className="fh-input" value={state.metodo} onChange={(e) => changeMethod(e.target.value as MetodoObtencion)}><option value="AUTOMATICO">Automático</option><option value="FIJO">Fijo</option><option value="MANUAL">Manual</option></select></label>
-							{state.metodo === 'FIJO' && <label className="block"><span className="fh-label">Monto fijo (S/)</span><input className="fh-input" type="number" min="0.01" step="0.01" value={state.montoFijo} onChange={(e) => setState({ ...state, montoFijo: e.target.value, participantes: normalizeParticipantValues(state.participantes, state.tipoDistribucion, state.repartoResto, e.target.value) })} placeholder="0.00" /></label>}
+						</div>
+
+						<div className="mt-6">
+							<span className="fh-label">¿El monto cambia cada mes?</span>
+							<div className="grid gap-3 sm:grid-cols-2">
+								{opcionesMonto.map((opcion) => (
+									<button key={opcion.metodo} type="button" onClick={() => changeMethod(opcion.metodo)} className={`rounded-2xl border p-4 text-left transition duration-200 ${state.metodo === opcion.metodo ? 'border-cyan-500 bg-cyan-50/70 ring-2 ring-cyan-100' : 'border-slate-200 bg-white/70 hover:border-cyan-200'}`}>
+										<p className="text-sm font-semibold">{opcion.titulo}</p>
+										<p className="mt-1 text-xs leading-5 text-slate-500">{opcion.descripcion}</p>
+									</button>
+								))}
+							</div>
+							{state.metodo === 'FIJO' && <label className="mt-4 block max-w-xs"><span className="fh-label">Monto fijo (S/)</span><input className="fh-input" type="number" min="0.01" step="0.01" value={state.montoFijo} onChange={(e) => setState({ ...state, montoFijo: e.target.value, participantes: normalizeParticipantValues(state.participantes, state.tipoDistribucion, state.repartoResto, e.target.value) })} placeholder="0.00" /></label>}
 						</div>
 
 						<div className="mt-5 grid gap-5 md:grid-cols-2">
@@ -570,7 +588,7 @@ export default function ServicioFormPage() {
 
 						<div className="mt-7 border-t border-slate-100 pt-6">
 							<h3 className="text-sm font-semibold">Cuenta de servicio</h3>
-							<p className="mt-1 text-xs text-slate-400">{state.metodo === 'AUTOMATICO' ? 'Obligatoria para automatización.' : 'Opcional en servicios manuales o de monto fijo.'}</p>
+							<p className="mt-1 text-xs text-slate-400">{state.metodo === 'FIJO' ? 'Opcional en servicios de monto fijo.' : 'Guárdalo: cada mes podrás copiarlo y abrir la consulta del proveedor con un clic.'}</p>
 
 							<div className="mt-4 grid gap-5 md:grid-cols-2">
 								{providerIdentifiers.length > 0 ? (
@@ -578,7 +596,7 @@ export default function ServicioFormPage() {
 								) : (
 									<label className="block"><span className="fh-label">Nombre del identificador</span><input className="fh-input" value={state.cuentaNombre} onChange={(e) => setState({ ...state, cuentaNombre: e.target.value })} placeholder="Ej. Código de cliente" /></label>
 								)}
-								<label className="block"><span className="fh-label">Identificador</span><input className="fh-input" value={state.cuentaValor} onChange={(e) => setState({ ...state, cuentaValor: e.target.value })} placeholder="Número de suministro, cliente o contrato" /></label>
+								<label className="block"><span className="fh-label">Identificador</span><input className="fh-input" value={state.cuentaValor} onChange={(e) => setState({ ...state, cuentaValor: e.target.value })} placeholder={providerIdentifiers.find((item) => item.id === state.cuentaTipoId)?.nombre ?? 'Número de suministro, cliente o contrato'} /></label>
 								<label className="block md:col-span-2"><span className="fh-label">Alias de la cuenta</span><input className="fh-input" value={state.cuentaAlias} onChange={(e) => setState({ ...state, cuentaAlias: e.target.value })} placeholder="Ej. Agua de casa · opcional" /></label>
 							</div>
 
@@ -659,13 +677,6 @@ export default function ServicioFormPage() {
 							<Review label="Participantes" value={selectedMembers.map((member) => member.nombre).join(', ')} wide />
 							<Review label="Cuenta" value={state.cuentaValor ? `${state.cuentaAlias || state.cuentaNombre || providerIdentifiers.find((item) => item.id === state.cuentaTipoId)?.nombre || 'Cuenta'} · ${state.cuentaValor}` : 'No configurada'} wide />
 						</div>
-
-						{state.metodo === 'AUTOMATICO' && provider?.estado_integracion !== 'DISPONIBLE' && (
-							<div className="mt-5 flex gap-3 rounded-2xl border border-amber-100 bg-amber-50 p-4 text-amber-800">
-								<CircleAlert size={18} className="mt-0.5 shrink-0" />
-								<div><p className="text-sm font-semibold">Automatización preparada, no activa todavía</p><p className="mt-1 text-xs leading-5">El servicio conservará la cuenta y el modo automático, pero utilizará registro manual hasta que implementemos una integración autorizada para {provider?.nombre}.</p></div>
-							</div>
-						)}
 					</div>
 				)}
 			</section>

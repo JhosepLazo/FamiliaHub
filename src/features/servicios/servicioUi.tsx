@@ -17,10 +17,15 @@ export const tipoServicioLabel: Record<TipoServicio, string> = {
 	OTRO: 'Otro',
 }
 
+// Ningún proveedor tiene integración (sus consultas usan CAPTCHA): "automático" funciona igual que "variable".
 export const metodoLabel: Record<MetodoObtencion, string> = {
-	AUTOMATICO: 'Automático',
+	AUTOMATICO: 'Variable',
 	FIJO: 'Fijo',
-	MANUAL: 'Manual',
+	MANUAL: 'Variable',
+}
+
+export function metodoEditable(metodo: MetodoObtencion): MetodoObtencion {
+	return metodo === 'AUTOMATICO' ? 'MANUAL' : metodo
 }
 
 export const frecuenciaLabel: Record<Frecuencia, string> = {
