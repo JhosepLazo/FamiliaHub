@@ -1,26 +1,77 @@
 @import "tailwindcss";
 
+@theme {
+	--color-fh-night: #070b14;
+	--color-fh-ink: #0b1220;
+	--color-fh-glow: #22d3ee;
+}
+
 :root {
 	font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 	color: #0f172a;
-	background: #f4f6f2;
+	background: #eef3f6;
 	font-synthesis: none;
 	text-rendering: optimizeLegibility;
 }
 
-* { box-sizing: border-box; }
-html { background: #f4f6f2; }
-body { margin: 0; min-width: 320px; min-height: 100vh; }
-button, input, select, textarea { font: inherit; }
-button { cursor: pointer; }
-button:disabled { cursor: not-allowed; }
-::selection { background: #cce9df; color: #123f39; }
+/* En la capa base: fuera de ella, "font: inherit" le ganaba a text-xs, font-semibold y demás clases en los botones. */
+@layer base {
+	* { box-sizing: border-box; }
+	html { background: #eef3f6; }
+	body { margin: 0; min-width: 320px; min-height: 100vh; }
+	button, input, select, textarea { font: inherit; }
+	button { cursor: pointer; }
+	button:disabled { cursor: not-allowed; }
+	::selection { background: #a5f3fc; color: #083344; }
+}
+
+/* Aurora y retícula de fondo: fijas detrás de todo, sin depender de background-attachment (falla en iOS). */
+body::before {
+	content: "";
+	position: fixed;
+	inset: 0;
+	z-index: -1;
+	pointer-events: none;
+	background:
+		radial-gradient(1100px 560px at 105% -8%, rgb(34 211 238 / 0.16), transparent 62%),
+		radial-gradient(900px 520px at -12% 8%, rgb(20 184 166 / 0.16), transparent 60%),
+		radial-gradient(760px 560px at 55% 115%, rgb(139 92 246 / 0.09), transparent 60%),
+		radial-gradient(rgb(15 23 42 / 0.045) 1px, transparent 1px) 0 0 / 22px 22px;
+}
 
 @layer components {
 	.fh-label { @apply mb-2 block text-sm font-medium text-slate-700; }
-	.fh-input { @apply h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm outline-none transition placeholder:text-slate-300 focus:border-[#0f766e] focus:ring-4 focus:ring-emerald-100; }
-	.fh-select { @apply h-10 rounded-xl border border-slate-200 bg-white px-3 text-xs font-medium outline-none focus:border-[#0f766e]; }
-	.fh-button-primary { @apply inline-flex h-11 items-center justify-center rounded-xl bg-[#0f766e] px-5 text-sm font-semibold text-white transition hover:bg-[#0b5f59] disabled:opacity-60; }
-	.fh-button-secondary { @apply inline-flex h-10 items-center justify-center rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-600 transition hover:border-slate-300 hover:bg-slate-50; }
-	.fh-alert { @apply rounded-xl border border-slate-200 bg-white p-3 text-sm leading-5 text-slate-600; }
+	.fh-input { @apply h-12 w-full rounded-xl border border-slate-200/80 bg-white/90 px-4 text-sm outline-none transition placeholder:text-slate-300 focus:border-cyan-600 focus:ring-4 focus:ring-cyan-100; }
+	.fh-select { @apply h-10 rounded-xl border border-slate-200/80 bg-white/90 px-3 text-xs font-medium outline-none transition focus:border-cyan-600 focus:ring-4 focus:ring-cyan-100; }
+	.fh-button-primary {
+		@apply inline-flex h-11 items-center justify-center rounded-xl px-5 text-sm font-semibold text-white transition duration-200 disabled:opacity-60;
+		background-image: linear-gradient(135deg, #0f766e 0%, #0e7490 100%);
+		box-shadow: 0 10px 24px -12px rgb(13 148 136 / 0.75), inset 0 1px 0 rgb(255 255 255 / 0.22);
+	}
+	.fh-button-primary:hover:not(:disabled) {
+		filter: brightness(1.08);
+		box-shadow: 0 14px 30px -12px rgb(8 145 178 / 0.85), 0 0 0 1px rgb(34 211 238 / 0.25), inset 0 1px 0 rgb(255 255 255 / 0.28);
+		transform: translateY(-1px);
+	}
+	.fh-button-secondary { @apply inline-flex h-10 items-center justify-center rounded-xl border border-slate-200/80 bg-white/80 px-4 text-sm font-semibold text-slate-600 backdrop-blur transition duration-200 hover:border-cyan-200 hover:bg-white hover:text-slate-900 hover:shadow-[0_8px_20px_-14px_rgb(8_145_178/0.6)]; }
+	.fh-alert { @apply rounded-xl border border-white/80 bg-white/80 p-3 text-sm leading-5 text-slate-600 shadow-sm backdrop-blur; }
+	.fh-glow-text { @apply bg-linear-to-r from-teal-300 via-cyan-200 to-sky-300 bg-clip-text text-transparent; }
+}
+
+/* Tarjetas de toda la app como vidrio esmerilado. Va fuera de las capas de Tailwind para imponerse
+   a bg-white y border-slate-200 sin tener que editar cada pantalla. */
+main .rounded-3xl.border.bg-white,
+main .rounded-2xl.border.bg-white {
+	background-color: rgb(255 255 255 / 0.76);
+	border-color: rgb(255 255 255 / 0.9);
+	box-shadow:
+		inset 0 1px 0 rgb(255 255 255 / 0.7),
+		0 1px 2px rgb(15 23 42 / 0.04),
+		0 16px 36px -22px rgb(15 23 42 / 0.28);
+	backdrop-filter: blur(16px) saturate(1.4);
+	-webkit-backdrop-filter: blur(16px) saturate(1.4);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.fh-button-primary:hover:not(:disabled) { transform: none; }
 }
