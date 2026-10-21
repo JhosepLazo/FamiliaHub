@@ -3,7 +3,7 @@ import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import type { Enums, Tables } from '../../types/database'
 import { useFamilia } from '../familia/FamiliaContext'
-import { metodoPagoLabel, signedFileUrl } from './pagoUi'
+import { fileExtension, metodoPagoLabel, problemaArchivo, signedFileUrl } from './pagoUi'
 
 type Config = Tables<'configuracion_cobro_miembro'>
 type Metodo = Enums<'metodo_pago_familiar'>
@@ -21,6 +21,15 @@ export default function MetodosCobroPersonales() {
 	const [message, setMessage] = useState<string | null>(null)
 
 	const current = useMemo(() => configs.find((item) => item.metodo === metodo) ?? null, [configs, metodo])
+
+	// Se revisa el archivo al elegirlo y se muestra en el recuadro para comprobar que es el QR correcto.
+	const elegirQr = (file: File | null) => {
+		const problema = file && problemaArchivo(file, 5)
+		setMessage(problema || null)
+		if (!file || problema) return
+		setQrFile(file)
+		setQrPreview(URL.createObjectURL(file))
+	}
 
 	const load = useCallback(async () => {
 		if (!membresia) return
@@ -53,7 +62,7 @@ export default function MetodosCobroPersonales() {
 
 		let qrPath = current?.qr_storage_path ?? null
 		if (qrFile) {
-			const ext = qrFile.name.split('.').pop()?.toLowerCase() || 'png'
+			const ext = fileExtension(qrFile)
 			const nextPath = `${familia.id}/miembros/${membresia.id}/qr-${metodo.toLowerCase()}-${Date.now()}.${ext}`
 			const { error } = await supabase.storage.from('familia-cobros').upload(nextPath, qrFile)
 			if (error) {
@@ -111,7 +120,7 @@ export default function MetodosCobroPersonales() {
 					<label className="sm:col-span-2 flex cursor-pointer items-center gap-4 rounded-2xl border border-dashed border-slate-300 p-4">
 						{qrPreview ? <img src={qrPreview} alt="QR personal" className="size-20 rounded-xl object-cover" /> : <div className="grid size-20 place-items-center rounded-xl bg-slate-50 text-slate-400"><ImageUp /></div>}
 						<div><p className="text-sm font-semibold">{qrFile ? qrFile.name : 'QR de Yape · opcional si indicas celular'}</p><p className="mt-1 text-xs text-slate-400">PNG, JPG o WEBP · máximo 5 MB</p></div>
-						<input type="file" className="hidden" accept="image/png,image/jpeg,image/webp" onChange={(e) => setQrFile(e.target.files?.[0] ?? null)} />
+						<input type="file" className="hidden" accept="image/png,image/jpeg,image/webp" onChange={(e) => elegirQr(e.target.files?.[0] ?? null)} />
 					</label>
 				)}
 				<div className="sm:col-span-2 flex flex-wrap gap-3">

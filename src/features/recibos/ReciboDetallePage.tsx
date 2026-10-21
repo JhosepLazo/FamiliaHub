@@ -14,7 +14,7 @@ import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import type { Database, Enums, Json, Tables } from '../../types/database'
-import { fileExtension, signedFileUrl } from '../pagos/pagoUi'
+import { fileExtension, problemaArchivo, signedFileUrl } from '../pagos/pagoUi'
 import { useAuth } from '../auth/AuthContext'
 import { useFamilia } from '../familia/FamiliaContext'
 import ConsultaProveedor from './ConsultaProveedor'
@@ -35,6 +35,7 @@ type Aporte = Tables<'aportes'>
 type PagoProveedor = Tables<'pagos_proveedor'>
 type Ajuste = Tables<'recibo_ajustes'>
 type OrigenPagoProveedor = Enums<'origen_pago_proveedor'>
+type LecturaDigital = Pick<Tables<'recibos_digitales'>, 'monto' | 'fecha_vencimiento' | 'detalle'>
 
 type MemberView = {
 	id: string
@@ -69,6 +70,7 @@ export default function ReciboDetallePage() {
 	const [providerProof, setProviderProof] = useState<File | null>(null)
 	const [providerProofUrl, setProviderProofUrl] = useState<string | null>(null)
 	const [hasActiveFamilyPayments, setHasActiveFamilyPayments] = useState(false)
+	const [lecturaDigital, setLecturaDigital] = useState<LecturaDigital | null>(null)
 	const [pendingDueDate, setPendingDueDate] = useState('')
 	const [distributionOpen, setDistributionOpen] = useState(false)
 	const [distributionReason, setDistributionReason] = useState('')
@@ -129,8 +131,27 @@ export default function ReciboDetallePage() {
 		setAmount(receiptRow.monto_total == null ? '' : String(receiptRow.monto_total))
 		setDueDate(receiptRow.fecha_vencimiento ?? '')
 		setCorrectionAmount(receiptRow.monto_total == null ? '' : String(receiptRow.monto_total))
+
+		// Si el recibo digital del correo quedó para revisar, sus datos se dejan escritos: solo falta confirmarlos.
+		let lectura: LecturaDigital | null = null
+		if (isAdmin && receiptRow.estado === 'ESPERANDO_MONTO') {
+			const { data } = await supabase
+				.from('recibos_digitales')
+				.select('monto, fecha_vencimiento, detalle')
+				.eq('recibo_id', id)
+				.eq('estado', 'REVISAR')
+				.order('created_at', { ascending: false })
+				.limit(1)
+				.maybeSingle()
+			lectura = data
+		}
+		setLecturaDigital(lectura)
+		if (lectura) {
+			setAmount(String(lectura.monto))
+			if (receiptRow.tipo_vencimiento !== 'DIA_FIJO') setDueDate(lectura.fecha_vencimiento)
+		}
 		setLoading(false)
-	}, [familia, id])
+	}, [familia, id, isAdmin])
 
 	useEffect(() => { void load() }, [load])
 
@@ -368,7 +389,12 @@ export default function ReciboDetallePage() {
 			{receipt.estado === 'ESPERANDO_MONTO' && isAdmin && (
 				<section className="mt-6 rounded-3xl border border-amber-100 bg-amber-50 p-5 sm:p-6">
 					<div className="flex items-center gap-3 text-amber-800"><CircleAlert size={20} /><div><h2 className="font-semibold">Falta confirmar el recibo</h2><p className="mt-1 text-xs">Al confirmar el monto, FamiliaHub congelará esta instancia y generará sus cuotas.</p></div></div>
-					<ConsultaProveedor conceptoId={receipt.concepto_id} />
+					{lecturaDigital ? (
+						<div className="mt-5 rounded-2xl border border-amber-200/70 bg-white p-4">
+							<p className="text-sm font-semibold text-slate-800">Llegó el recibo digital: {money(lecturaDigital.monto)} · vence {dateLabel(lecturaDigital.fecha_vencimiento)}</p>
+							<p className="mt-1 text-xs leading-5 text-slate-500">{lecturaDigital.detalle ? `${lecturaDigital.detalle} ` : ''}Ya dejamos los datos escritos abajo: compáralos con el correo y confirma.</p>
+						</div>
+					) : <ConsultaProveedor conceptoId={receipt.concepto_id} />}
 					<form onSubmit={confirmAmount} className="mt-5 grid gap-4 sm:grid-cols-3">
 						<label><span className="fh-label">Monto total</span><input className="fh-input" type="number" min="0.01" step="0.01" required value={amount} onChange={(e) => setAmount(e.target.value)} /></label>
 						{receipt.tipo_vencimiento !== 'DIA_FIJO' && <label><span className="fh-label">Vencimiento proveedor</span><input className="fh-input" type="date" required value={dueDate} onChange={(e) => setDueDate(e.target.value)} /></label>}
@@ -457,7 +483,7 @@ export default function ReciboDetallePage() {
 					{activeProviderPayment ? (
 						<div className="mt-5 rounded-2xl border border-emerald-100 bg-emerald-50 p-4">
 							<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><div className="flex items-start gap-3"><CircleCheck className="mt-0.5 text-emerald-600" size={19} /><div><p className="text-sm font-semibold text-emerald-800">Proveedor pagado · {money(activeProviderPayment.monto)}</p><p className="mt-1 text-xs text-emerald-700/70">{activeProviderPayment.origen === 'ADELANTO_INTEGRANTE' ? `Adelantó ${activeProviderPayment.pagador_nombre_snapshot ?? 'un integrante'}` : 'Pagado desde fondo familiar'} · {dateLabel(activeProviderPayment.fecha_pago)}</p></div></div><div className="flex flex-wrap gap-2">{providerProofUrl && <button type="button" onClick={() => window.open(providerProofUrl, '_blank', 'noopener,noreferrer')} className="fh-button-secondary flex items-center gap-2"><ExternalLink size={14} />Comprobante</button>}{isAdmin && <button onClick={() => void annulProviderPayment(activeProviderPayment)} className="fh-button-secondary flex items-center gap-2"><RotateCcw size={14} />Anular pago</button>}</div></div>
-							{isAdmin && !activeProviderPayment.comprobante_storage_path && <div className="mt-4 flex flex-col gap-3 rounded-xl bg-white/70 p-3 sm:flex-row sm:items-center"><label className="flex flex-1 cursor-pointer items-center gap-3"><div className="grid size-10 place-items-center rounded-xl bg-slate-50 text-slate-400"><ImageUp size={17} /></div><div><p className="text-xs font-semibold">{providerProof ? providerProof.name : 'Adjuntar comprobante del proveedor'}</p><p className="mt-1 text-[10px] text-slate-400">Imagen o PDF · separado del comprobante del integrante</p></div><input className="hidden" type="file" accept="image/png,image/jpeg,image/webp,application/pdf" onChange={(e) => setProviderProof(e.target.files?.[0] ?? null)} /></label><button type="button" disabled={!providerProof || working} onClick={() => void attachProviderProof()} className="fh-button-primary">Guardar comprobante</button></div>}
+							{isAdmin && !activeProviderPayment.comprobante_storage_path && <div className="mt-4 flex flex-col gap-3 rounded-xl bg-white/70 p-3 sm:flex-row sm:items-center"><label className="flex flex-1 cursor-pointer items-center gap-3"><div className="grid size-10 place-items-center rounded-xl bg-slate-50 text-slate-400"><ImageUp size={17} /></div><div><p className="text-xs font-semibold">{providerProof ? providerProof.name : 'Adjuntar comprobante del proveedor'}</p><p className="mt-1 text-[10px] text-slate-400">Imagen o PDF · separado del comprobante del integrante</p></div><input className="hidden" type="file" accept="image/png,image/jpeg,image/webp,application/pdf" onChange={(e) => { const file = e.target.files?.[0] ?? null; const problema = file && problemaArchivo(file, 8, true); setMessage(problema || null); setProviderProof(problema ? null : file) }} /></label><button type="button" disabled={!providerProof || working} onClick={() => void attachProviderProof()} className="fh-button-primary">Guardar comprobante</button></div>}
 						</div>
 					) : isAdmin ? (
 						<form onSubmit={registerProviderPayment} className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

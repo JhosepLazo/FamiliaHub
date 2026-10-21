@@ -1,5 +1,5 @@
 import { Home, LayoutGrid, LogOut, ReceiptText, UserRound, Wallet } from 'lucide-react'
-import type { ReactNode } from 'react'
+import { Suspense, type ReactNode } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
 import { useAuth } from '../features/auth/AuthContext'
 import { useFamilia } from '../features/familia/FamiliaContext'
@@ -13,8 +13,10 @@ const itemClass = ({ isActive }: { isActive: boolean }) =>
 
 export default function AppShell() {
 	const { user } = useAuth()
-	const { familia, membresia } = useFamilia()
+	const { familia, membresia, perfil } = useFamilia()
 	const logout = () => void supabase.auth.signOut()
+	// Se entra con usuario, así que se muestra el nombre (el correo solo si aún no hay perfil).
+	const nombreVisible = perfil?.nombre?.trim() || perfil?.usuario || user?.email
 	const isAdmin = membresia?.rol === 'ADMINISTRADOR'
 
 	return (
@@ -35,7 +37,7 @@ export default function AppShell() {
 				<div className="relative mt-auto rounded-2xl border border-white/10 bg-white/[0.04] p-4 backdrop-blur">
 					<p className="text-[11px] font-medium uppercase tracking-[0.16em] text-cyan-200/60">Familia actual</p>
 					<p className="mt-1.5 truncate text-sm font-semibold">{familia?.nombre}</p>
-					<p className="mt-1 truncate text-xs text-slate-400">{user?.email}</p>
+					<p className="mt-1 truncate text-xs text-slate-400">{nombreVisible}</p>
 					<button onClick={logout} className="mt-4 flex items-center gap-2 text-xs font-semibold text-slate-400 transition hover:text-white">
 						<LogOut size={15} />Cerrar sesión
 					</button>
@@ -51,7 +53,7 @@ export default function AppShell() {
 					</div>
 					<div className="flex items-center gap-3">
 						<div className="text-right">
-							<p className="max-w-44 truncate text-sm font-medium">{user?.email}</p>
+							<p className="max-w-44 truncate text-sm font-medium">{nombreVisible}</p>
 							<p className="text-xs text-slate-400">{isAdmin ? 'Administrador' : 'Integrante'}</p>
 						</div>
 						<span className="relative flex size-2.5" title="Conectado">
@@ -61,7 +63,10 @@ export default function AppShell() {
 					</div>
 				</header>
 
-				<main className="mx-auto max-w-6xl px-5 py-7 pb-32 sm:px-7 lg:px-8 lg:pb-10"><Outlet /></main>
+				<main className="mx-auto max-w-6xl px-5 py-7 pb-32 sm:px-7 lg:px-8 lg:pb-10">
+					{/* El menú queda visible mientras se descarga la página que se abrió. */}
+					<Suspense fallback={<div className="h-96 animate-pulse rounded-3xl bg-white/60" />}><Outlet /></Suspense>
+				</main>
 			</div>
 
 			<nav className={`fixed inset-x-3 bottom-3 z-30 grid ${isAdmin ? 'grid-cols-5' : 'grid-cols-4'} rounded-2xl bg-fh-night/90 px-1.5 pt-1.5 pb-[max(6px,env(safe-area-inset-bottom))] shadow-[0_18px_40px_-12px_rgb(7_11_20/0.65)] ring-1 ring-white/10 backdrop-blur-xl lg:hidden`}>

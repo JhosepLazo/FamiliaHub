@@ -35,10 +35,19 @@ export async function signedFileUrl(bucket: string | null, path: string | null, 
 }
 
 export function fileExtension(file: File) {
-	const byName = file.name.split('.').pop()?.toLowerCase()
-	if (byName) return byName
 	if (file.type === 'application/pdf') return 'pdf'
 	if (file.type === 'image/png') return 'png'
 	if (file.type === 'image/webp') return 'webp'
-	return 'jpg'
+	if (file.type === 'image/jpeg') return 'jpg'
+	const byName = file.name.includes('.') ? file.name.split('.').pop()?.toLowerCase() : undefined
+	return byName || 'jpg'
+}
+
+// Los mismos límites que tienen los buckets en Supabase. Revisarlos antes de subir evita esperar la subida y
+// recibir un error técnico en inglés (por ejemplo, con una foto HEIC del iPhone o una muy pesada).
+export function problemaArchivo(file: File, maxMb: number, conPdf = false) {
+	const tipos = ['image/png', 'image/jpeg', 'image/webp', ...(conPdf ? ['application/pdf'] : [])]
+	if (!tipos.includes(file.type)) return conPdf ? 'Sube una imagen PNG, JPG o WEBP, o un PDF. Si es una foto del iPhone, envía una captura de pantalla.' : 'Sube una imagen PNG, JPG o WEBP. Si es una foto del iPhone, envía una captura de pantalla.'
+	if (file.size > maxMb * 1024 * 1024) return `El archivo pesa más de ${maxMb} MB. Sube una captura de pantalla, que pesa menos.`
+	return null
 }

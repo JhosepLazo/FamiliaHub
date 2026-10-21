@@ -19,12 +19,13 @@ import { dateLabel, money, periodLabel } from '../recibos/reciboUi'
 
 export default function InicioPage() {
 	const { familia, membresia } = useFamilia()
-	const { periodo, recibos, cuotasConRecibo, resumen, adminAttention, pagosParaValidar, loading, error } = useCurrentFinance()
+	const { periodo, recibos, cuotasConRecibo, anteriores, resumen, adminAttention, pagosParaValidar, loading, error } = useCurrentFinance()
 	const isAdmin = membresia?.rol === 'ADMINISTRADOR'
 	const pending = cuotasConRecibo.filter(({ cuota }) => cuota.estado !== 'PAGADA' && cuota.estado !== 'ANULADA').slice(0, 3)
 	const esperandoMonto = recibos.filter((recibo) => recibo.estado === 'ESPERANDO_MONTO')
 	const totalMes = resumen.debe + resumen.pagado
 	const avance = totalMes > 0 ? Math.min(100, Math.round((resumen.pagado / totalMes) * 100)) : 100
+	const anterioresPorPagar = anteriores.filter(({ cuota }) => cuota.estado !== 'POR_VALIDAR')
 
 	return (
 		<div>
@@ -48,6 +49,7 @@ export default function InicioPage() {
 							<div className="h-full rounded-full bg-linear-to-r from-teal-400 to-cyan-300 shadow-[0_0_12px_rgb(34_211_238/0.8)] transition-all duration-700" style={{ width: `${loading ? 0 : avance}%` }} />
 						</div>
 						<p className="mt-2 text-xs text-slate-400">{loading ? 'Calculando…' : `Pagaste ${money(resumen.pagado)} · ${avance}% de tu mes`}</p>
+						{!loading && resumen.debeAnteriores > 0 && <p className="mt-1 text-xs font-semibold text-rose-300">Además debes {money(resumen.debeAnteriores)} de meses anteriores</p>}
 					</div>
 				</div>
 			</section>
@@ -68,6 +70,21 @@ export default function InicioPage() {
 							subtitle={resumen.proxima ? dateLabel(resumen.proxima.fechaObjetivo) : undefined}
 						/>
 					</div>
+
+					{anteriores.length > 0 && (
+						<section className="mt-6 flex flex-col gap-4 rounded-3xl border border-rose-100 bg-rose-50/70 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+							<div className="flex items-center gap-3">
+								<div className="grid size-10 shrink-0 place-items-center rounded-xl bg-white text-rose-600 ring-1 ring-rose-100"><AlertTriangle size={18} /></div>
+								<div>
+									<h2 className="font-semibold text-rose-900">Pendiente de meses anteriores · {money(resumen.debeAnteriores)}</h2>
+									<p className="text-xs text-rose-700/80">{anteriores.map(({ recibo }) => recibo.nombre_concepto).join(' · ')}</p>
+								</div>
+							</div>
+							{anterioresPorPagar.length > 0
+								? <Link to={`/pagar?cuotas=${anterioresPorPagar.map(({ cuota }) => cuota.id).join(',')}`} className="fh-button-primary shrink-0">Pagar ahora<ArrowRight size={15} /></Link>
+								: <Link to="/pagos?tab=mis-pagos" className="fh-button-secondary shrink-0">Ver pago enviado</Link>}
+						</section>
+					)}
 
 					{isAdmin && esperandoMonto.length > 0 && (
 						<section className="mt-6 rounded-3xl border border-cyan-100/80 bg-linear-to-br from-white/90 to-cyan-50/70 p-5 shadow-[0_20px_40px_-28px_rgb(8_145_178/0.7)] backdrop-blur sm:p-6">

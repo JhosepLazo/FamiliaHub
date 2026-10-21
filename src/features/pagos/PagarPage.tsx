@@ -7,7 +7,7 @@ import type { Enums, Json, Tables } from '../../types/database'
 import { useAuth } from '../auth/AuthContext'
 import { useFamilia } from '../familia/FamiliaContext'
 import { money, todayLima } from '../recibos/reciboUi'
-import { fileExtension, metodoPagoLabel, signedFileUrl, type MetodoPago } from './pagoUi'
+import { fileExtension, metodoPagoLabel, problemaArchivo, signedFileUrl, type MetodoPago } from './pagoUi'
 
 type Cuota = Tables<'cuotas'>
 type Recibo = Tables<'recibos'>
@@ -121,13 +121,53 @@ export default function PagarPage() {
 			if (group.configs.length) initialMethods[group.key] = group.configs[0].metodo
 		}
 
+		// Si el pago ya se había preparado (por ejemplo, saliste a Yape y la página se recargó), se retoma
+		// en lugar de dejarlo abandonado y preparar otro.
+		const { data: drafts } = await supabase
+			.from('pagos_familiares')
+			.select('*, pago_asignaciones(cuota_id, monto)')
+			.eq('familia_id', familia.id)
+			.eq('pagador_usuario_id', user.id)
+			.eq('estado', 'BORRADOR')
+			.order('created_at', { ascending: false })
+		let resumed: { group: Group; payment: Pago } | null = null
+		for (const { pago_asignaciones: assignments, ...payment } of drafts ?? []) {
+			// Solo si es exactamente el mismo grupo de cuotas (el caso de volver de Yape a la misma página).
+			const group = nextGroups.find((candidate) => assignments.length === candidate.rows.length
+				&& assignments.every((row) => candidate.rows.some(({ cuota }) => cuota.id === row.cuota_id)))
+			if (!group) continue
+			for (const row of assignments) initialAmounts[row.cuota_id] = String(row.monto)
+			initialMethods[group.key] = payment.metodo
+			resumed = { group, payment }
+			break
+		}
+
 		setGroups(nextGroups)
 		setAmounts(initialAmounts)
 		setMethods(initialMethods)
+		if (resumed) await openDraft(resumed.group, resumed.payment)
 		setLoading(false)
 	}, [familia, user, quotaIds])
 
 	useEffect(() => { void load() }, [load])
+
+	async function openDraft(group: Group, payment: Pago) {
+		setActiveGroup(group.key)
+		setDraft(payment)
+		setReference('')
+		setProof(null)
+		setPaymentDate(todayLima())
+		setQrUrl(null)
+
+		if (payment.receptor_qr_bucket && payment.receptor_qr_storage_path) {
+			try {
+				// Una hora: alcanza para abrir Yape, pagar y volver.
+				setQrUrl(await signedFileUrl(payment.receptor_qr_bucket, payment.receptor_qr_storage_path, 3600))
+			} catch {
+				setQrUrl(null)
+			}
+		}
+	}
 
 	const prepare = async (group: Group) => {
 		const method = methods[group.key]
@@ -166,21 +206,7 @@ export default function PagarPage() {
 			return
 		}
 
-		setActiveGroup(group.key)
-		setDraft(payment)
-		setReference('')
-		setProof(null)
-		setPaymentDate(todayLima())
-		setQrUrl(null)
-
-		if (payment.receptor_qr_bucket && payment.receptor_qr_storage_path) {
-			try {
-				setQrUrl(await signedFileUrl(payment.receptor_qr_bucket, payment.receptor_qr_storage_path, 300))
-			} catch {
-				setQrUrl(null)
-			}
-		}
-
+		await openDraft(group, payment)
 		setWorking(false)
 	}
 
@@ -292,7 +318,7 @@ export default function PagarPage() {
 									<form onSubmit={finalize} className="mt-5 grid gap-4 sm:grid-cols-2">
 										<label><span className="fh-label">Fecha del pago</span><input className="fh-input" type="date" max={todayLima()} required value={paymentDate} onChange={(e) => setPaymentDate(e.target.value)} /></label>
 										<label><span className="fh-label">Referencia / operación</span><input className="fh-input" value={reference} onChange={(e) => setReference(e.target.value)} placeholder="Código de Yape, operación, etc." /></label>
-										<label className="sm:col-span-2 flex cursor-pointer items-center gap-4 rounded-2xl border border-dashed border-slate-300 bg-white p-4"><div className="grid size-14 place-items-center rounded-xl bg-slate-50 text-slate-400"><ImageUp /></div><div><p className="text-sm font-semibold">{proof ? proof.name : 'Adjuntar comprobante'}</p><p className="mt-1 text-xs text-slate-400">Imagen o PDF · máximo 8 MB. Para Yape/transferencia se exige referencia o comprobante.</p></div><input className="hidden" type="file" accept="image/png,image/jpeg,image/webp,application/pdf" onChange={(e) => setProof(e.target.files?.[0] ?? null)} /></label>
+										<label className="sm:col-span-2 flex cursor-pointer items-center gap-4 rounded-2xl border border-dashed border-slate-300 bg-white p-4"><div className="grid size-14 place-items-center rounded-xl bg-slate-50 text-slate-400"><ImageUp /></div><div><p className="text-sm font-semibold">{proof ? proof.name : 'Adjuntar comprobante'}</p><p className="mt-1 text-xs text-slate-400">Imagen o PDF · máximo 8 MB. Para Yape/transferencia se exige referencia o comprobante.</p></div><input className="hidden" type="file" accept="image/png,image/jpeg,image/webp,application/pdf" onChange={(e) => { const file = e.target.files?.[0] ?? null; const problema = file && problemaArchivo(file, 8, true); setMessage(problema || null); setProof(problema ? null : file) }} /></label>
 										<div className="sm:col-span-2 flex flex-wrap gap-3"><button className="fh-button-primary" disabled={working}>Ya pagué · Enviar a validar</button><button type="button" disabled={working} className="fh-button-secondary" onClick={() => void cancelDraft()}>Cancelar preparación</button></div>
 									</form>
 								</div>

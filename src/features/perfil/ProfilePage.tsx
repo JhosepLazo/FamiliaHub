@@ -9,7 +9,7 @@ import WhatsAppPerfilSection from '../whatsapp/WhatsAppPerfilSection'
 
 export default function ProfilePage() {
 	const { user } = useAuth()
-	const { familia, membresia } = useFamilia()
+	const { familia, membresia, refresh } = useFamilia()
 	const [nombre, setNombre] = useState('')
 	const [usuario, setUsuario] = useState('')
 	const [loading, setLoading] = useState(false)
@@ -29,6 +29,7 @@ export default function ProfilePage() {
 		setLoading(true)
 		const { error } = await supabase.from('perfiles').update({ nombre: nombre.trim(), updated_at: new Date().toISOString() }).eq('id', user.id)
 		setMessage(error ? 'No pudimos guardar tu perfil.' : 'Perfil actualizado.')
+		if (!error) await refresh()
 		setLoading(false)
 	}
 

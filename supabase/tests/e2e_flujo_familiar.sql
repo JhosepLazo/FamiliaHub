@@ -212,7 +212,7 @@ Begin
 		'FIJO',
 		2.00,
 		'DIA_FIJO',
-		28,
+		28::smallint,
 		'IGUAL',
 		Null,
 		false,
@@ -220,9 +220,9 @@ Begin
 		Json_Build_Array(
 			Json_Build_Object('miembro_id', v_jhosep_miembro_id, 'modalidad', 'IGUAL', 'valor', Null),
 			Json_Build_Object('miembro_id', v_liliana_miembro_id, 'modalidad', 'IGUAL', 'valor', Null)
-		),
+		)::jsonb,
 		(timezone('America/Lima', now()))::date,
-		2
+		2::smallint
 	)
 	Into v_concepto_id;
 
@@ -280,7 +280,7 @@ Begin
 				'cuota_id', (Select Valor From e2e_contexto Where Clave = 'CUOTA_LILIANA_ID'),
 				'monto', v_saldo
 			)
-		),
+		)::jsonb,
 		'YAPE'
 	)
 	Into v_pago_id;

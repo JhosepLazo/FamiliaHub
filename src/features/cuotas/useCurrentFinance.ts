@@ -17,6 +17,8 @@ export type CuotaConRecibo = {
 	fechaObjetivo: string | null
 	diasRestantes: number | null
 	vencida: boolean
+	// Solo en las cuotas de meses anteriores: el periodo al que pertenecen.
+	periodoAnterior?: Periodo
 }
 
 export type AdminAttention = {
@@ -34,7 +36,9 @@ export function useCurrentFinance() {
 	const isAdmin = membresia?.rol === 'ADMINISTRADOR'
 
 	const [periodo, setPeriodo] = useState<Periodo | null>(null)
+	const [periodosAnteriores, setPeriodosAnteriores] = useState<Periodo[]>([])
 	const [recibos, setRecibos] = useState<Recibo[]>([])
+	const [recibosAnteriores, setRecibosAnteriores] = useState<Recibo[]>([])
 	const [cuotas, setCuotas] = useState<Cuota[]>([])
 	const [aportesPorValidar, setAportesPorValidar] = useState<Aporte[]>([])
 	const [pagosPorValidar, setPagosPorValidar] = useState<PagoFamiliar[]>([])
@@ -50,13 +54,13 @@ export function useCurrentFinance() {
 		const today = todayLima()
 		const [year, month] = today.split('-').map(Number)
 
-		const { data: periodRow, error: periodError } = await supabase
+		// El periodo del mes y los anteriores que siguen abiertos: sus cuotas sin pagar también se deben
+		// (la misma regla que usa el bot de WhatsApp para "meses anteriores").
+		const { data: periodRows, error: periodError } = await supabase
 			.from('periodos')
 			.select('*')
 			.eq('familia_id', familia.id)
-			.eq('anio', year)
-			.eq('mes', month)
-			.maybeSingle()
+			.or(`and(anio.eq.${year},mes.eq.${month}),estado.eq.ABIERTO`)
 
 		if (periodError) {
 			setError(periodError.message)
@@ -64,24 +68,21 @@ export function useCurrentFinance() {
 			return
 		}
 
-		if (!periodRow) {
-			setPeriodo(null)
-			setRecibos([])
-			setCuotas([])
-			setAportesPorValidar([])
-			setPagosPorValidar([])
-			setLoading(false)
-			return
-		}
-
+		const periodList = periodRows ?? []
+		const periodRow = periodList.find((row) => row.anio === year && row.mes === month) ?? null
+		const previousPeriods = periodList.filter((row) => row.anio < year || (row.anio === year && row.mes < month))
 		setPeriodo(periodRow)
+		setPeriodosAnteriores(previousPeriods)
 
-		const { data: receiptRows, error: receiptsError } = await supabase
-			.from('recibos')
-			.select('*')
-			.eq('periodo_id', periodRow.id)
-			.order('fecha_limite_aporte', { ascending: true, nullsFirst: false })
-			.order('created_at')
+		const periodIds = [...(periodRow ? [periodRow.id] : []), ...previousPeriods.map((row) => row.id)]
+		const { data: receiptRows, error: receiptsError } = periodIds.length
+			? await supabase
+				.from('recibos')
+				.select('*')
+				.in('periodo_id', periodIds)
+				.order('fecha_limite_aporte', { ascending: true, nullsFirst: false })
+				.order('created_at')
+			: { data: [] as Recibo[], error: null }
 
 		if (receiptsError) {
 			setError(receiptsError.message)
@@ -90,7 +91,8 @@ export function useCurrentFinance() {
 		}
 
 		const receiptList = receiptRows ?? []
-		setRecibos(receiptList)
+		setRecibos(receiptList.filter((receipt) => receipt.periodo_id === periodRow?.id))
+		setRecibosAnteriores(receiptList.filter((receipt) => receipt.periodo_id !== periodRow?.id && receipt.estado !== 'ANULADO'))
 		const receiptIds = receiptList.map((receipt) => receipt.id)
 
 		if (receiptIds.length) {
@@ -137,25 +139,19 @@ export function useCurrentFinance() {
 
 	const reciboMap = useMemo(() => new Map(recibos.map((receipt) => [receipt.id, receipt])), [recibos])
 
-	const cuotasConRecibo = useMemo<CuotaConRecibo[]>(() => {
-		const today = todayLima()
-		return cuotas
-			.map((quota) => {
-				const receipt = reciboMap.get(quota.recibo_id)
-				if (!receipt) return null
-				const targetDate = receipt.fecha_limite_aporte ?? receipt.fecha_vencimiento
-				const days = targetDate ? daysBetween(today, targetDate) : null
-				return {
-					cuota: quota,
-					recibo: receipt,
-					fechaObjetivo: targetDate,
-					diasRestantes: days,
-					vencida: days != null && days < 0 && (quota.saldo_pendiente ?? 0) > 0,
-				}
-			})
-			.filter((row): row is CuotaConRecibo => Boolean(row))
+	const cuotasConRecibo = useMemo<CuotaConRecibo[]>(
+		() => conRecibo(cuotas, reciboMap).sort(compareQuotaPriority),
+		[cuotas, reciboMap],
+	)
+
+	// Cuotas de meses anteriores aún abiertos que no se terminaron de pagar.
+	const anteriores = useMemo<CuotaConRecibo[]>(() => {
+		const receipts = new Map(recibosAnteriores.map((receipt) => [receipt.id, receipt]))
+		const periods = new Map(periodosAnteriores.map((period) => [period.id, period]))
+		return conRecibo(cuotas.filter((quota) => quota.estado !== 'ANULADA' && (quota.saldo_pendiente ?? 0) > 0), receipts)
+			.map((row) => ({ ...row, periodoAnterior: periods.get(row.recibo.periodo_id) }))
 			.sort(compareQuotaPriority)
-	}, [cuotas, reciboMap])
+	}, [cuotas, recibosAnteriores, periodosAnteriores])
 
 	const resumen = useMemo(() => {
 		const activas = cuotasConRecibo.filter(({ cuota }) => cuota.estado !== 'ANULADA')
@@ -169,8 +165,9 @@ export function useCurrentFinance() {
 			pagadas: pagadas.length,
 			porValidar: porValidar.length,
 			proxima: pendientes[0] ?? null,
+			debeAnteriores: roundMoney(anteriores.reduce((sum, { cuota }) => sum + (cuota.saldo_pendiente ?? 0), 0)),
 		}
-	}, [cuotasConRecibo])
+	}, [cuotasConRecibo, anteriores])
 
 	const pagosParaValidar = useMemo(
 		() => pagosPorValidar.filter((payment) => payment.responsable_receptor_miembro_id === membresia?.id).length,
@@ -212,6 +209,7 @@ export function useCurrentFinance() {
 		recibos,
 		cuotas,
 		cuotasConRecibo,
+		anteriores,
 		resumen,
 		adminAttention,
 		pagosParaValidar,
@@ -219,6 +217,25 @@ export function useCurrentFinance() {
 		error,
 		reload: load,
 	}
+}
+
+function conRecibo(quotas: Cuota[], receipts: Map<string, Recibo>) {
+	const today = todayLima()
+	return quotas
+		.map((quota) => {
+			const receipt = receipts.get(quota.recibo_id)
+			if (!receipt) return null
+			const targetDate = receipt.fecha_limite_aporte ?? receipt.fecha_vencimiento
+			const days = targetDate ? daysBetween(today, targetDate) : null
+			return {
+				cuota: quota,
+				recibo: receipt,
+				fechaObjetivo: targetDate,
+				diasRestantes: days,
+				vencida: days != null && days < 0 && (quota.saldo_pendiente ?? 0) > 0,
+			}
+		})
+		.filter((row): row is CuotaConRecibo => Boolean(row))
 }
 
 function compareQuotaPriority(a: CuotaConRecibo, b: CuotaConRecibo) {

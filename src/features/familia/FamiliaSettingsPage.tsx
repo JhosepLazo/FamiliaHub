@@ -2,7 +2,7 @@ import { ImageUp, Plus, Power } from 'lucide-react'
 import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import type { Enums, Tables } from '../../types/database'
-import { metodoPagoLabel, signedFileUrl } from '../pagos/pagoUi'
+import { fileExtension, metodoPagoLabel, problemaArchivo, signedFileUrl } from '../pagos/pagoUi'
 import { useFamilia } from './FamiliaContext'
 
 type Category = Tables<'categorias'>
@@ -32,6 +32,15 @@ export default function FamiliaSettingsPage() {
 	const [saving, setSaving] = useState(false)
 
 	const current = useMemo(() => configs.find((item) => item.metodo === metodo) ?? null, [configs, metodo])
+
+	// Se revisa el archivo al elegirlo y se muestra en el recuadro para comprobar que es el QR correcto.
+	const elegirQr = (file: File | null) => {
+		const problema = file && problemaArchivo(file, 5)
+		setMessage(problema || null)
+		if (!file || problema) return
+		setQrFile(file)
+		setQrPreview(URL.createObjectURL(file))
+	}
 
 	const load = useCallback(async () => {
 		if (!familia) return
@@ -104,7 +113,7 @@ export default function FamiliaSettingsPage() {
 
 		let qrPath = current?.qr_storage_path ?? null
 		if (qrFile) {
-			const extension = qrFile.name.split('.').pop()?.toLowerCase() || 'png'
+			const extension = fileExtension(qrFile)
 			const nextPath = `${familia.id}/metodos/${metodo.toLowerCase()}/qr-${Date.now()}.${extension}`
 			const { error: uploadError } = await supabase.storage.from('familia-configuracion').upload(nextPath, qrFile)
 
@@ -192,7 +201,7 @@ export default function FamiliaSettingsPage() {
 						<label className="lg:col-span-2 flex cursor-pointer items-center gap-4 rounded-2xl border border-dashed border-slate-300 p-4">
 							{qrPreview ? <img src={qrPreview} alt="QR familiar" className="size-20 rounded-xl object-cover" /> : <div className="grid size-20 place-items-center rounded-xl bg-slate-50 text-slate-400"><ImageUp /></div>}
 							<div><p className="text-sm font-semibold">{qrFile ? qrFile.name : 'QR de Yape · opcional si indicas celular'}</p><p className="mt-1 text-xs text-slate-400">PNG, JPG o WEBP · máximo 5 MB</p></div>
-							<input className="hidden" type="file" accept="image/png,image/jpeg,image/webp" onChange={(e) => setQrFile(e.target.files?.[0] ?? null)} />
+							<input className="hidden" type="file" accept="image/png,image/jpeg,image/webp" onChange={(e) => elegirQr(e.target.files?.[0] ?? null)} />
 						</label>
 					)}
 

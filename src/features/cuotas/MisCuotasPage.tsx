@@ -2,14 +2,14 @@ import { ArrowRight, ChevronRight, ReceiptText } from 'lucide-react'
 import { useMemo, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import EmptyState from '../../components/ui/EmptyState'
-import { cuotaEstadoLabel, dateLabel, money, quotaBadgeClass } from '../recibos/reciboUi'
+import { cuotaEstadoLabel, dateLabel, money, periodLabel, quotaBadgeClass } from '../recibos/reciboUi'
 import { useCurrentFinance, type CuotaConRecibo } from './useCurrentFinance'
 
 type Filter = 'PENDIENTES' | 'PAGADAS' | 'TODAS'
 
 // Pestaña "Por pagar" del módulo Pagos: las cuotas propias del periodo y el acceso a pagarlas.
 export default function MisCuotasPage() {
-	const { periodo, cuotasConRecibo, resumen, loading, error } = useCurrentFinance()
+	const { periodo, cuotasConRecibo, anteriores, resumen, loading, error } = useCurrentFinance()
 	const [filter, setFilter] = useState<Filter>('PENDIENTES')
 
 	const visible = useMemo(() => {
@@ -19,13 +19,13 @@ export default function MisCuotasPage() {
 	}, [filter, cuotasConRecibo])
 
 	const payable = useMemo(
-		() => cuotasConRecibo.filter(({ cuota }) =>
+		() => [...anteriores, ...cuotasConRecibo].filter(({ cuota }) =>
 			cuota.estado !== 'PAGADA'
 			&& cuota.estado !== 'ANULADA'
 			&& cuota.estado !== 'POR_VALIDAR'
 			&& (cuota.saldo_pendiente ?? 0) > 0,
 		),
-		[cuotasConRecibo],
+		[anteriores, cuotasConRecibo],
 	)
 	const payAllUrl = payable.length ? `/pagar?cuotas=${payable.map(({ cuota }) => cuota.id).join(',')}` : null
 	const payAllTotal = payable.reduce((sum, { cuota }) => sum + (cuota.saldo_pendiente ?? 0), 0)
@@ -57,7 +57,7 @@ export default function MisCuotasPage() {
 
 			{loading ? (
 				<div className="mt-5 grid gap-4 lg:grid-cols-2"><div className="h-52 animate-pulse rounded-3xl bg-white/60" /><div className="h-52 animate-pulse rounded-3xl bg-white/60" /></div>
-			) : visible.length === 0 ? (
+			) : visible.length === 0 && !(filter === 'PENDIENTES' && anteriores.length) ? (
 				<EmptyState
 					className="mt-5"
 					icon={<ReceiptText size={20} />}
@@ -65,9 +65,25 @@ export default function MisCuotasPage() {
 					description={filter === 'PENDIENTES' ? 'Estás al día. Te avisaremos cuando llegue un recibo nuevo.' : 'Las cuotas aparecerán aquí cuando participes en un recibo del hogar.'}
 				/>
 			) : (
-				<div className="mt-5 grid gap-4 lg:grid-cols-2">
-					{visible.map((row) => <QuotaCard key={row.cuota.id} row={row} />)}
-				</div>
+				<>
+					{filter === 'PENDIENTES' && anteriores.length > 0 && (
+						<section className="mt-5">
+							<div className="flex items-baseline justify-between gap-3">
+								<h2 className="text-sm font-bold text-slate-800">De meses anteriores</h2>
+								<p className="text-xs font-bold text-rose-600 tabular-nums">{money(resumen.debeAnteriores)}</p>
+							</div>
+							<div className="mt-3 grid gap-4 lg:grid-cols-2">
+								{anteriores.map((row) => <QuotaCard key={row.cuota.id} row={row} />)}
+							</div>
+							{visible.length > 0 && <h2 className="mt-8 text-sm font-bold text-slate-800">Este mes</h2>}
+						</section>
+					)}
+					{visible.length > 0 && (
+						<div className={`grid gap-4 lg:grid-cols-2 ${filter === 'PENDIENTES' && anteriores.length > 0 ? 'mt-3' : 'mt-5'}`}>
+							{visible.map((row) => <QuotaCard key={row.cuota.id} row={row} />)}
+						</div>
+					)}
+				</>
 			)}
 
 			{error && <p className="fh-alert mt-5">{error}</p>}
@@ -76,7 +92,7 @@ export default function MisCuotasPage() {
 }
 
 function QuotaCard({ row }: { row: CuotaConRecibo }) {
-	const { cuota, recibo, fechaObjetivo, diasRestantes, vencida } = row
+	const { cuota, recibo, fechaObjetivo, diasRestantes, vencida, periodoAnterior } = row
 	const canPay = cuota.estado !== 'POR_VALIDAR' && cuota.estado !== 'PAGADA' && cuota.estado !== 'ANULADA' && (cuota.saldo_pendiente ?? 0) > 0
 	const actionUrl = cuota.estado === 'POR_VALIDAR' ? '/pagos?tab=mis-pagos' : canPay ? `/pagar?cuotas=${cuota.id}` : `/recibos/${recibo.id}`
 	const action = cuota.estado === 'POR_VALIDAR' ? 'Ver pago enviado' : canPay ? 'Pagar' : 'Ver detalle'
@@ -89,6 +105,7 @@ function QuotaCard({ row }: { row: CuotaConRecibo }) {
 						<Link to={`/recibos/${recibo.id}`} className="truncate text-lg font-bold text-slate-900 transition hover:text-brand">{recibo.nombre_concepto}</Link>
 						<span className={`fh-pill ${quotaBadgeClass(cuota.estado)}`}>{cuotaEstadoLabel[cuota.estado]}</span>
 						{vencida && <span className="fh-pill bg-rose-50 text-rose-600 ring-rose-200/70">Vencida</span>}
+						{periodoAnterior && <span className="fh-pill bg-slate-100 text-slate-600 ring-slate-200">{mayuscula(periodLabel(periodoAnterior.anio, periodoAnterior.mes))}</span>}
 					</div>
 					<p className="mt-1 text-xs text-slate-400">{recibo.proveedor_nombre}</p>
 				</div>
@@ -128,6 +145,10 @@ function Metric({ label, value, accent = false }: { label: string; value: string
 
 function FilterButton({ active, onClick, children }: { active: boolean; onClick: () => void; children: ReactNode }) {
 	return <button type="button" onClick={onClick} className={`rounded-lg px-4 py-2 text-xs font-bold transition active:scale-[0.97] ${active ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-500 hover:bg-white hover:text-slate-900'}`}>{children}</button>
+}
+
+function mayuscula(texto: string) {
+	return texto.charAt(0).toUpperCase() + texto.slice(1)
 }
 
 function relativeDate(days: number | null) {
