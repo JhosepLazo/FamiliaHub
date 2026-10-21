@@ -11,3 +11,6 @@ verify_jwt = false
 
 [functions.bot-whatsapp]
 verify_jwt = false
+
+[functions.recibos-digitales]
+verify_jwt = false

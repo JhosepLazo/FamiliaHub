@@ -6,6 +6,7 @@ import { supabase } from '../../lib/supabase'
 import type { Tables } from '../../types/database'
 import { useAuth } from '../auth/AuthContext'
 import { useFamilia } from '../familia/FamiliaContext'
+import RecibosDigitalesPanel from './RecibosDigitalesPanel'
 import { dateLabel, money, periodLabel, recaudacionLabel, receiptBadgeClass, reciboEstadoLabel } from './reciboUi'
 
 type Periodo = Tables<'periodos'>
@@ -185,6 +186,8 @@ export default function RecibosPage() {
 					})}
 				</div>
 			)}
+
+			{isAdmin && familia && <RecibosDigitalesPanel familiaId={familia.id} />}
 
 			{message && <p className="fh-alert mt-5">{message}</p>}
 		</div>

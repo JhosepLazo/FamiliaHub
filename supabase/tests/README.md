@@ -62,3 +62,17 @@ Select set_config('familiahub.e2e_liliana_email', '<correo-integrante>', false);
 ```
 
 Después se ejecuta `e2e_whatsapp.sql`. El resultado es una tabla con una fila por prueba (`OK` o `ERROR` y el detalle). Todo termina con `Rollback`.
+
+## Recibos digitales
+
+El archivo `e2e_recibos_digitales.sql` usa los mismos usuarios y variables de sesión, y crea dos servicios con número de suministro (Luz del Sur y SEDAPAL). Valida `registrar_recibo_digital` como lo llama la Edge Function `recibos-digitales`:
+
+1. confirmación del recibo del mes con el monto y el vencimiento del correo, con cuotas y evento `MONTO_CONFIRMADO`;
+2. correo repetido sin efecto y recibo ya confirmado ignorado;
+3. suministro desconocido o de otro proveedor ignorado;
+4. datos inválidos rechazados;
+5. monto muy distinto al anterior y vencimiento absurdo marcados para revisar;
+6. lectura en espera aplicada después por el job `aplicar_recibos_digitales_en_espera`;
+7. permisos: solo `service_role` puede registrar.
+
+Todo termina con `Rollback`.

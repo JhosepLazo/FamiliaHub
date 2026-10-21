@@ -1495,6 +1495,79 @@ export type Database = {
           },
         ]
       }
+      recibos_digitales: {
+        Row: {
+          concepto_id: string | null
+          created_at: string
+          detalle: string | null
+          estado: Database["public"]["Enums"]["estado_recibo_digital"]
+          familia_id: string | null
+          fecha_vencimiento: string
+          id: string
+          intentos: number
+          mensaje_id: string
+          monto: number
+          procesado_at: string | null
+          proveedor_codigo: string
+          recibo_id: string | null
+          suministros: string[]
+        }
+        Insert: {
+          concepto_id?: string | null
+          created_at?: string
+          detalle?: string | null
+          estado?: Database["public"]["Enums"]["estado_recibo_digital"]
+          familia_id?: string | null
+          fecha_vencimiento: string
+          id?: string
+          intentos?: number
+          mensaje_id: string
+          monto: number
+          procesado_at?: string | null
+          proveedor_codigo: string
+          recibo_id?: string | null
+          suministros: string[]
+        }
+        Update: {
+          concepto_id?: string | null
+          created_at?: string
+          detalle?: string | null
+          estado?: Database["public"]["Enums"]["estado_recibo_digital"]
+          familia_id?: string | null
+          fecha_vencimiento?: string
+          id?: string
+          intentos?: number
+          mensaje_id?: string
+          monto?: number
+          procesado_at?: string | null
+          proveedor_codigo?: string
+          recibo_id?: string | null
+          suministros?: string[]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recibos_digitales_concepto_id_fkey"
+            columns: ["concepto_id"]
+            isOneToOne: false
+            referencedRelation: "conceptos_pago"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recibos_digitales_familia_id_fkey"
+            columns: ["familia_id"]
+            isOneToOne: false
+            referencedRelation: "familias"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recibos_digitales_recibo_id_fkey"
+            columns: ["recibo_id"]
+            isOneToOne: false
+            referencedRelation: "recibos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tipos_identificador_proveedor: {
         Row: {
           activo: boolean
@@ -1912,6 +1985,16 @@ export type Database = {
         }
         Returns: string
       }
+      registrar_recibo_digital: {
+        Args: {
+          p_fecha_vencimiento: string
+          p_mensaje_id: string
+          p_monto: number
+          p_proveedor: string
+          p_suministros: string[]
+        }
+        Returns: Json
+      }
       sincronizar_periodo_actual: {
         Args: { p_familia_id: string }
         Returns: number
@@ -1975,6 +2058,7 @@ export type Database = {
         | "VENCIDO"
         | "ANULADO"
         | "REQUIERE_REVISION"
+      estado_recibo_digital: "EN_ESPERA" | "CONFIRMADO" | "REVISAR" | "IGNORADO"
       frecuencia_concepto: "MENSUAL" | "ANUAL" | "UNICA"
       metodo_obtencion_monto: "MANUAL" | "FIJO" | "AUTOMATICO"
       metodo_pago_familiar: "YAPE" | "TRANSFERENCIA" | "EFECTIVO" | "OTRO"
@@ -2175,6 +2259,7 @@ export const Constants = {
         "ANULADO",
         "REQUIERE_REVISION",
       ],
+      estado_recibo_digital: ["EN_ESPERA", "CONFIRMADO", "REVISAR", "IGNORADO"],
       frecuencia_concepto: ["MENSUAL", "ANUAL", "UNICA"],
       metodo_obtencion_monto: ["MANUAL", "FIJO", "AUTOMATICO"],
       metodo_pago_familiar: ["YAPE", "TRANSFERENCIA", "EFECTIVO", "OTRO"],
