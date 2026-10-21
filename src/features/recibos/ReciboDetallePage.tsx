@@ -17,6 +17,7 @@ import type { Database, Enums, Json, Tables } from '../../types/database'
 import { fileExtension, signedFileUrl } from '../pagos/pagoUi'
 import { useAuth } from '../auth/AuthContext'
 import { useFamilia } from '../familia/FamiliaContext'
+import ConsultaProveedor from './ConsultaProveedor'
 import {
 	cuotaEstadoLabel,
 	dateLabel,
@@ -367,6 +368,7 @@ export default function ReciboDetallePage() {
 			{receipt.estado === 'ESPERANDO_MONTO' && isAdmin && (
 				<section className="mt-6 rounded-3xl border border-amber-100 bg-amber-50 p-5 sm:p-6">
 					<div className="flex items-center gap-3 text-amber-800"><CircleAlert size={20} /><div><h2 className="font-semibold">Falta confirmar el recibo</h2><p className="mt-1 text-xs">Al confirmar el monto, FamiliaHub congelará esta instancia y generará sus cuotas.</p></div></div>
+					<ConsultaProveedor conceptoId={receipt.concepto_id} />
 					<form onSubmit={confirmAmount} className="mt-5 grid gap-4 sm:grid-cols-3">
 						<label><span className="fh-label">Monto total</span><input className="fh-input" type="number" min="0.01" step="0.01" required value={amount} onChange={(e) => setAmount(e.target.value)} /></label>
 						{receipt.tipo_vencimiento !== 'DIA_FIJO' && <label><span className="fh-label">Vencimiento proveedor</span><input className="fh-input" type="date" required value={dueDate} onChange={(e) => setDueDate(e.target.value)} /></label>}
