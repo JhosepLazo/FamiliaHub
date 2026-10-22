@@ -1,5 +1,6 @@
 import { ImageUp, Plus, Power } from 'lucide-react'
 import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react'
+import MensajeFlotante from '../../components/ui/MensajeFlotante'
 import { supabase } from '../../lib/supabase'
 import type { Enums, Tables } from '../../types/database'
 import { fileExtension, metodoPagoLabel, problemaArchivo, signedFileUrl } from '../pagos/pagoUi'
@@ -222,7 +223,7 @@ export default function FamiliaSettingsPage() {
 				)}
 			</section>
 
-			{message && <p className="fh-alert mt-5">{message}</p>}
+			<MensajeFlotante mensaje={message} alCerrar={() => setMessage(null)} />
 		</div>
 	)
 }

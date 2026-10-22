@@ -12,6 +12,9 @@ import {
 } from 'lucide-react'
 import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
+import { useDialogo } from '../../components/ui/Dialogo'
+import MensajeFlotante from '../../components/ui/MensajeFlotante'
+import { useEnVivo } from '../../lib/enVivo'
 import { supabase } from '../../lib/supabase'
 import type { Database, Enums, Json, Tables } from '../../types/database'
 import { fileExtension, problemaArchivo, signedFileUrl } from '../pagos/pagoUi'
@@ -46,6 +49,7 @@ export default function ReciboDetallePage() {
 	const { id = '' } = useParams()
 	const { user } = useAuth()
 	const { familia, membresia } = useFamilia()
+	const { pedirTexto } = useDialogo()
 	const isAdmin = membresia?.rol === 'ADMINISTRADOR'
 
 	const [receipt, setReceipt] = useState<Recibo | null>(null)
@@ -76,9 +80,11 @@ export default function ReciboDetallePage() {
 	const [distributionReason, setDistributionReason] = useState('')
 	const [distributionDraft, setDistributionDraft] = useState<Record<string, { selected: boolean; amount: string }>>({})
 
-	const load = useCallback(async () => {
+	// 'inicial' muestra el esqueleto; 'accion' recarga tras guardar y reinicia los formularios; 'envivo' solo
+	// actualiza los datos y deja intacto lo que se esté escribiendo.
+	const load = useCallback(async (modo: 'inicial' | 'accion' | 'envivo' = 'inicial') => {
 		if (!familia || !id) return
-		setLoading(true)
+		if (modo === 'inicial') setLoading(true)
 
 		const { data: receiptRow, error } = await supabase
 			.from('recibos')
@@ -128,6 +134,11 @@ export default function ReciboDetallePage() {
 			setHasActiveFamilyPayments(false)
 		}
 
+		if (modo === 'envivo') {
+			setLoading(false)
+			return
+		}
+
 		setAmount(receiptRow.monto_total == null ? '' : String(receiptRow.monto_total))
 		setDueDate(receiptRow.fecha_vencimiento ?? '')
 		setCorrectionAmount(receiptRow.monto_total == null ? '' : String(receiptRow.monto_total))
@@ -154,6 +165,7 @@ export default function ReciboDetallePage() {
 	}, [familia, id, isAdmin])
 
 	useEffect(() => { void load() }, [load])
+	useEnVivo(() => void load('envivo'))
 
 	const quotaMap = useMemo(() => new Map(quotas.map((quota) => [quota.id, quota])), [quotas])
 	const memberMap = useMemo(() => new Map(members.map((member) => [member.id, member.nombre])), [members])
@@ -178,7 +190,7 @@ export default function ReciboDetallePage() {
 		setMessage(null)
 		const { error } = await operation()
 		setMessage(error ? error.message : success)
-		if (!error) await load()
+		if (!error) await load('accion')
 		setWorking(false)
 	}
 
@@ -293,7 +305,14 @@ export default function ReciboDetallePage() {
 
 	const annulReceipt = async () => {
 		if (!receipt) return
-		const reason = window.prompt('Motivo de la anulación del recibo:')
+		const reason = await pedirTexto({
+			titulo: `¿Anular ${receipt.nombre_concepto}?`,
+			mensaje: 'No se borra nada: el recibo queda anulado con su historial. Primero hay que resolver los aportes o pagos al proveedor activos.',
+			etiqueta: 'Motivo',
+			placeholder: 'Por ejemplo: el recibo se registró dos veces.',
+			accion: 'Anular recibo',
+			peligro: true,
+		})
 		if (!reason) return
 		await run(
 			() => supabase.rpc('anular_recibo', {
@@ -326,13 +345,20 @@ export default function ReciboDetallePage() {
 		} else {
 			setProviderProof(null)
 			setMessage('Comprobante del proveedor guardado.')
-			await load()
+			await load('accion')
 		}
 		setWorking(false)
 	}
 
 	const annulProviderPayment = async (payment: PagoProveedor) => {
-		const reason = window.prompt('Motivo de la anulación del pago al proveedor:')
+		const reason = await pedirTexto({
+			titulo: '¿Anular el pago al proveedor?',
+			mensaje: 'El pago queda anulado con su historial y el recibo vuelve a figurar como no pagado a la empresa.',
+			etiqueta: 'Motivo',
+			placeholder: 'Por ejemplo: se registró con el monto equivocado.',
+			accion: 'Anular pago',
+			peligro: true,
+		})
 		if (!reason) return
 		await run(
 			() => supabase.rpc('anular_pago_proveedor', { p_pago_id: payment.id, p_motivo: reason }).then(({ error }) => ({ error })),
@@ -520,7 +546,7 @@ export default function ReciboDetallePage() {
 				</section>
 			)}
 
-			{message && <p className="fh-alert mt-5">{message}</p>}
+			<MensajeFlotante mensaje={message} alCerrar={() => setMessage(null)} />
 		</div>
 	)
 }

@@ -1,7 +1,9 @@
 import { CalendarDays, CheckCircle2, ChevronRight, RefreshCw, ReceiptText } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
+import MensajeFlotante from '../../components/ui/MensajeFlotante'
 import PageHeader from '../../components/ui/PageHeader'
+import { useEnVivo } from '../../lib/enVivo'
 import { supabase } from '../../lib/supabase'
 import type { Tables } from '../../types/database'
 import { useAuth } from '../auth/AuthContext'
@@ -56,14 +58,14 @@ export default function RecibosPage() {
 		setLoading(false)
 	}, [familia, isAdmin])
 
-	const loadReceipts = useCallback(async () => {
+	const loadReceipts = useCallback(async (silencioso = false) => {
 		if (!periodoId) {
 			setRecibos([])
 			setCuotas([])
 			return
 		}
 
-		setLoading(true)
+		if (!silencioso) setLoading(true)
 		const { data: receiptRows, error } = await supabase
 			.from('recibos')
 			.select('*')
@@ -93,6 +95,7 @@ export default function RecibosPage() {
 
 	useEffect(() => { void loadPeriods(true) }, [loadPeriods])
 	useEffect(() => { void loadReceipts() }, [loadReceipts])
+	useEnVivo(() => void loadReceipts(true))
 
 	const currentPeriod = useMemo(() => periodos.find((period) => period.id === periodoId) ?? null, [periodos, periodoId])
 	const quotaByReceipt = useMemo(() => {
@@ -189,7 +192,7 @@ export default function RecibosPage() {
 
 			{isAdmin && familia && <RecibosDigitalesPanel familiaId={familia.id} />}
 
-			{message && <p className="fh-alert mt-5">{message}</p>}
+			<MensajeFlotante mensaje={message} alCerrar={() => setMessage(null)} />
 		</div>
 	)
 }

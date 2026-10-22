@@ -1,6 +1,7 @@
 import { ChevronRight, MailCheck } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { useEnVivo } from '../../lib/enVivo'
 import { supabase } from '../../lib/supabase'
 import type { Enums, Tables } from '../../types/database'
 import { dateLabel, money } from './reciboUi'
@@ -28,6 +29,9 @@ const estadoClass: Record<Enums<'estado_recibo_digital'>, string> = {
 // FamiliaHub con cada uno (confirmarlo solo, esperar al recibo del mes o dejarlo para revisar a mano).
 export default function RecibosDigitalesPanel({ familiaId }: { familiaId: string }) {
 	const [filas, setFilas] = useState<ReciboDigital[] | null>(null)
+	const [version, setVersion] = useState(0)
+	// Cuando un recibo digital confirma un monto cambia el recibo: se vuelve a leer la lista.
+	useEnVivo(() => setVersion((actual) => actual + 1))
 
 	useEffect(() => {
 		let vigente = true
@@ -39,7 +43,7 @@ export default function RecibosDigitalesPanel({ familiaId }: { familiaId: string
 			.limit(6)
 			.then(({ data }) => { if (vigente) setFilas(data ?? []) })
 		return () => { vigente = false }
-	}, [familiaId])
+	}, [familiaId, version])
 
 	if (filas === null) return null
 

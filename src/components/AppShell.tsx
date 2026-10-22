@@ -1,8 +1,9 @@
 import { Home, LayoutGrid, LogOut, ReceiptText, UserRound, Wallet } from 'lucide-react'
-import { Suspense, type ReactNode } from 'react'
+import { Suspense, useCallback, useEffect, useState, type ReactNode } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
 import { useAuth } from '../features/auth/AuthContext'
 import { useFamilia } from '../features/familia/FamiliaContext'
+import { useEnVivo } from '../lib/enVivo'
 import { supabase } from '../lib/supabase'
 import Brand from './Brand'
 
@@ -11,6 +12,23 @@ const itemClass = ({ isActive }: { isActive: boolean }) =>
 		? 'bg-linear-to-r from-teal-400/20 to-cyan-400/5 text-white shadow-[inset_2px_0_0_0_#22d3ee] ring-1 ring-inset ring-cyan-300/15 [&_svg]:text-cyan-300'
 		: 'text-slate-400 hover:bg-white/5 hover:text-white [&_svg]:text-slate-500 hover:[&_svg]:text-cyan-200'}`
 
+// Pagos esperando que yo los valide (todos si soy administrador): se muestra como contador en el menú.
+function usePagosPorValidar(familiaId: string | undefined, miembroId: string | undefined, isAdmin: boolean) {
+	const [cantidad, setCantidad] = useState(0)
+
+	const contar = useCallback(async () => {
+		if (!familiaId || !miembroId) return
+		let consulta = supabase.from('pagos_familiares').select('id', { count: 'exact', head: true }).eq('familia_id', familiaId).eq('estado', 'POR_VALIDAR')
+		if (!isAdmin) consulta = consulta.eq('responsable_receptor_miembro_id', miembroId)
+		const { count } = await consulta
+		setCantidad(count ?? 0)
+	}, [familiaId, miembroId, isAdmin])
+
+	useEffect(() => { void contar() }, [contar])
+	useEnVivo(() => void contar())
+	return cantidad
+}
+
 export default function AppShell() {
 	const { user } = useAuth()
 	const { familia, membresia, perfil } = useFamilia()
@@ -18,6 +36,7 @@ export default function AppShell() {
 	// Se entra con usuario, así que se muestra el nombre (el correo solo si aún no hay perfil).
 	const nombreVisible = perfil?.nombre?.trim() || perfil?.usuario || user?.email
 	const isAdmin = membresia?.rol === 'ADMINISTRADOR'
+	const porValidar = usePagosPorValidar(familia?.id, membresia?.id, isAdmin)
 
 	return (
 		<div className="min-h-screen text-slate-900 lg:grid lg:grid-cols-[256px_1fr]">
@@ -28,7 +47,7 @@ export default function AppShell() {
 				<div className="relative"><Brand tone="dark" /></div>
 				<nav className="relative mt-10 space-y-1">
 					<NavLink to="/inicio" className={itemClass}><Home size={18} />Inicio</NavLink>
-					<NavLink to="/pagos" className={itemClass}><Wallet size={18} />Pagos</NavLink>
+					<NavLink to="/pagos" className={itemClass}><Wallet size={18} />Pagos{porValidar > 0 && <Contador valor={porValidar} />}</NavLink>
 					<NavLink to="/recibos" className={itemClass}><ReceiptText size={18} />Recibos</NavLink>
 					{isAdmin && <NavLink to="/administrar" className={itemClass}><LayoutGrid size={18} />Administrar</NavLink>}
 					<NavLink to="/perfil" className={itemClass}><UserRound size={18} />Perfil</NavLink>
@@ -71,7 +90,7 @@ export default function AppShell() {
 
 			<nav className={`fixed inset-x-3 bottom-3 z-30 grid ${isAdmin ? 'grid-cols-5' : 'grid-cols-4'} rounded-2xl bg-fh-night/90 px-1.5 pt-1.5 pb-[max(6px,env(safe-area-inset-bottom))] shadow-[0_18px_40px_-12px_rgb(7_11_20/0.65)] ring-1 ring-white/10 backdrop-blur-xl lg:hidden`}>
 				<MobileLink to="/inicio" label="Inicio" icon={<Home size={19} />} />
-				<MobileLink to="/pagos" label="Pagos" icon={<Wallet size={19} />} />
+				<MobileLink to="/pagos" label="Pagos" icon={<Wallet size={19} />} contador={porValidar} />
 				<MobileLink to="/recibos" label="Recibos" icon={<ReceiptText size={19} />} />
 				{isAdmin && <MobileLink to="/administrar" label="Administrar" icon={<LayoutGrid size={19} />} />}
 				<MobileLink to="/perfil" label="Perfil" icon={<UserRound size={19} />} />
@@ -80,13 +99,22 @@ export default function AppShell() {
 	)
 }
 
-function MobileLink({ to, label, icon }: { to: string; label: string; icon: ReactNode }) {
+function MobileLink({ to, label, icon, contador = 0 }: { to: string; label: string; icon: ReactNode; contador?: number }) {
 	return (
 		<NavLink
 			to={to}
-			className={({ isActive }) => `flex flex-col items-center gap-1 rounded-xl py-2 text-[11px] font-medium transition ${isActive ? 'bg-white/[0.07] text-cyan-300 [&_svg]:drop-shadow-[0_0_8px_rgb(34_211_238/0.8)]' : 'text-slate-400'}`}
+			className={({ isActive }) => `relative flex flex-col items-center gap-1 rounded-xl py-2 text-[11px] font-medium transition ${isActive ? 'bg-white/[0.07] text-cyan-300 [&_svg]:drop-shadow-[0_0_8px_rgb(34_211_238/0.8)]' : 'text-slate-400'}`}
 		>
 			{icon}{label}
+			{contador > 0 && <span className="absolute top-1 left-1/2 ml-2"><Contador valor={contador} /></span>}
 		</NavLink>
+	)
+}
+
+function Contador({ valor }: { valor: number }) {
+	return (
+		<span aria-label={`${valor} por validar`} className="ml-auto grid h-5 min-w-5 place-items-center rounded-full bg-rose-500 px-1.5 text-[10px] font-bold leading-none text-white shadow-[0_0_10px_rgb(244_63_94/0.6)]">
+			{valor > 9 ? '9+' : valor}
+		</span>
 	)
 }

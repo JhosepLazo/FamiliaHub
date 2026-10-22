@@ -1,5 +1,7 @@
 import { Copy, Share2, UserPlus } from 'lucide-react'
 import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react'
+import { useDialogo } from '../../components/ui/Dialogo'
+import MensajeFlotante from '../../components/ui/MensajeFlotante'
 import { supabase } from '../../lib/supabase'
 import type { Tables } from '../../types/database'
 import { useAuth } from '../auth/AuthContext'
@@ -11,6 +13,7 @@ type Invitation = Pick<Tables<'invitaciones'>, 'id' | 'nombre' | 'email' | 'rol'
 export default function FamiliaPage() {
 	const { user } = useAuth()
 	const { familia, membresia } = useFamilia()
+	const { confirmar } = useDialogo()
 	const isAdmin = membresia?.rol === 'ADMINISTRADOR'
 	const [members, setMembers] = useState<MemberView[]>([])
 	const [invitations, setInvitations] = useState<Invitation[]>([])
@@ -86,6 +89,15 @@ export default function FamiliaPage() {
 	}
 
 	const updateMember = async (id: string, changes: Partial<Pick<Tables<'miembros_familia'>, 'rol' | 'estado'>>) => {
+		const nombre = members.find((member) => member.id === id)?.nombre ?? 'este integrante'
+		const pregunta = changes.estado === 'INACTIVO'
+			? { titulo: `¿Desactivar a ${nombre}?`, mensaje: 'Dejará de ver la familia y perderá su vínculo de WhatsApp. Su historial de pagos se conserva y puedes reactivarlo cuando quieras.', accion: 'Desactivar', peligro: true }
+			: changes.rol === 'ADMINISTRADOR'
+				? { titulo: `¿Hacer administrador a ${nombre}?`, mensaje: 'Podrá configurar servicios, confirmar montos, validar pagos e invitar integrantes.', accion: 'Hacer administrador' }
+				: changes.rol === 'INTEGRANTE'
+					? { titulo: `¿Quitarle la administración a ${nombre}?`, mensaje: 'Seguirá en la familia como integrante.', accion: 'Quitar administración' }
+					: null
+		if (pregunta && !(await confirmar(pregunta))) return
 		setMessage(null)
 		const { error } = await supabase.from('miembros_familia').update(changes).eq('id', id)
 		if (error) setMessage(error.message)
@@ -93,7 +105,16 @@ export default function FamiliaPage() {
 	}
 
 	const revoke = async (id: string) => {
-		await supabase.from('invitaciones').update({ estado: 'REVOCADA' }).eq('id', id)
+		const invitacion = invitations.find((item) => item.id === id)
+		const seguro = await confirmar({
+			titulo: invitacion?.nombre ? `¿Revocar la invitación de ${invitacion.nombre}?` : '¿Revocar la invitación?',
+			mensaje: 'El enlace dejará de funcionar. Puedes enviar una invitación nueva cuando quieras.',
+			accion: 'Revocar',
+			peligro: true,
+		})
+		if (!seguro) return
+		const { error } = await supabase.from('invitaciones').update({ estado: 'REVOCADA' }).eq('id', id)
+		setMessage(error ? error.message : 'Invitación revocada.')
 		await refresh()
 	}
 
@@ -175,7 +196,7 @@ export default function FamiliaPage() {
 				</div>
 			)}
 
-			{message && <p className="fh-alert mt-5">{message}</p>}
+			<MensajeFlotante mensaje={message} alCerrar={() => setMessage(null)} />
 		</div>
 	)
 }

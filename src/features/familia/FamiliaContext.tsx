@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { conectarEnVivo } from '../../lib/enVivo'
 import { supabase } from '../../lib/supabase'
 import type { Tables } from '../../types/database'
 import { useAuth } from '../auth/AuthContext'
@@ -55,6 +56,7 @@ export function FamiliaProvider({ children }: { children: ReactNode }) {
 	}, [userId])
 
 	useEffect(() => { void refresh() }, [refresh])
+	useEffect(() => { conectarEnVivo(familia?.id ?? null) }, [familia?.id])
 
 	const value = useMemo(() => ({ familia, membresia, perfil, loading, refresh }), [familia, membresia, perfil, loading, refresh])
 	return <FamiliaContext.Provider value={value}>{children}</FamiliaContext.Provider>

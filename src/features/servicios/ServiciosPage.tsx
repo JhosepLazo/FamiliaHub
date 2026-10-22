@@ -1,6 +1,8 @@
 import { CirclePlus, Pencil, Power, Settings2, UsersRound } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { useDialogo } from '../../components/ui/Dialogo'
+import MensajeFlotante from '../../components/ui/MensajeFlotante'
 import { supabase } from '../../lib/supabase'
 import type { Tables } from '../../types/database'
 import { useFamilia } from '../familia/FamiliaContext'
@@ -19,6 +21,7 @@ type Cuenta = Tables<'cuentas_servicio'>
 
 export default function ServiciosPage() {
 	const { familia } = useFamilia()
+	const { confirmar } = useDialogo()
 	const [conceptos, setConceptos] = useState<Concepto[]>([])
 	const [proveedores, setProveedores] = useState<Proveedor[]>([])
 	const [cuentas, setCuentas] = useState<Cuenta[]>([])
@@ -75,6 +78,12 @@ export default function ServiciosPage() {
 	)
 
 	const toggleConcept = async (concepto: Concepto) => {
+		if (concepto.activo && !(await confirmar({
+			titulo: `¿Pausar ${concepto.nombre}?`,
+			mensaje: 'Desde el próximo mes no se generarán sus recibos. Los recibos que ya existen no cambian y puedes reactivarlo cuando quieras.',
+			accion: 'Pausar servicio',
+			peligro: true,
+		}))) return
 		setMessage(null)
 		const { error } = await supabase.rpc('cambiar_estado_concepto', {
 			p_concepto_id: concepto.id,
@@ -85,6 +94,12 @@ export default function ServiciosPage() {
 	}
 
 	const toggleProvider = async (provider: Proveedor) => {
+		if (provider.activo && !(await confirmar({
+			titulo: `¿Desactivar ${provider.nombre}?`,
+			mensaje: 'Ya no aparecerá al crear servicios nuevos. Los servicios que lo usan no cambian.',
+			accion: 'Desactivar',
+			peligro: true,
+		}))) return
 		setMessage(null)
 		const { error } = await supabase.rpc('cambiar_estado_proveedor_personalizado', {
 			p_proveedor_id: provider.id,
@@ -186,7 +201,7 @@ export default function ServiciosPage() {
 				</div>
 			</section>
 
-			{message && <p className="fh-alert mt-5">{message}</p>}
+			<MensajeFlotante mensaje={message} alCerrar={() => setMessage(null)} />
 		</div>
 	)
 }

@@ -1,6 +1,8 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './App'
+// Se importa al inicio para no perder el aviso de "se puede instalar" que Chrome envía al cargar.
+import './lib/instalarApp'
 import './styles.css'
 
 // Al publicar una versión nueva, una pestaña que quedó abierta pide páginas que ya no existen.

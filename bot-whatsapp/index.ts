@@ -89,6 +89,14 @@ async function prepararEnvio(grupoId: string) {
 	}
 }
 
+// Muestra "escribiendo…" en el grupo mientras se consulta FamiliaHub. WhatsApp lo quita solo al llegar la
+// respuesta; si no hay respuesta se quita a mano. Un fallo aquí nunca impide responder.
+function mostrarEscribiendo(grupoId: string, estado: "composing" | "paused") {
+	const actual = socket
+	if (!actual || !conectado) return
+	actual.sendPresenceUpdate(estado, grupoId).catch(() => {})
+}
+
 async function manejarMensaje(mensaje: WAMessage) {
 	const entrante = analizarMensaje(mensaje, { botIds, ahoraS: Math.floor(Date.now() / 1_000) })
 	if (!entrante || deduplicador.visto(entrante.id)) return
@@ -107,6 +115,8 @@ async function manejarMensaje(mensaje: WAMessage) {
 
 	const etiqueta = entrante.esComando ? `/${primerToken(entrante.texto)}` : "mención"
 	const inicio = Date.now()
+	let respondio = false
+	mostrarEscribiendo(entrante.grupoId, "composing")
 
 	try {
 		const resultado = await api.mensaje(
@@ -126,12 +136,16 @@ async function manejarMensaje(mensaje: WAMessage) {
 		if (!resultado.grupoVinculado && !limiteNoVinculado.permitir(entrante.grupoId)) return
 
 		cola.responder(entrante.grupoId, resultado.respuesta.texto, resultado.respuesta.menciones, mensaje)
+		respondio = true
 	} catch (error) {
 		logger.error(
 			{ grupo: grupoCorto(entrante.grupoId), comando: etiqueta, ms: Date.now() - inicio, err: error instanceof Error ? error.message : String(error) },
 			"No se pudo consultar FamiliaHub",
 		)
 		cola.responder(entrante.grupoId, MENSAJE_SIN_CONEXION, [], mensaje)
+		respondio = true
+	} finally {
+		if (!respondio) mostrarEscribiendo(entrante.grupoId, "paused")
 	}
 }
 

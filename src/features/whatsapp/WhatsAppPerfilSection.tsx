@@ -1,5 +1,7 @@
 import { CheckCircle2, Copy, MessageCircle, Unlink } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { useDialogo } from '../../components/ui/Dialogo'
+import MensajeFlotante from '../../components/ui/MensajeFlotante'
 import { codigoVigente, fechaHora, useConsultaPeriodica, useCuentaRegresiva, useWhatsApp } from './useWhatsApp'
 
 export function CodigoWhatsApp({ codigo, expiraAt, comando, onVencido }: { codigo: string; expiraAt: string; comando: string; onVencido: () => void }) {
@@ -38,6 +40,7 @@ export function CodigoWhatsApp({ codigo, expiraAt, comando, onVencido }: { codig
 
 export default function WhatsAppPerfilSection() {
 	const { estado, loading, error, recargar, generarCodigo, desvincular } = useWhatsApp()
+	const { confirmar } = useDialogo()
 	const [trabajando, setTrabajando] = useState(false)
 	const [message, setMessage] = useState<string | null>(null)
 	const vigente = codigoVigente(estado?.yo)
@@ -65,7 +68,13 @@ export default function WhatsAppPerfilSection() {
 	}
 
 	const quitarVinculo = async () => {
-		if (!window.confirm('¿Desvincular tu WhatsApp? Dejarás de recibir menciones y no podrás consultar tu deuda desde el grupo.')) return
+		const seguro = await confirmar({
+			titulo: '¿Desvincular tu WhatsApp?',
+			mensaje: 'Dejarás de recibir menciones y no podrás consultar tu deuda desde el grupo.',
+			accion: 'Desvincular',
+			peligro: true,
+		})
+		if (!seguro) return
 		setTrabajando(true)
 		setMessage(null)
 		try {
@@ -106,7 +115,7 @@ export default function WhatsAppPerfilSection() {
 				</>
 			)}
 
-			{(message || error) && <p className="fh-alert mt-4">{message ?? error}</p>}
+			<MensajeFlotante mensaje={message ?? error} alCerrar={() => setMessage(null)} />
 		</section>
 	)
 }

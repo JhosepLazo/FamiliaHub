@@ -1,6 +1,9 @@
 import { Check, ExternalLink, ReceiptText, ShieldCheck, X } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import EmptyState from '../../components/ui/EmptyState'
+import { useDialogo } from '../../components/ui/Dialogo'
+import MensajeFlotante from '../../components/ui/MensajeFlotante'
+import { useEnVivo } from '../../lib/enVivo'
 import { supabase } from '../../lib/supabase'
 import type { Tables } from '../../types/database'
 import { useAuth } from '../auth/AuthContext'
@@ -18,6 +21,7 @@ export type VistaPagos = 'MIOS' | 'VALIDAR' | 'HISTORIAL'
 export default function PagosPage({ vista: tab }: { vista: VistaPagos }) {
 	const { user } = useAuth()
 	const { familia, membresia } = useFamilia()
+	const { pedirTexto } = useDialogo()
 	const isAdmin = membresia?.rol === 'ADMINISTRADOR'
 	const [payments, setPayments] = useState<Pago[]>([])
 	const [assignments, setAssignments] = useState<Asignacion[]>([])
@@ -26,9 +30,9 @@ export default function PagosPage({ vista: tab }: { vista: VistaPagos }) {
 	const [working, setWorking] = useState(false)
 	const [message, setMessage] = useState<string | null>(null)
 
-	const load = useCallback(async () => {
+	const load = useCallback(async (silencioso = false) => {
 		if (!familia || !user) return
-		setLoading(true)
+		if (!silencioso) setLoading(true)
 		const { data: paymentRows, error } = await supabase
 			.from('pagos_familiares')
 			.select('*')
@@ -60,6 +64,7 @@ export default function PagosPage({ vista: tab }: { vista: VistaPagos }) {
 	}, [familia, user])
 
 	useEffect(() => { void load() }, [load])
+	useEnVivo(() => void load(true))
 
 	const receiptMap = useMemo(() => new Map(receipts.map((row) => [row.id, row])), [receipts])
 	const assignmentMap = useMemo(() => {
@@ -82,7 +87,14 @@ export default function PagosPage({ vista: tab }: { vista: VistaPagos }) {
 	}, [payments, tab, user, isAdmin, membresia])
 
 	const validate = async (payment: Pago, approved: boolean) => {
-		const reason = approved ? undefined : window.prompt('Motivo del rechazo:')
+		const reason = approved ? undefined : await pedirTexto({
+			titulo: `¿Rechazar el pago de ${payment.pagador_nombre_snapshot}?`,
+			mensaje: 'Sus cuotas vuelven a quedar pendientes. Verá el motivo en sus pagos para saber qué corregir.',
+			etiqueta: 'Motivo del rechazo',
+			placeholder: 'Por ejemplo: no veo el Yape en mi cuenta.',
+			accion: 'Rechazar pago',
+			peligro: true,
+		})
 		if (!approved && !reason) return
 		setWorking(true)
 		const { error } = await supabase.rpc('validar_pago_familiar', {
@@ -96,7 +108,14 @@ export default function PagosPage({ vista: tab }: { vista: VistaPagos }) {
 	}
 
 	const annul = async (payment: Pago) => {
-		const reason = window.prompt('Motivo de la anulación:')
+		const reason = await pedirTexto({
+			titulo: '¿Anular este pago?',
+			mensaje: `${payment.pagador_nombre_snapshot} → ${payment.receptor_nombre_snapshot}. Las cuotas vuelven a quedar pendientes y el pago se conserva en el historial.`,
+			etiqueta: 'Motivo',
+			placeholder: 'Por ejemplo: el Yape no llegó.',
+			accion: 'Anular pago',
+			peligro: true,
+		})
 		if (!reason) return
 		setWorking(true)
 		const { error } = await supabase.rpc('anular_pago_familiar', {
@@ -170,7 +189,7 @@ export default function PagosPage({ vista: tab }: { vista: VistaPagos }) {
 				</div>
 			)}
 
-			{message && <p className="fh-alert mt-5">{message}</p>}
+			<MensajeFlotante mensaje={message} alCerrar={() => setMessage(null)} />
 		</div>
 	)
 }

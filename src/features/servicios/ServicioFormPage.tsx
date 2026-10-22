@@ -10,6 +10,7 @@ import {
 } from 'lucide-react'
 import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
+import MensajeFlotante from '../../components/ui/MensajeFlotante'
 import PageHeader from '../../components/ui/PageHeader'
 import { supabase } from '../../lib/supabase'
 import type { Database, Json, Tables } from '../../types/database'
@@ -675,7 +676,7 @@ export default function ServicioFormPage() {
 				)}
 			</section>
 
-			{message && <p className="fh-alert mt-4">{message}</p>}
+			<MensajeFlotante mensaje={message} alCerrar={() => setMessage(null)} />
 
 			<div className="mt-5 flex items-center justify-between gap-3">
 				<button type="button" onClick={previousStep} disabled={step === 1 || saving} className="fh-button-secondary flex items-center gap-2 disabled:opacity-40"><ArrowLeft size={16} />Anterior</button>

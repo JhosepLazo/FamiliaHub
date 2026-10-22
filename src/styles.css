@@ -96,7 +96,13 @@ main .rounded-2xl.border.bg-white {
 }
 .fh-entrada { animation: fh-entrada 0.35s ease-out both; }
 
+@keyframes fh-aviso {
+	from { opacity: 0.001; transform: translateY(12px) scale(0.98); }
+	to { opacity: 1; transform: none; }
+}
+.fh-aviso { animation: fh-aviso 0.25s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+
 @media (prefers-reduced-motion: reduce) {
 	.fh-button-primary:hover, .fh-button-primary:active { transform: none; }
-	.fh-entrada { animation: none; }
+	.fh-entrada, .fh-aviso { animation: none; }
 }

@@ -1,5 +1,6 @@
 import { ImageUp, Power } from 'lucide-react'
 import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react'
+import MensajeFlotante from '../../components/ui/MensajeFlotante'
 import { supabase } from '../../lib/supabase'
 import type { Enums, Tables } from '../../types/database'
 import { useFamilia } from '../familia/FamiliaContext'
@@ -129,7 +130,7 @@ export default function MetodosCobroPersonales() {
 				</div>
 			</form>
 
-			{message && <p className="fh-alert mt-4">{message}</p>}
+			<MensajeFlotante mensaje={message} alCerrar={() => setMessage(null)} />
 		</section>
 	)
 }

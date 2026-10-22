@@ -1,5 +1,7 @@
 import { CheckCircle2, MessageCircle, Unlink, Users } from 'lucide-react'
 import { FormEvent, useEffect, useRef, useState, type ReactNode } from 'react'
+import { useDialogo } from '../../components/ui/Dialogo'
+import MensajeFlotante from '../../components/ui/MensajeFlotante'
 import { CodigoWhatsApp } from './WhatsAppPerfilSection'
 import {
 	CONFIGURACION_POR_DEFECTO,
@@ -21,6 +23,7 @@ const DIAS_PREVIOS = Array.from({ length: 15 }, (_, indice) => indice + 1)
 
 export default function WhatsAppFamiliaSection() {
 	const { estado, loading, error, recargar, generarCodigo, desvincular, guardarConfiguracion } = useWhatsApp()
+	const { confirmar } = useDialogo()
 	const [formulario, setFormulario] = useState<ConfiguracionWhatsApp>(CONFIGURACION_POR_DEFECTO)
 	const [trabajando, setTrabajando] = useState(false)
 	const [guardando, setGuardando] = useState(false)
@@ -80,7 +83,13 @@ export default function WhatsAppFamiliaSection() {
 	}
 
 	const desvincularGrupo = async () => {
-		if (!window.confirm('¿Desvincular el grupo de WhatsApp? El bot dejará de enviar avisos y responder en ese grupo. Los integrantes conservan su vínculo.')) return
+		const seguro = await confirmar({
+			titulo: '¿Desvincular el grupo de WhatsApp?',
+			mensaje: 'El bot dejará de enviar avisos y de responder en ese grupo. Los integrantes conservan su vínculo.',
+			accion: 'Desvincular',
+			peligro: true,
+		})
+		if (!seguro) return
 		setTrabajando(true)
 		setMessage(null)
 		try {
@@ -256,7 +265,7 @@ export default function WhatsAppFamiliaSection() {
 				</>
 			)}
 
-			{(message || error) && <p className="fh-alert mt-5">{message ?? error}</p>}
+			<MensajeFlotante mensaje={message ?? error} alCerrar={() => setMessage(null)} />
 		</section>
 	)
 }

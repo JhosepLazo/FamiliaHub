@@ -12,6 +12,7 @@ import {
 } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
+import InstalarAppAviso from '../../components/InstalarAppAviso'
 import { useCurrentFinance, type AdminAttention, type CuotaConRecibo } from '../cuotas/useCurrentFinance'
 import { useFamilia } from '../familia/FamiliaContext'
 import { ConsultaRapida } from '../recibos/ConsultaProveedor'
@@ -53,6 +54,8 @@ export default function InicioPage() {
 					</div>
 				</div>
 			</section>
+
+			<InstalarAppAviso />
 
 			{loading ? (
 				<div className="mt-6 grid gap-4 sm:grid-cols-3">

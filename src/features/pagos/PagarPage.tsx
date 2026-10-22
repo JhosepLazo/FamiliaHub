@@ -1,6 +1,7 @@
 import { CheckCircle2, Copy, ImageUp, ReceiptText, ShieldCheck } from 'lucide-react'
 import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
+import MensajeFlotante from '../../components/ui/MensajeFlotante'
 import PageHeader from '../../components/ui/PageHeader'
 import { supabase } from '../../lib/supabase'
 import type { Enums, Json, Tables } from '../../types/database'
@@ -329,7 +330,7 @@ export default function PagarPage() {
 			</div>
 
 			{sentGroups.length > 0 && <div className="mt-6 rounded-2xl bg-emerald-50 p-4 text-sm text-emerald-800"><ReceiptText size={17} className="mb-2" />Los pagos enviados quedan reservados mientras esperan validación. <Link to="/pagos?tab=mis-pagos" className="font-semibold underline">Ver mis pagos</Link></div>}
-			{message && <p className="fh-alert mt-5">{message}</p>}
+			<MensajeFlotante mensaje={message} alCerrar={() => setMessage(null)} />
 		</div>
 	)
 }

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useEnVivo } from '../../lib/enVivo'
 import { supabase } from '../../lib/supabase'
 import type { Tables } from '../../types/database'
 import { useAuth } from '../auth/AuthContext'
@@ -45,10 +46,11 @@ export function useCurrentFinance() {
 	const [loading, setLoading] = useState(true)
 	const [error, setError] = useState<string | null>(null)
 
-	const load = useCallback(async () => {
+	// En silencio (cambios en vivo) no se muestra el esqueleto de carga: los números cambian en su lugar.
+	const load = useCallback(async (silencioso = false) => {
 		if (!familia || !user) return
 
-		setLoading(true)
+		if (!silencioso) setLoading(true)
 		setError(null)
 
 		const today = todayLima()
@@ -136,6 +138,7 @@ export function useCurrentFinance() {
 	}, [familia, user, isAdmin])
 
 	useEffect(() => { void load() }, [load])
+	useEnVivo(() => void load(true))
 
 	const reciboMap = useMemo(() => new Map(recibos.map((receipt) => [receipt.id, receipt])), [recibos])
 

@@ -1,6 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts"
 import Anthropic from "npm:@anthropic-ai/sdk@0.131.0"
 import { createClient } from "npm:@supabase/supabase-js@2.117.2"
+import { detectarIntencion, NO_ENTENDI } from "./intenciones.ts"
 
 const LARGO_MAX_CUERPO = 10_240
 const LARGO_MAX_TEXTO = 1_000
@@ -24,23 +25,31 @@ const ALIAS: Record<string, string> = {
 	desvincular: "desvincular",
 	yo: "yo",
 	deuda: "deuda",
+	deudas: "deuda",
 	debo: "deuda",
+	cuantodebo: "deuda",
 	mideuda: "deuda",
 	micuota: "deuda",
+	cuota: "deuda",
 	vence: "vence",
+	vencen: "vence",
+	vencimiento: "vence",
 	vencimientos: "vence",
 	proximos: "vence",
 	recibos: "recibos",
 	recibo: "recibo",
 	pendientes: "pendientes",
+	pendiente: "pendientes",
 	quienfalta: "pendientes",
 	faltan: "pendientes",
 	resumen: "resumen",
 	pagar: "pagar",
 	pago: "pagar",
+	yape: "pagar",
 	porvalidar: "porvalidar",
 	validar: "porvalidar",
 	avisos: "avisos",
+	perfil: "yo",
 }
 
 const HERRAMIENTAS: Anthropic.Beta.BetaTool[] = [
@@ -196,9 +205,11 @@ async function accionMensaje(cuerpo: Cuerpo) {
 	// El bot resuelve /ping localmente; se responde igual por si llega aquí.
 	if (token === "ping") return { respuesta: { texto: "pong 🏠", menciones: [] }, grupoVinculado: true }
 
-	const comando = ALIAS[token] ?? "desconocido"
+	// Un comando mal escrito ("/cuanto debo") se intenta entender como pregunta antes de responder que no existe.
+	const intencion = ALIAS[token] ? null : detectarIntencion(texto.slice(1))
+	const comando = ALIAS[token] ?? intencion?.comando ?? "desconocido"
 	console.log(`mensaje ${grupoCorto(grupoId)} /${comando}`)
-	return respuestaDeComando(await ejecutarComando(grupoId, remitenteIds, comando, argumento))
+	return respuestaDeComando(await ejecutarComando(grupoId, remitenteIds, comando, intencion ? intencion.argumento : argumento))
 }
 
 async function lenguajeNatural(grupoId: string, remitenteIds: string[], texto: string) {
@@ -211,9 +222,16 @@ async function lenguajeNatural(grupoId: string, remitenteIds: string[], texto: s
 	const apiKey = Deno.env.get("ANTHROPIC_API_KEY") ?? ""
 	const pregunta = texto.replace(/@\d{5,}/g, " ").replace(/\s+/g, " ").trim()
 
+	// Las preguntas comunes se responden con el comando equivalente: es inmediato y no necesita IA.
+	const intencion = detectarIntencion(pregunta)
+	if (intencion) {
+		console.log(`mensaje ${grupoCorto(grupoId)} pregunta /${intencion.comando}`)
+		return respuestaDeComando(await ejecutarComando(grupoId, remitenteIds, intencion.comando, intencion.argumento))
+	}
+
 	if (datos?.lenguajeNatural !== true || !apiKey || !pregunta) {
 		console.log(`mensaje ${grupoCorto(grupoId)} mencion`)
-		return respuestaDeComando(await ejecutarComando(grupoId, remitenteIds, "mencion", ""))
+		return { respuesta: { texto: NO_ENTENDI, menciones: [] }, grupoVinculado: true }
 	}
 
 	const inicio = Date.now()

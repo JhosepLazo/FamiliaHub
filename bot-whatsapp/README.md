@@ -66,7 +66,9 @@ supabase functions deploy bot-whatsapp
 - `SUPABASE_URL` y la clave de servicio ya existen en el runtime de las Edge Functions; no se configuran a mano y nunca se copian al bot.
 - La función usa `verify_jwt = false` (está en `supabase/config.toml`): la protege el encabezado `x-bot-secret`.
 
-Opcional, Fase 7 (preguntas en lenguaje natural):
+Sin ninguna clave, el bot ya entiende las preguntas más comunes cuando lo mencionan ("¿cuánto debo?", "¿quién falta pagar?", "¿cuánto llegó la luz?", "¿cuándo vence?") y responde con el comando equivalente (`supabase/functions/bot-whatsapp/intenciones.ts`). Mientras consulta, muestra "escribiendo…" en el grupo.
+
+Opcional, Fase 7 (preguntas libres con IA, para lo que no entra en esas frases):
 
 ```bash
 supabase secrets set ANTHROPIC_API_KEY=<clave> ANTHROPIC_MODEL=claude-opus-5-5
@@ -149,7 +151,7 @@ pm2 stop familiahub-bot      # SIGTERM: el bot cierra la conexión y sale con c�
 - Si lo retiran del grupo, desvincula el grupo en FamiliaHub y se expiran sus avisos pendientes.
 - Si se corta la conexión, reintenta con espera creciente (3 s, 6 s, 12 s… hasta 60 s).
 
-Comandos disponibles en el grupo: `/ping`, `/ayuda`, `/vincular-grupo CÓDIGO`, `/vincular CÓDIGO`, `/desvincular`, `/yo`, `/deuda`, `/vence`, `/recibos`, `/recibo TEXTO`, `/pendientes`, `/resumen`, `/pagar`, `/porvalidar` y `/avisos estado|pausar|reanudar`. No distinguen mayúsculas ni tildes.
+Comandos disponibles en el grupo: `/ping`, `/ayuda`, `/vincular-grupo CÓDIGO`, `/vincular CÓDIGO`, `/desvincular`, `/yo`, `/deuda`, `/vence`, `/recibos`, `/recibo TEXTO`, `/pendientes`, `/resumen`, `/pagar`, `/porvalidar` y `/avisos estado|pausar|reanudar`. No distinguen mayúsculas ni tildes, y un comando mal escrito como `/cuanto debo` se intenta entender como pregunta.
 
 ## Pruebas
 
