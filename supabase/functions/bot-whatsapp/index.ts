@@ -1,7 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts"
 import Anthropic from "npm:@anthropic-ai/sdk@0.131.0"
 import { createClient } from "npm:@supabase/supabase-js@2.117.2"
-import { detectarIntencion, NO_ENTENDI } from "./intenciones.ts"
+import { analizarPregunta, detectarIntencion, encabezadoSaludo, esAcuse, noEntendi, primerNombre, respuestaSocial } from "./intenciones.ts"
 
 const LARGO_MAX_CUERPO = 10_240
 const LARGO_MAX_TEXTO = 1_000
@@ -195,7 +195,7 @@ async function accionMensaje(cuerpo: Cuerpo) {
 
 	if (!texto.startsWith("/")) {
 		if (!mencionaBot && !respondeBot) return { respuesta: null, grupoVinculado: true }
-		return await lenguajeNatural(grupoId, remitenteIds, texto)
+		return await lenguajeNatural(grupoId, remitenteIds, texto, mencionaBot)
 	}
 
 	const [primero = "", ...resto] = texto.slice(1).split(/\s+/)
@@ -212,7 +212,25 @@ async function accionMensaje(cuerpo: Cuerpo) {
 	return respuestaDeComando(await ejecutarComando(grupoId, remitenteIds, comando, intencion ? intencion.argumento : argumento))
 }
 
-async function lenguajeNatural(grupoId: string, remitenteIds: string[], texto: string) {
+function horaLima() {
+	return Number(new Intl.DateTimeFormat("en-US", { timeZone: "America/Lima", hour: "numeric", hourCycle: "h23" }).format(new Date()))
+}
+
+// Une las respuestas de varios comandos ("¿cuánto debo y cuándo vence?") en un solo mensaje, sin repetir menciones.
+function combinarRespuestas(resultados: ResultadoComando[], encabezado: string | null) {
+	const textos: string[] = encabezado ? [encabezado] : []
+	const menciones = new Set<string>()
+	for (const resultado of resultados) {
+		const { respuesta } = respuestaDeComando(resultado)
+		if (!respuesta) continue
+		textos.push(respuesta.texto)
+		for (const mencion of respuesta.menciones) menciones.add(mencion)
+	}
+	if (textos.length === (encabezado ? 1 : 0)) return { respuesta: null, grupoVinculado: true }
+	return { respuesta: { texto: textos.join("\n\n").slice(0, LARGO_MAX_RESPUESTA * 2), menciones: [...menciones] }, grupoVinculado: true }
+}
+
+async function lenguajeNatural(grupoId: string, remitenteIds: string[], texto: string, mencionaBot: boolean) {
 	const contexto = await ejecutarComando(grupoId, remitenteIds, "contexto", "")
 	const datos = contexto.datos
 
@@ -222,16 +240,34 @@ async function lenguajeNatural(grupoId: string, remitenteIds: string[], texto: s
 	const apiKey = Deno.env.get("ANTHROPIC_API_KEY") ?? ""
 	const pregunta = texto.replace(/@\d{5,}/g, " ").replace(/\s+/g, " ").trim()
 
-	// Las preguntas comunes se responden con el comando equivalente: es inmediato y no necesita IA.
-	const intencion = detectarIntencion(pregunta)
-	if (intencion) {
-		console.log(`mensaje ${grupoCorto(grupoId)} pregunta /${intencion.comando}`)
-		return respuestaDeComando(await ejecutarComando(grupoId, remitenteIds, intencion.comando, intencion.argumento))
+	const nombre = datos?.vinculado === true ? primerNombre(datos.nombre) : null
+	const hora = horaLima()
+
+	// Las preguntas comunes (una o varias en el mismo mensaje) se responden con los comandos equivalentes:
+	// es inmediato y no necesita IA.
+	const analisis = analizarPregunta(pregunta)
+	if (analisis.intenciones.length) {
+		console.log(`mensaje ${grupoCorto(grupoId)} pregunta /${analisis.intenciones.map((intencion) => intencion.comando).join("+")}`)
+		const resultados = await Promise.all(
+			analisis.intenciones.map((intencion) => ejecutarComando(grupoId, remitenteIds, intencion.comando, intencion.argumento)),
+		)
+		return combinarRespuestas(resultados, analisis.social === "saludo" ? encabezadoSaludo(nombre, hora) : null)
+	}
+
+	if (analisis.social) {
+		console.log(`mensaje ${grupoCorto(grupoId)} ${analisis.social}`)
+		return { respuesta: { texto: respuestaSocial(analisis.social, nombre, hora), menciones: [] }, grupoVinculado: true }
+	}
+
+	// "ok", "jaja", "👍" o una respuesta a un aviso sin pregunta: no hace falta contestar.
+	if (esAcuse(pregunta) || (!mencionaBot && (datos?.lenguajeNatural !== true || !apiKey))) {
+		console.log(`mensaje ${grupoCorto(grupoId)} sin-respuesta`)
+		return { respuesta: null, grupoVinculado: true }
 	}
 
 	if (datos?.lenguajeNatural !== true || !apiKey || !pregunta) {
 		console.log(`mensaje ${grupoCorto(grupoId)} mencion`)
-		return { respuesta: { texto: NO_ENTENDI, menciones: [] }, grupoVinculado: true }
+		return { respuesta: { texto: noEntendi(nombre), menciones: [] }, grupoVinculado: true }
 	}
 
 	const inicio = Date.now()

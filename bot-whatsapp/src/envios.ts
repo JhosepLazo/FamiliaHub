@@ -56,6 +56,10 @@ export class ColaEnvios {
 	private marcasPendientes: Marca[] = []
 	private procesando = false
 	private ultimoEnvio = 0
+	// Avisos en la cola o enviándose, y los últimos enviados: un aviso que vuelve a llegar (por ejemplo, porque
+	// su confirmación no alcanzó a FamiliaHub) no se publica dos veces en el grupo.
+	private avisosEnCurso = new Set<string>()
+	private avisosEnviados: string[] = []
 
 	constructor(opciones: OpcionesCola) {
 		this.opciones = opciones
@@ -71,7 +75,8 @@ export class ColaEnvios {
 	}
 
 	encolarAviso(aviso: Aviso) {
-		if (this.pendientes.some((envio) => envio.avisoId === aviso.id)) return
+		if (this.avisosEnCurso.has(aviso.id) || this.avisosEnviados.includes(aviso.id)) return
+		this.avisosEnCurso.add(aviso.id)
 
 		this.pendientes.push({
 			grupoId: aviso.grupoId,
@@ -132,6 +137,7 @@ export class ColaEnvios {
 
 				const envio = this.pendientes.shift()!
 				if (this.vencido(envio)) {
+					if (envio.avisoId) this.avisosEnCurso.delete(envio.avisoId)
 					this.opciones.logger.warn({ grupo: grupoCorto(envio.grupoId), aviso: Boolean(envio.avisoId) }, "Envío descartado por antigüedad")
 					continue
 				}
@@ -160,12 +166,17 @@ export class ColaEnvios {
 			)
 
 			this.opciones.logger.info({ grupo: grupoCorto(envio.grupoId), aviso: Boolean(envio.avisoId), ms: Date.now() - inicio }, "Mensaje enviado")
-			if (envio.avisoId) await this.marcar(envio.avisoId, true, null)
+			if (envio.avisoId) {
+				this.avisosEnviados.push(envio.avisoId)
+				if (this.avisosEnviados.length > 200) this.avisosEnviados.shift()
+				await this.marcar(envio.avisoId, true, null)
+			}
 		} catch (error) {
 			this.opciones.logger.error({ grupo: grupoCorto(envio.grupoId), aviso: Boolean(envio.avisoId), err: mensajeDeError(error) }, "No se pudo enviar el mensaje")
 			if (envio.avisoId) await this.marcar(envio.avisoId, false, mensajeDeError(error))
 		} finally {
 			this.ultimoEnvio = Date.now()
+			if (envio.avisoId) this.avisosEnCurso.delete(envio.avisoId)
 
 			try {
 				await socket.sendPresenceUpdate("paused", envio.grupoId)

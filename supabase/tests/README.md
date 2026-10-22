@@ -76,3 +76,14 @@ El archivo `e2e_recibos_digitales.sql` usa los mismos usuarios y variables de se
 7. permisos: solo `service_role` puede registrar.
 
 Todo termina con `Rollback`.
+
+## Estrés
+
+El archivo `estres.sql` usa los mismos usuarios y variables de sesión, y crea su propia familia con Luz y Agua, un grupo y un integrante vinculados (datos ficticios). Comprueba, todo dentro de una transacción que termina con `Rollback`:
+
+1. 1 000 consultas del bot (`/deuda`, `/pendientes`, `/recibos`, `/resumen`, `/vence`) que devuelven siempre la misma respuesta;
+2. el mismo correo de recibo digital 500 veces: una sola lectura, sin cuotas ni confirmaciones de más;
+3. 300 correos de suministros ajenos: todos ignorados y sin tocar ningún recibo;
+4. 120 avisos y 200 tomas seguidas: cada aviso se entrega una sola vez.
+
+Cada fila muestra también cuánto tardó.

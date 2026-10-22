@@ -66,7 +66,14 @@ supabase functions deploy bot-whatsapp
 - `SUPABASE_URL` y la clave de servicio ya existen en el runtime de las Edge Functions; no se configuran a mano y nunca se copian al bot.
 - La función usa `verify_jwt = false` (está en `supabase/config.toml`): la protege el encabezado `x-bot-secret`.
 
-Sin ninguna clave, el bot ya entiende las preguntas más comunes cuando lo mencionan ("¿cuánto debo?", "¿quién falta pagar?", "¿cuánto llegó la luz?", "¿cuándo vence?") y responde con el comando equivalente (`supabase/functions/bot-whatsapp/intenciones.ts`). Mientras consulta, muestra "escribiendo…" en el grupo.
+Sin ninguna clave, el bot ya entiende las preguntas más comunes cuando lo mencionan ("¿cuánto debo?", "¿quién falta pagar?", "¿cuánto llegó la luz?", "¿cuándo vence?") y responde con el comando equivalente (`supabase/functions/bot-whatsapp/intenciones.ts`):
+
+- tolera faltas y abreviaturas ("kuanto devo", "recivo de la lus", "q falta pagar");
+- responde varias preguntas de un mensaje ("¿cuánto debo y cuándo vence?", "luz y agua");
+- saluda por el nombre según la hora de Lima y contesta "gracias", "¿cómo estás?" o "chau";
+- no contesta "ok", "jaja" ni charla cuando alguien responde a un aviso sin preguntar nada.
+
+Mientras consulta, muestra "escribiendo…" en el grupo.
 
 Opcional, Fase 7 (preguntas libres con IA, para lo que no entra en esas frases):
 
