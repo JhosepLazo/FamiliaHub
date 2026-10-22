@@ -182,6 +182,11 @@ function Iniciar {
 
 	if (@(Obtener-ProcesosBot).Count -gt 0) {
 		Escribir-Aviso 'El bot ya está funcionando.'
+		# Si le falta el inicio automático (por ejemplo, tras un reinicio cortado), se vuelve a programar.
+		if (-not (Get-ScheduledTask -TaskName $NombreTarea -ErrorAction SilentlyContinue)) {
+			Registrar-Tarea
+			Escribir-Ok 'Inicio automático al entrar a Windows: activado de nuevo.'
+		}
 		Mostrar-Estado
 		return
 	}
@@ -239,12 +244,21 @@ function Detener {
 		Escribir-Ok 'Inicio automático quitado.'
 	}
 
-	# Primero el lanzador, para que no vuelva a encender el bot.
-	foreach ($proceso in Obtener-Lanzadores) { Stop-Process -Id $proceso.ProcessId -Force -ErrorAction SilentlyContinue }
-	$procesos = @(Obtener-ProcesosBot)
-	foreach ($proceso in $procesos) { Stop-Process -Id $proceso.ProcessId -Force -ErrorAction SilentlyContinue }
+	# Primero el lanzador, para que no vuelva a encender el bot. Stop-Process no espera a que el proceso
+	# termine y Windows también los va cerrando al detener la tarea: se repite hasta que no quede ninguno,
+	# para que un "iniciar" inmediato (como el de publicar-cambios.cmd) no crea que el bot sigue encendido.
+	$detenidos = 0
+	$limite = (Get-Date).AddSeconds(20)
+	do {
+		$lanzadores = @(Obtener-Lanzadores)
+		$procesos = @(Obtener-ProcesosBot)
+		foreach ($proceso in $lanzadores + $procesos) { Stop-Process -Id $proceso.ProcessId -Force -ErrorAction SilentlyContinue }
+		$detenidos += $procesos.Count
+		if ($lanzadores.Count + $procesos.Count -eq 0) { break }
+		Start-Sleep -Milliseconds 500
+	} while ((Get-Date) -lt $limite)
 
-	if ($procesos.Count -gt 0) {
+	if ($detenidos -gt 0) {
 		Agregar-Log 'Bot detenido con detener-bot.cmd'
 		Escribir-Ok 'Bot apagado. Para volver a encenderlo usa iniciar-bot.cmd.'
 	} elseif (-not $tarea) {
