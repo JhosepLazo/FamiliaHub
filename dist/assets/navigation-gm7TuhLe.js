@@ -1,0 +1,1 @@
+function e(e,t=`/inicio`){return e&&e.startsWith(`/`)&&!e.startsWith(`//`)?e:t}export{e as t};
