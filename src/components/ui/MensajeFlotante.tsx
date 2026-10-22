@@ -11,6 +11,7 @@ const TRADUCCIONES: Array<[RegExp, string]> = [
 	[/duplicate key/i, 'Eso ya estaba registrado.'],
 	[/payload too large|maximum allowed size|exceeded/i, 'El archivo es demasiado grande.'],
 	[/mime type|invalid_mime_type/i, 'Ese tipo de archivo no está permitido.'],
+	[/could not find the function|schema cache/i, 'Esta opción todavía no está activa en el servidor. Ejecuta publicar-cambios.cmd para activarla.'],
 ]
 
 export function traducirMensaje(texto: string) {

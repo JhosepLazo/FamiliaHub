@@ -1,4 +1,4 @@
-import { CirclePlus, Pencil, Power, Settings2, UsersRound } from 'lucide-react'
+import { CirclePlus, Pencil, Power, Settings2, Trash2, UsersRound } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useDialogo } from '../../components/ui/Dialogo'
@@ -34,10 +34,17 @@ export default function ServiciosPage() {
 		if (!familia) return
 		setLoading(true)
 
-		const [{ data: concepts }, { data: providers }] = await Promise.all([
-			supabase.from('conceptos_pago').select('*').eq('familia_id', familia.id).order('created_at'),
+		const listarServicios = (sinEliminados: boolean) => {
+			const consulta = supabase.from('conceptos_pago').select('*').eq('familia_id', familia.id)
+			return (sinEliminados ? consulta.is('eliminado_at', null) : consulta).order('created_at')
+		}
+		// Los servicios eliminados con historial quedan archivados: no se listan.
+		let [{ data: concepts, error: conceptsError }, { data: providers }] = await Promise.all([
+			listarServicios(true),
 			supabase.from('proveedores').select('*').order('nombre'),
 		])
+		// Mientras la base no tenga aún la columna de archivados (migración pendiente), se listan todos.
+		if (conceptsError) ({ data: concepts } = await listarServicios(false))
 
 		const rows = concepts ?? []
 		setConceptos(rows)
@@ -93,6 +100,28 @@ export default function ServiciosPage() {
 		if (!error) await load()
 	}
 
+	const eliminarServicio = async (concepto: Concepto) => {
+		const seguro = await confirmar({
+			titulo: `¿Eliminar ${concepto.nombre}?`,
+			mensaje: 'Si nunca se registró un pago, se borra por completo con sus recibos. Si ya tiene pagos, sale de la lista y deja de generar recibos, pero su historial y lo que quede pendiente se conservan.',
+			accion: 'Eliminar servicio',
+			peligro: true,
+		})
+		if (!seguro) return
+		setMessage(null)
+		const { data, error } = await supabase.rpc('eliminar_concepto_servicio', { p_concepto_id: concepto.id })
+		if (error) {
+			setMessage(error.message)
+			return
+		}
+		const resultado = data as { modo?: string; recibosAnulados?: number } | null
+		const anulados = resultado?.recibosAnulados ?? 0
+		setMessage(resultado?.modo === 'ARCHIVADO'
+			? `${concepto.nombre} se eliminó. Su historial de pagos se conserva${anulados ? ` y se anuló ${anulados === 1 ? 'su recibo' : `${anulados} recibos`} sin pagos` : ''}.`
+			: `${concepto.nombre} se eliminó junto con sus recibos.`)
+		await load()
+	}
+
 	const toggleProvider = async (provider: Proveedor) => {
 		if (provider.activo && !(await confirmar({
 			titulo: `¿Desactivar ${provider.nombre}?`,
@@ -121,7 +150,7 @@ export default function ServiciosPage() {
 				<div className="flex items-center gap-3">
 					<label className="flex cursor-pointer items-center gap-2 text-xs font-semibold text-slate-500">
 						<input type="checkbox" className="accent-brand" checked={showInactive} onChange={(e) => setShowInactive(e.target.checked)} />
-						Mostrar inactivos
+						Mostrar pausados
 					</label>
 					<Link to="/servicios/nuevo" className="fh-button-primary"><CirclePlus size={17} />Nuevo servicio</Link>
 				</div>
@@ -132,6 +161,13 @@ export default function ServiciosPage() {
 					<div className="h-44 animate-pulse rounded-3xl bg-white" />
 					<div className="h-44 animate-pulse rounded-3xl bg-white" />
 				</div>
+			) : visibleConcepts.length === 0 && conceptos.length > 0 ? (
+				<section className="mt-6 rounded-3xl border border-dashed border-slate-300 bg-white p-8 text-center">
+					<div className="mx-auto grid size-12 place-items-center rounded-2xl bg-slate-50 text-slate-400"><Power /></div>
+					<h2 className="mt-4 text-lg font-semibold">Todos tus servicios están pausados</h2>
+					<p className="mx-auto mt-2 max-w-lg text-sm leading-6 text-slate-500">No generan recibos mientras estén pausados. Marca "Mostrar pausados" para verlos y activarlos.</p>
+					<button type="button" onClick={() => setShowInactive(true)} className="fh-button-secondary mt-5">Mostrar pausados</button>
+				</section>
 			) : visibleConcepts.length === 0 ? (
 				<section className="mt-6 rounded-3xl border border-dashed border-slate-300 bg-white p-8 text-center">
 					<div className="mx-auto grid size-12 place-items-center rounded-2xl bg-emerald-50 text-brand"><Settings2 /></div>
@@ -154,14 +190,15 @@ export default function ServiciosPage() {
 										<div className="min-w-0">
 											<div className="flex flex-wrap items-center gap-2">
 												<h2 className="truncate font-semibold">{concepto.nombre}</h2>
-												<span className={`rounded-full px-2 py-1 text-[10px] font-semibold ${concepto.activo ? 'bg-emerald-50 text-brand' : 'bg-slate-100 text-slate-400'}`}>{concepto.activo ? 'Activo' : 'Inactivo'}</span>
+												<span className={`rounded-full px-2 py-1 text-[10px] font-semibold ${concepto.activo ? 'bg-emerald-50 text-brand' : 'bg-slate-100 text-slate-400'}`}>{concepto.activo ? 'Activo' : 'Pausado'}</span>
 											</div>
 											<p className="mt-1 text-xs text-slate-400">{provider?.nombre ?? 'Proveedor'} · {tipoServicioLabel[provider?.tipo_servicio ?? 'OTRO']}</p>
 										</div>
 									</div>
 									<div className="flex shrink-0 gap-2">
 										<Link to={`/servicios/${concepto.id}/editar`} className="grid size-9 place-items-center rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50" title="Editar"><Pencil size={16} /></Link>
-										<button onClick={() => void toggleConcept(concepto)} className="grid size-9 place-items-center rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50" title={concepto.activo ? 'Desactivar' : 'Activar'}><Power size={16} /></button>
+										<button onClick={() => void toggleConcept(concepto)} className="grid size-9 place-items-center rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50" title={concepto.activo ? 'Pausar' : 'Activar'} aria-label={concepto.activo ? 'Pausar servicio' : 'Activar servicio'}><Power size={16} /></button>
+										<button onClick={() => void eliminarServicio(concepto)} className="grid size-9 place-items-center rounded-xl border border-rose-100 text-rose-500 hover:bg-rose-50" title="Eliminar" aria-label="Eliminar servicio"><Trash2 size={16} /></button>
 									</div>
 								</div>
 

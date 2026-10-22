@@ -26,6 +26,7 @@ export default function RecibosPage() {
 	const [loading, setLoading] = useState(true)
 	const [message, setMessage] = useState<string | null>(null)
 	const [syncing, setSyncing] = useState(false)
+	const [verAnulados, setVerAnulados] = useState(false)
 
 	const loadPeriods = useCallback(async (sync = false) => {
 		if (!familia) return
@@ -98,6 +99,10 @@ export default function RecibosPage() {
 	useEnVivo(() => void loadReceipts(true))
 
 	const currentPeriod = useMemo(() => periodos.find((period) => period.id === periodoId) ?? null, [periodos, periodoId])
+	// Los anulados se conservan como historial, pero no se mezclan con los recibos vigentes.
+	const vigentes = useMemo(() => recibos.filter((receipt) => receipt.estado !== 'ANULADO'), [recibos])
+	const anulados = useMemo(() => recibos.filter((receipt) => receipt.estado === 'ANULADO'), [recibos])
+	const visibles = verAnulados ? [...vigentes, ...anulados] : vigentes
 	const quotaByReceipt = useMemo(() => {
 		const map = new Map<string, Cuota[]>()
 		for (const quota of cuotas) {
@@ -144,22 +149,22 @@ export default function RecibosPage() {
 
 			{loading ? (
 				<div className="mt-6 grid gap-4 lg:grid-cols-2"><div className="h-56 animate-pulse rounded-3xl bg-white" /><div className="h-56 animate-pulse rounded-3xl bg-white" /></div>
-			) : recibos.length === 0 ? (
+			) : visibles.length === 0 ? (
 				<section className="mt-6 rounded-3xl border border-dashed border-slate-300 bg-white p-8 text-center">
 					<div className="mx-auto grid size-12 place-items-center rounded-2xl bg-slate-50 text-slate-400"><ReceiptText /></div>
-					<h2 className="mt-4 text-lg font-semibold">No hay recibos en este periodo</h2>
+					<h2 className="mt-4 text-lg font-semibold">{anulados.length ? 'No hay recibos vigentes en este periodo' : 'No hay recibos en este periodo'}</h2>
 					<p className="mx-auto mt-2 max-w-lg text-sm leading-6 text-slate-500">{isAdmin ? 'Configura servicios activos o sincroniza el periodo. FamiliaHub solo crea una instancia por servicio y periodo.' : 'Cuando el administrador configure servicios para este periodo aparecerán aquí.'}</p>
 				</section>
 			) : (
 				<div className="mt-6 grid gap-4 lg:grid-cols-2">
-					{recibos.map((receipt) => {
+					{visibles.map((receipt) => {
 						const receiptQuotas = quotaByReceipt.get(receipt.id) ?? []
 						const assigned = receiptQuotas.reduce((sum, quota) => sum + quota.monto_asignado, 0)
 						const paid = receiptQuotas.reduce((sum, quota) => sum + quota.monto_pagado, 0)
 						const own = receiptQuotas.find((quota) => quota.usuario_id === user?.id)
 						const progress = assigned > 0 ? Math.min(100, Math.round((paid / assigned) * 100)) : 0
 						return (
-							<Link key={receipt.id} to={`/recibos/${receipt.id}`} className="group rounded-3xl border border-slate-200 bg-white p-5 transition hover:border-slate-300 sm:p-6">
+							<Link key={receipt.id} to={`/recibos/${receipt.id}`} className={`group rounded-3xl border border-slate-200 bg-white p-5 transition hover:border-slate-300 sm:p-6 ${receipt.estado === 'ANULADO' ? 'opacity-60' : ''}`}>
 								<div className="flex items-start justify-between gap-4">
 									<div className="min-w-0">
 										<div className="flex flex-wrap items-center gap-2"><h2 className="truncate text-lg font-semibold">{receipt.nombre_concepto}</h2><span className={`rounded-full px-2.5 py-1 text-[10px] font-semibold ${receiptBadgeClass(receipt.estado)}`}>{reciboEstadoLabel[receipt.estado]}</span></div>
@@ -188,6 +193,12 @@ export default function RecibosPage() {
 						)
 					})}
 				</div>
+			)}
+
+			{!loading && anulados.length > 0 && (
+				<button type="button" onClick={() => setVerAnulados((actual) => !actual)} className="fh-button-ghost mt-4">
+					{verAnulados ? 'Ocultar anulados' : `Mostrar anulados (${anulados.length})`}
+				</button>
 			)}
 
 			{isAdmin && familia && <RecibosDigitalesPanel familiaId={familia.id} />}

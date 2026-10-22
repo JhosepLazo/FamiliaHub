@@ -165,6 +165,13 @@ export default function ReciboDetallePage() {
 	}, [familia, id, isAdmin])
 
 	useEffect(() => { void load() }, [load])
+
+	// Con la recaudación completa se paga desde el fondo; si no, lo normal es que alguien haya adelantado el pago.
+	useEffect(() => {
+		if (!receipt) return
+		setProviderOrigin(receipt.estado_recaudacion === 'COMPLETA' ? 'FONDO_FAMILIAR' : 'ADELANTO_INTEGRANTE')
+		setProviderPayer((actual) => actual || membresia?.id || '')
+	}, [receipt?.id, receipt?.estado_recaudacion, membresia?.id])
 	useEnVivo(() => void load('envivo'))
 
 	const quotaMap = useMemo(() => new Map(quotas.map((quota) => [quota.id, quota])), [quotas])
@@ -184,6 +191,14 @@ export default function ReciboDetallePage() {
 	const paid = useMemo(() => quotas.reduce((sum, quota) => sum + quota.monto_pagado, 0), [quotas])
 	const progress = assigned > 0 ? Math.min(100, Math.round((paid / assigned) * 100)) : 0
 	const hasActiveContributions = contributions.some((item) => item.estado === 'POR_VALIDAR' || item.estado === 'CONFIRMADO')
+	// Las mismas reglas que aplica el servidor al registrar el pago al proveedor, explicadas antes de enviar.
+	const bloqueoPagoProveedor = !receipt
+		? null
+		: providerOrigin === 'FONDO_FAMILIAR' && receipt.estado_recaudacion !== 'COMPLETA'
+			? `La familia lleva ${money(paid)} de ${money(assigned)}. Para pagar desde el fondo familiar primero debe completarse la recaudación. Si alguien ya pagó a la empresa con su dinero, elige "Adelanto de integrante": FamiliaHub le devolverá lo que aporten los demás.`
+			: providerOrigin === 'ADELANTO_INTEGRANTE' && hasActiveContributions
+				? 'Este recibo ya tiene pagos de la familia, así que no puede registrarse como adelanto. Cuando se complete la recaudación, regístralo desde el fondo familiar.'
+				: null
 
 	const run = async (operation: () => PromiseLike<{ error: { message: string } | null }>, success: string) => {
 		setWorking(true)
@@ -382,6 +397,16 @@ export default function ReciboDetallePage() {
 				</div>
 			</div>
 
+			{receipt.estado === 'ANULADO' && (
+				<section className="mt-6 flex items-start gap-3 rounded-3xl border border-slate-200 bg-slate-50 p-5">
+					<CircleAlert size={20} className="mt-0.5 shrink-0 text-slate-500" />
+					<div>
+						<h2 className="font-semibold text-slate-800">Este recibo está anulado</h2>
+						<p className="mt-1 text-sm leading-6 text-slate-500">Ya no genera cuotas ni pagos; se conserva solo como historial.{isAdmin && <> Si ya no usas este servicio, puedes eliminarlo desde <Link to="/administrar?tab=servicios" className="font-semibold text-brand underline">Administrar → Servicios</Link>.</>}</p>
+					</div>
+				</section>
+			)}
+
 			<div className="mt-7 grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
 				<Metric label="Total recibo" value={money(receipt.monto_total)} />
 				<Metric label="Tu cuota" value={ownQuota ? money(ownQuota.monto_asignado) : 'No participas'} accent />
@@ -389,7 +414,7 @@ export default function ReciboDetallePage() {
 				<Metric label="Aporte familiar" value={dateLabel(receipt.fecha_limite_aporte)} />
 			</div>
 
-			{receipt.monto_total != null && (
+			{receipt.monto_total != null && receipt.estado !== 'ANULADO' && (
 				<section className="mt-5 rounded-3xl border border-slate-200 bg-white p-5">
 					<div className="flex items-center justify-between gap-4">
 						<div><p className="text-sm font-semibold">Recaudación familiar</p><p className="mt-1 text-xs text-slate-400">{recaudacionLabel[receipt.estado_recaudacion]} · {money(paid)} de {money(assigned)}</p></div>
@@ -502,7 +527,7 @@ export default function ReciboDetallePage() {
 				</section>
 			)}
 
-			{receipt.monto_total != null && (
+			{receipt.monto_total != null && receipt.estado !== 'ANULADO' && (
 				<section className="mt-6 rounded-3xl border border-slate-200 bg-white p-5 sm:p-6">
 					<div className="flex items-center gap-3"><Banknote size={19} className="text-brand" /><div><h2 className="font-semibold">Pago al proveedor</h2><p className="text-xs text-slate-400">Este estado es independiente de la recaudación familiar.</p></div></div>
 
@@ -517,7 +542,8 @@ export default function ReciboDetallePage() {
 							{providerOrigin === 'ADELANTO_INTEGRANTE' && <label><span className="fh-label">Quién adelanta</span><select className="fh-input" required value={providerPayer} onChange={(e) => setProviderPayer(e.target.value)}><option value="">Selecciona</option>{members.map((member) => <option key={member.id} value={member.id}>{member.nombre}</option>)}</select></label>}
 							<label><span className="fh-label">Fecha</span><input className="fh-input" type="date" required value={providerDate} onChange={(e) => setProviderDate(e.target.value)} /></label>
 							<label><span className="fh-label">Referencia</span><input className="fh-input" value={providerReference} onChange={(e) => setProviderReference(e.target.value)} placeholder="Opcional" /></label>
-							<div className="sm:col-span-2 lg:col-span-4"><button disabled={working} className="fh-button-primary">Registrar pago de {money(receipt.monto_total)}</button></div>
+							{bloqueoPagoProveedor && <p className="sm:col-span-2 lg:col-span-4 rounded-xl bg-amber-50 p-3 text-xs leading-5 text-amber-800">{bloqueoPagoProveedor}</p>}
+							<div className="sm:col-span-2 lg:col-span-4"><button disabled={working || Boolean(bloqueoPagoProveedor)} className="fh-button-primary">Registrar pago de {money(receipt.monto_total)}</button></div>
 						</form>
 					) : (
 						<div className="mt-5 rounded-2xl bg-amber-50 p-4 text-sm text-amber-700">El pago al proveedor aún está pendiente.</div>

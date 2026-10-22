@@ -294,6 +294,7 @@ export type Database = {
           categoria_id: string
           created_at: string
           dia_vencimiento: number | null
+          eliminado_at: string | null
           dias_anticipacion_aporte: number
           fallback_manual: boolean
           familia_id: string
@@ -317,6 +318,7 @@ export type Database = {
           categoria_id: string
           created_at?: string
           dia_vencimiento?: number | null
+          eliminado_at?: string | null
           dias_anticipacion_aporte?: number
           fallback_manual?: boolean
           familia_id: string
@@ -340,6 +342,7 @@ export type Database = {
           categoria_id?: string
           created_at?: string
           dia_vencimiento?: number | null
+          eliminado_at?: string | null
           dias_anticipacion_aporte?: number
           fallback_manual?: boolean
           familia_id?: string
@@ -1874,6 +1877,10 @@ export type Database = {
           p_tipo: Database["public"]["Enums"]["tipo_vinculo_whatsapp"]
         }
         Returns: undefined
+      }
+      eliminar_concepto_servicio: {
+        Args: { p_concepto_id: string }
+        Returns: Json
       }
       finalizar_pago_familiar: {
         Args: {

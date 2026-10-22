@@ -87,3 +87,11 @@ El archivo `estres.sql` usa los mismos usuarios y variables de sesión, y crea s
 4. 120 avisos y 200 tomas seguidas: cada aviso se entrega una sola vez.
 
 Cada fila muestra también cuánto tardó.
+
+## Eliminar servicios
+
+`e2e_eliminar_servicio.sql` valida `eliminar_concepto_servicio`: un integrante no puede eliminar; sin dinero movido el servicio se borra con sus recibos (también con cuotas confirmadas o un pago preparado sin enviar); con un pago por validar se bloquea; con pagos se archiva conservando su historial y anulando solo los recibos abiertos sin movimientos; el nombre queda libre; eliminar dos veces falla y sincronizar el periodo no los revive.
+
+## Estrés de todos los procesos
+
+`estres_flujos.sql` crea una familia de tres personas (un tercer usuario ficticio dentro de la transacción) con ocho servicios y ejecuta 300 rondas de pagos de integrantes con validaciones, rechazos, anulaciones y pagos pendientes; 12 intentos indebidos (pagar de más, pagar lo reservado o la cuota de otro, validar su propio pago, acciones de administrador, ver otra familia); corrección de monto, adelanto y su anulación, pago desde el fondo con recaudación completa, anulación de recibo y eliminación de servicios. Al final comprueba que los repartos sumen el total, que los saldos y estados cuadren con los aportes, que lo reservado no supere el saldo y que no haya dos pagos a la empresa por recibo.
