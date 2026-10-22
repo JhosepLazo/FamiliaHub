@@ -212,6 +212,8 @@ export default function ServiciosPage() {
 								<div className="mt-5 flex flex-wrap gap-2 text-xs">
 									{account && <span className="rounded-full bg-slate-100 px-3 py-1.5 text-slate-500">{account.alias || account.identificador_nombre || 'Cuenta'} · {mask(account.identificador_valor)}</span>}
 								</div>
+
+								<Automatizacion concepto={concepto} codigoProveedor={provider?.codigo ?? null} suministro={account?.activo ? account.identificador_valor : null} />
 							</article>
 						)
 					})}
@@ -241,6 +243,31 @@ export default function ServiciosPage() {
 			<MensajeFlotante mensaje={message} alCerrar={() => setMessage(null)} />
 		</div>
 	)
+}
+
+const RECIBO_DIGITAL: Record<string, string> = { SEDAPAL: 'SEDAPAL', LUZ_DEL_SUR: 'Luz del Sur', CALIDDA: 'Cálidda' }
+
+// Cómo llega el monto de cada servicio cada mes, para que el administrador vea de un vistazo qué falta para
+// que sea automático.
+function Automatizacion({ concepto, codigoProveedor, suministro }: { concepto: Concepto; codigoProveedor: string | null; suministro: string | null }) {
+	const digitos = (suministro ?? '').replace(/D/g, '')
+	const proveedorDigital = codigoProveedor ? RECIBO_DIGITAL[codigoProveedor] : undefined
+
+	const [tono, texto] = concepto.metodo_obtencion === 'FIJO'
+		? ['ok', 'Monto fijo: el recibo se genera solo cada mes.']
+		: proveedorDigital && digitos.length >= 5
+			? ['ok', `Monto automático: se confirma solo cuando llega el recibo digital de ${proveedorDigital} al correo.`]
+			: proveedorDigital
+				? ['falta', `Registra el número de suministro (edita el servicio) para que el monto de ${proveedorDigital} llegue solo.`]
+				: ['manual', 'El monto se registra a mano cada mes (este proveedor no envía un recibo digital que FamiliaHub sepa leer).']
+
+	const estilos = {
+		ok: 'bg-emerald-50 text-emerald-800 ring-emerald-100',
+		falta: 'bg-amber-50 text-amber-800 ring-amber-100',
+		manual: 'bg-slate-50 text-slate-500 ring-slate-100',
+	} as const
+
+	return <p className={`mt-4 rounded-xl px-3 py-2 text-xs leading-5 ring-1 ring-inset ${estilos[tono as keyof typeof estilos]}`}>{texto}</p>
 }
 
 function Info({ label, value }: { label: string; value: string }) {

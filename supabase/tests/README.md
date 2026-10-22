@@ -95,3 +95,7 @@ Cada fila muestra también cuánto tardó.
 ## Estrés de todos los procesos
 
 `estres_flujos.sql` crea una familia de tres personas (un tercer usuario ficticio dentro de la transacción) con ocho servicios y ejecuta 300 rondas de pagos de integrantes con validaciones, rechazos, anulaciones y pagos pendientes; 12 intentos indebidos (pagar de más, pagar lo reservado o la cuota de otro, validar su propio pago, acciones de administrador, ver otra familia); corrección de monto, adelanto y su anulación, pago desde el fondo con recaudación completa, anulación de recibo y eliminación de servicios. Al final comprueba que los repartos sumen el total, que los saldos y estados cuadren con los aportes, que lo reservado no supere el saldo y que no haya dos pagos a la empresa por recibo.
+
+## Recibos digitales vigilados
+
+`e2e_recibos_digitales_vigilados.sql` valida el suministro oculto (`*6543` se confirma si coincide con un solo servicio activo, se rechaza con menos de 4 cifras y queda para revisar si coincide con dos) y el aviso único de WhatsApp cuando el recibo digital de un servicio no llega a tiempo (se espera desde 5 días antes del vencimiento del mes anterior, o el día 25 sin historial; no se repite aunque la revisión corra varias veces y no se avisa de servicios cuyo recibo ya llegó).

@@ -75,12 +75,12 @@ function probar() {
 		if (!hilos.length) return Logger.log(proveedor.codigo + ': no encontré correos todavía.')
 		const mensajes = hilos[0].getMessages()
 		const mensaje = mensajes[mensajes.length - 1]
-		Logger.log(proveedor.codigo + ' (' + mensaje.getSubject() + '): ' + JSON.stringify(leerRecibo(mensaje.getSubject() + '\n' + textoDelCorreo(mensaje))))
+		Logger.log(proveedor.codigo + ' (' + mensaje.getSubject() + '): ' + JSON.stringify(leerRecibo(mensaje.getSubject() + '\n' + textoDelCorreo(mensaje), mensaje.getDate())))
 	})
 }
 
 function procesarMensaje(mensaje, proveedor) {
-	const lectura = leerRecibo(mensaje.getSubject() + '\n' + textoDelCorreo(mensaje))
+	const lectura = leerRecibo(mensaje.getSubject() + '\n' + textoDelCorreo(mensaje), mensaje.getDate())
 
 	// Sin monto ni vencimiento no es un recibo (por ejemplo, una promoción): se deja pasar sin marcarlo.
 	if (!lectura.monto && !lectura.vencimiento) return 'NO_ES_RECIBO'
@@ -144,20 +144,39 @@ function htmlATexto(html) {
 
 /* ---------- Lectura del recibo (funciones puras: se prueban fuera de Google) ---------- */
 
-function leerRecibo(texto) {
-	const limpio = String(texto || '').replace(/ /g, ' ').replace(/[ \t]+/g, ' ')
-	return { suministros: buscarSuministros(limpio), monto: buscarMonto(limpio), vencimiento: buscarVencimiento(limpio) }
+function leerRecibo(texto, fechaCorreo) {
+	const limpio = String(texto || '').replace(/\u00a0/g, ' ').replace(/[ \t]+/g, ' ')
+	return {
+		suministros: buscarSuministros(limpio),
+		monto: buscarMonto(limpio),
+		vencimiento: buscarVencimiento(limpio, fechaCorreo && typeof fechaCorreo.getTime === 'function' ? fechaCorreo : new Date()),
+	}
 }
 
 const CANTIDAD = '([0-9]{1,3}(?:[.,][0-9]{3})+(?:[.,][0-9]{2})?|[0-9]+(?:[.,][0-9]{2})?)(?![0-9])'
+const MONEDA = '(?:S\\/\\.?|PEN|soles)'
 
+// De más seguro a menos: primero las frases típicas de "total a pagar"; luego "importe", "monto" o "deuda"
+// seguidos del número; luego "total" con S/; y por último, si el correo tiene un solo monto en soles, ese.
 function buscarMonto(texto) {
-	const fuertes = new RegExp('(?:total\\s+a\\s+pagar|importe\\s+(?:total\\s+)?a\\s+pagar|monto\\s+(?:total\\s+)?a\\s+pagar|total\\s+a\\s+cancelar|deuda\\s+total|importe\\s+total|monto\\s+total)\\s*:?\\s*(?:es\\s+de\\s+)?(?:S\\/\\.?|PEN)?\\s*' + CANTIDAD, 'i')
-	const debiles = new RegExp('\\btotal\\b[^\\n0-9S]{0,20}(?:S\\/\\.?|PEN)\\s*' + CANTIDAD, 'i')
-	const encontrado = texto.match(fuertes) || texto.match(debiles)
-	if (!encontrado) return null
-	const valor = aNumero(encontrado[1])
-	return valor && valor > 0 && valor <= 100000 ? valor : null
+	const intentos = [
+		new RegExp('(?:total\\s+a\\s+pagar|importe\\s+(?:total\\s+)?a\\s+pagar|monto\\s+(?:total\\s+)?a\\s+pagar|total\\s+a\\s+cancelar|deuda\\s+total|importe\\s+total|monto\\s+total|saldo\\s+a\\s+pagar|total\\s+de(?:l)?\\s+(?:mes|recibo|periodo))\\s*:?\\s*(?:es\\s+de\\s+)?' + MONEDA + '?\\s*' + CANTIDAD, 'i'),
+		new RegExp('\\b(?:importe|monto|deuda(?!\\s+anterior)|a\\s+pagar|por\\s+pagar)\\b(?:\\s+(?:del\\s+mes|del\\s+recibo|de\\s+tu\\s+recibo|de\\s+su\\s+recibo))?\\s*:?\\s*(?:es\\s+de\\s+)?' + MONEDA + '\\s*' + CANTIDAD, 'i'),
+		new RegExp('\\btotal\\b[^\\n0-9S]{0,20}' + MONEDA + '\\s*' + CANTIDAD, 'i'),
+	]
+	for (const regla of intentos) {
+		const encontrado = texto.match(regla)
+		const valor = encontrado && aNumero(encontrado[1])
+		if (valor && valor > 0 && valor <= 100000) return valor
+	}
+	const montos = []
+	const enSoles = new RegExp(MONEDA + '\\s*' + CANTIDAD, 'gi')
+	let encontrado
+	while ((encontrado = enSoles.exec(texto)) !== null) {
+		const valor = aNumero(encontrado[1])
+		if (valor && valor > 0 && valor <= 100000 && montos.indexOf(valor) === -1) montos.push(valor)
+	}
+	return montos.length === 1 ? montos[0] : null
 }
 
 function aNumero(cantidad) {
@@ -175,19 +194,31 @@ function aNumero(cantidad) {
 	return isNaN(valor) ? null : valor
 }
 
-function buscarVencimiento(texto) {
-	const etiqueta = '(?:fecha\\s+de\\s+vencimiento|vencimiento|vence(?:\\s+el)?|fecha\\s+l[ií]mite(?:\\s+de\\s+pago)?|pagar\\s+hasta(?:\\s+el)?|[uú]ltimo\\s+d[ií]a\\s+de\\s+pago)'
+function buscarVencimiento(texto, fechaCorreo) {
+	const etiqueta = '(?:fecha\\s+de\\s+vencimiento|vencimiento|vencer[aá](?:\\s+el)?|vence(?:\\s+el)?|fecha\\s+l[ií]mite(?:\\s+de\\s+pago)?|pag(?:ar|a|ue)\\s+(?:hasta|antes\\s+del?)(?:\\s+el)?|hasta\\s+el|[uú]ltimo\\s+d[ií]a\\s+de\\s+pago|fecha\\s+de\\s+pago)'
 	const numerica = new RegExp(etiqueta + '[^0-9\\n]{0,30}([0-9]{1,2})[\\/\\-.]([0-9]{1,2})[\\/\\-.]([0-9]{2,4})', 'i')
-	const enLetras = new RegExp(etiqueta + '[^0-9\\n]{0,30}([0-9]{1,2})\\s+(?:de\\s+)?([a-záéíóú]+)\\.?\\s+(?:de(?:l)?\\s+)?([0-9]{4})', 'i')
+	const enLetras = new RegExp(etiqueta + '[^0-9\\n]{0,30}([0-9]{1,2})\\s+(?:de\\s+)?([a-záéíóú]+)\\.?(?:\\s+(?:de(?:l)?\\s+)?([0-9]{4}))?', 'i')
+	const sinAnio = new RegExp(etiqueta + '[^0-9\\n]{0,30}([0-9]{1,2})[\\/\\-]([0-9]{1,2})(?![0-9\\/\\-.])', 'i')
 
 	const a = texto.match(numerica)
 	if (a) return fechaIso(Number(a[1]), Number(a[2]), Number(a[3]))
 	const b = texto.match(enLetras)
 	if (b) {
-		const mes = MESES[b[2].toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')]
-		if (mes) return fechaIso(Number(b[1]), mes, Number(b[3]))
+		const mes = MESES[b[2].toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')]
+		if (mes) return b[3] ? fechaIso(Number(b[1]), mes, Number(b[3])) : conAnioProbable(Number(b[1]), mes, fechaCorreo)
 	}
+	const c = texto.match(sinAnio)
+	if (c) return conAnioProbable(Number(c[1]), Number(c[2]), fechaCorreo)
 	return null
+}
+
+// "Vence el 25/10" sin año: el del correo; si así quedaría más de 2 meses antes del correo, el siguiente.
+function conAnioProbable(dia, mes, fechaCorreo) {
+	const anio = fechaCorreo.getFullYear()
+	const fecha = fechaIso(dia, mes, anio)
+	if (!fecha) return null
+	const limite = new Date(fechaCorreo.getTime() - 60 * 24 * 60 * 60 * 1000)
+	return new Date(fecha + 'T12:00:00Z') < limite ? fechaIso(dia, mes, anio + 1) : fecha
 }
 
 function fechaIso(dia, mes, anio) {
@@ -197,24 +228,29 @@ function fechaIso(dia, mes, anio) {
 	return completo + '-' + String(mes).padStart(2, '0') + '-' + String(dia).padStart(2, '0')
 }
 
+// Números de suministro o de cliente. Si el correo los muestra ocultos ("****6543"), se envían como "*6543"
+// y FamiliaHub los reconoce por sus últimas cifras solo si coinciden con un único servicio.
 function buscarSuministros(texto) {
 	const candidatos = []
-	const etiquetados = /(?:n[°ºo]?\.?\s*(?:de\s+)?suministro|suministro|n[°ºo]?\.?\s*(?:de\s+)?cliente|c[oó]digo\s+de\s+cliente|n[uú]mero\s+de\s+cliente|cuenta\s+contrato|\bnis\b)\s*:?\s*([0-9][0-9 \-]{3,18}[0-9])/gi
+	const etiqueta = '(?:n[°ºo]?\\.?\\s*(?:de\\s+)?suministro|suministro|n[°ºo]?\\.?\\s*(?:de\\s+)?cliente|c[oó]digo\\s+de\\s+(?:cliente|suministro)|n[uú]mero\\s+de\\s+(?:cliente|suministro)|cuenta\\s+contrato|\\bnis\\b)'
+	const etiquetados = new RegExp(etiqueta + '\\s*:?\\s*([*xX•·#]{2,}[ \\-]?[0-9]{3,12}|[0-9][0-9 \\-]{3,18}[0-9])', 'gi')
 	let encontrado
 	while ((encontrado = etiquetados.exec(texto)) !== null) agregar(candidatos, encontrado[1])
 
-	// Respaldo: números sueltos de 6 a 12 dígitos. FamiliaHub solo acepta uno que coincida exactamente
-	// con un suministro registrado de ese proveedor, así que un número cualquiera no confirma nada.
 	if (!candidatos.length) {
-		const sueltos = texto.match(/(?<![0-9.,\/\-])[0-9]{6,12}(?![0-9.,\/\-])/g) || []
+		// Respaldo: números sueltos de 6 a 12 dígitos, u ocultos como "****6543". FamiliaHub solo acepta uno
+		// que coincida con un suministro registrado de ese proveedor, así que un número cualquiera no confirma nada.
+		const sueltos = texto.match(/(?<![0-9.,\/\-])[0-9]{6,12}(?![0-9.,\/\-])|[*xX•·#]{3,}[0-9]{4,12}(?![0-9])/g) || []
 		sueltos.forEach((numero) => agregar(candidatos, numero))
 	}
 	return candidatos.slice(0, 10)
 }
 
 function agregar(lista, valor) {
+	const oculto = /[*xX•·#]/.test(valor)
 	const digitos = String(valor).replace(/[^0-9]/g, '')
-	if (digitos.length >= 5 && digitos.length <= 14 && lista.indexOf(digitos) === -1) lista.push(digitos)
+	const final = oculto ? '*' + digitos : digitos
+	if ((oculto ? digitos.length >= 4 : digitos.length >= 5) && digitos.length <= 14 && lista.indexOf(final) === -1) lista.push(final)
 }
 
 /* ---------- Apoyo ---------- */

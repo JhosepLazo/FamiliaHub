@@ -187,7 +187,11 @@ try {
 	Write-Host ''
 	Write-Host 'FamiliaHub ya puede recibir los recibos digitales.' -ForegroundColor Green
 	Write-Host ''
-	Write-Host 'Falta instalar el script en el Gmail donde llegan los recibos (5 minutos):' -ForegroundColor Cyan
+	Write-Host 'Si YA lo habías instalado antes: abre https://script.google.com con ese Gmail, entra a "FamiliaHub Recibos",' -ForegroundColor Cyan
+	Write-Host 'selecciona todo el código (Ctrl+A), pega el nuevo (Ctrl+V), guarda (Ctrl+S) y ejecuta "instalar" otra vez.' -ForegroundColor Cyan
+	Write-Host 'No crees un proyecto nuevo: con dos proyectos cada correo se leería dos veces.' -ForegroundColor Cyan
+	Write-Host ''
+	Write-Host 'Si es la primera vez, instálalo en el Gmail donde llegan los recibos (5 minutos):' -ForegroundColor Cyan
 	Write-Host '  1. Se abrirá https://script.new. Entra con ESE Gmail.'
 	Write-Host '  2. Borra lo que aparece, pega con Ctrl+V y guarda con Ctrl+S (ponle de nombre "FamiliaHub Recibos").'
 	Write-Host '  3. Arriba, en la lista de funciones, elige "instalar" y pulsa Ejecutar.'
@@ -202,8 +206,11 @@ try {
 	Write-Host '  Cálidda      https://www.calidda.com.pe/recibo-digital'
 	Write-Host ''
 	Write-Host 'Más detalles en recibos-digitales\README.md.'
-	if ((Read-Host 'Presiona Enter para abrir https://script.new (o escribe n para no abrirlo)') -notmatch '^[nN]') {
+	$respuesta = Read-Host 'Enter = abrir tu proyecto existente (script.google.com) · N = primera vez (script.new) · X = no abrir nada'
+	if ($respuesta -match '^[nN]') {
 		Start-Process 'https://script.new'
+	} elseif ($respuesta -notmatch '^[xX]') {
+		Start-Process 'https://script.google.com/home'
 	}
 } catch {
 	Write-Host ''

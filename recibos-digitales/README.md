@@ -70,3 +70,23 @@ FamiliaHub nunca adivina un monto: si algo no cuadra, el recibo se queda esperan
 Cada empresa escribe sus correos a su manera. En el editor del script, elige la función **`probar`** y pulsa
 **Ejecutar**: muestra en el registro lo que leería del último correo de cada empresa, sin enviar nada. Si algo
 sale vacío o mal, ese es el correo que hay que revisar para ajustar el script.
+
+## Qué sabe leer
+
+- **Monto:** "Total a pagar", "Monto a pagar", "Importe total", "Importe", "Monto", "Deuda", "Saldo a pagar", "Total del recibo" o "Total S/ …". Si el correo trae un solo monto en soles, usa ese. Nunca toma "Deuda anterior", consumos en kWh o m³, ni adivina cuando hay varios montos sin etiqueta.
+- **Vencimiento:** "Vence el…", "Fecha de vencimiento", "Fecha límite de pago", "Paga hasta el…", "Pague antes del…", "Vencerá el…", en números (28/10/2026, 28-10-26) o en letras (28 de octubre de 2026, 28 oct). Si no trae el año, usa el del correo.
+- **Suministro:** "N° de suministro", "Número de cliente", "Código de cliente", "Cuenta contrato" o "NIS". Si el correo lo muestra oculto (`****6543`), FamiliaHub lo reconoce por sus últimas 4 cifras o más, siempre que coincidan con un solo servicio.
+
+Lo que no lee: recibos que solo vienen como **PDF adjunto**, sin el monto en el texto del correo.
+
+## Si un mes no llega
+
+Cada servicio con número de suministro de SEDAPAL, Luz del Sur o Cálidda tiene una fecha en la que su recibo digital "ya debería haber llegado": 5 días antes del día en que venció el del mes anterior (o el día 25 si aún no hay historial). Si para entonces no llegó nada, FamiliaHub avisa **una sola vez** en el grupo de WhatsApp a los administradores, con el enlace para registrar el monto.
+
+En **Administrar → Servicios**, cada servicio muestra si su monto es automático o qué le falta (por ejemplo, el número de suministro).
+
+## Actualizar el script
+
+Cuando FamiliaHub mejora el lector, vuelve a ejecutar **`activar.cmd`** (usa la misma clave). Luego, en el Gmail donde lo instalaste, abre https://script.google.com, entra a *FamiliaHub Recibos*, reemplaza todo el código por el nuevo (Ctrl+A, Ctrl+V), guarda y ejecuta **`instalar`** otra vez. No crees un proyecto nuevo: con dos proyectos cada correo se leería dos veces.
+
+Las pruebas del lector están en `lector.test.mjs` (`node --test recibos-digitales/lector.test.mjs`).

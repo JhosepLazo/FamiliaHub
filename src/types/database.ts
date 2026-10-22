@@ -2092,6 +2092,7 @@ export type Database = {
         | "PENDIENTES_ADMIN"
         | "RESUMEN_SEMANAL"
         | "CIERRE_MES"
+        | "RECIBO_DIGITAL_FALTA"
       tipo_cierre_periodo: "AUTOMATICO" | "MANUAL"
       tipo_distribucion_concepto:
         | "IGUAL"
@@ -2294,6 +2295,7 @@ export const Constants = {
         "PENDIENTES_ADMIN",
         "RESUMEN_SEMANAL",
         "CIERRE_MES",
+        "RECIBO_DIGITAL_FALTA",
       ],
       tipo_cierre_periodo: ["AUTOMATICO", "MANUAL"],
       tipo_distribucion_concepto: [
